@@ -1,13 +1,14 @@
 package model
 
 import model.strategy.{Ability, PlayerAI, TurnAction}
-import model.strategy.turnAction.EvolveAction
+import model.strategy.turnAction.{EvolveAction, InfectAction, SabotageAction}
 import org.junit.*
 import org.junit.Assert.assertEquals
 
 class PlayerAITest :
   var player : PlayerAI = _
   var action : TurnAction = _
+  var cities: List[String] = List("Milan", "Rome")
 
   @Before
   def init(): Unit =
@@ -33,3 +34,22 @@ class PlayerAITest :
     assert(playerAfterSecondEvolve.executedActions.size == 2)
     assert(playerAfterSecondEvolve.infectionChance == player.infectionChance + 10)
     assert(playerAfterSecondEvolve.sabotagePower == player.sabotagePower + 5)
+
+
+  @Test
+  def applyInfectActionTest(): Unit =
+    action = InfectAction(Some(cities))
+    val updatedPlayer = player.executeAction(action)
+
+    assert(updatedPlayer.conqueredCities.contains("Milan"))
+    assert(updatedPlayer.conqueredCities.contains("Rome"))
+    assert(updatedPlayer.conqueredCities.size == 2)
+
+  @Test
+  def applySabotageActionTest(): Unit =
+    action = SabotageAction(Some(cities))
+    val updatedPlayer = player.executeAction(action)
+
+    assert(updatedPlayer.sabotagedCities.contains("Milan"))
+    assert(updatedPlayer.sabotagedCities.contains("Rome"))
+    assert(updatedPlayer.sabotagedCities.size == 2)

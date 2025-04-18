@@ -5,12 +5,13 @@ import Ability.*
 
 import scala.util.Random
 case class PlayerAI(
-                   // possible extensions: base value should be inherited from the difficulty options
-                   unlockedAbilities : Set[Ability] = Set.empty,
-                   executedActions: List[TurnAction] = List.empty,
-                   infectionChance: Int = 50, // base probability to infect
-                   sabotagePower: Int = 5, // need to decide,
-                   conqueredCities: Set[String] = Set.empty
+                     // possible extensions: base value should be inherited from the difficulty options
+                     unlockedAbilities : Set[Ability] = Set.empty,
+                     executedActions: List[TurnAction] = List.empty,
+                     infectionChance: Int = 50, // base probability to infect
+                     sabotagePower: Int = 5, // need to decide,
+                     conqueredCities: Set[String] = Set.empty,
+                     sabotagedCities: Set[String] = Set.empty
                    ):
 
   def executeAction(action: TurnAction) : PlayerAI =
@@ -26,8 +27,10 @@ case class PlayerAI(
             )
           case None => this
 
-      case infect : InfectAction => ??? // TODO: try to infect a city
+      case infect : InfectAction => val newCities = infect.targets.getOrElse(Nil)
+        this.copy(conqueredCities = conqueredCities ++ newCities)
 
-      case sabotage : SabotageAction => ??? //TODO: decrease the defense of a city
+      case sabotage : SabotageAction => val newCities = sabotage.targets.getOrElse(Nil)
+        this.copy(sabotagedCities = sabotagedCities ++ newCities)
 
     updatedPlayer.copy(executedActions = action :: executedActions)
