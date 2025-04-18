@@ -18,17 +18,16 @@ case class PlayerAI(
       case evolve : EvolveAction =>
         val maybeNewAbility = Random.shuffle(Ability.allAbilities.diff(unlockedAbilities).toList).headOption
         maybeNewAbility match
-          case Some(newAbility) => this.copy(unlockedAbilities = unlockedAbilities + newAbility)
+          case Some(newAbility) =>
+            this.copy(
+              unlockedAbilities = unlockedAbilities + newAbility,
+              infectionChance = infectionChance + newAbility.infectionBonus,
+              sabotagePower = sabotagePower + newAbility.sabotageBonus
+            )
           case None => this
 
-      case infect : InfectAction =>
-        val newCity = infect.targets.getOrElse(Nil)
-        this.copy(conqueredCities =  conqueredCities ++ newCity)
+      case infect : InfectAction => ??? // TODO: try to infect a city
 
       case sabotage : SabotageAction => ??? //TODO: decrease the defense of a city
 
     updatedPlayer.copy(executedActions = action :: executedActions)
-
-
-
-

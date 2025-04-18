@@ -1,7 +1,7 @@
 package model
 
 import model.strategy.turnAction.{EvolveAction, InfectAction, SabotageAction}
-import model.strategy.{TurnAction, TurnActionType}
+import model.strategy.TurnAction
 import org.junit.Test
 import org.junit.*
 import org.junit.Assert.assertEquals

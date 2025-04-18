@@ -1,9 +1,14 @@
 package model.strategy
 
 object Ability:
-  sealed trait Ability
-  case object ImprovedInfection extends Ability
-  case object StealthSabotage extends Ability
-  case object EvolutionBoost extends Ability
-  
-  val allAbilities : Set[Ability] = Set(ImprovedInfection, StealthSabotage, EvolutionBoost)
+  sealed trait Ability:
+    def infectionBonus: Int = 0
+    def sabotageBonus: Int = 0
+
+  case object ImprovedInfection extends Ability:
+    override def infectionBonus: Int = 10
+
+  case object StealthSabotage extends Ability:
+    override def sabotageBonus: Int = 5
+
+  val allAbilities : Set[Ability] = Set(ImprovedInfection, StealthSabotage)
