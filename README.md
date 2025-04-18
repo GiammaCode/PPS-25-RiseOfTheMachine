@@ -4,3 +4,14 @@
 - Gianmaria Casamenti
 - Luca Pasini
 - Lorenzo Leoni
+
+
+First Realese:
+
+Strutture: 
+    WorldState,
+    WorldMap,
+    City
+
+Stampare 
+Test unitari di base
