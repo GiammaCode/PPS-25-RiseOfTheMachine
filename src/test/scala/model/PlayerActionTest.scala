@@ -7,32 +7,28 @@ import org.junit.*
 import org.junit.Assert.assertEquals
 
 
-class  ActionTest:
+class  PlayerActionTest:
   var action : TurnAction = _
   var cityList: Option[List[String]] = Some(List("Milan", "Rome"))
 
   var value: Option[List[String]] = Some(List("Milan", "Rome"))
 
   @Test
-  def executeInfectActionTest(): Unit = {
+  def executeInfectActionTest(): Unit =
     action = InfectAction(cityList)
     val result = action.execute
     assertEquals("InfectAction on " + value, result)
-  }
 
   @Test
-  def executeSabotageActionTest(): Unit = {
+  def executeSabotageActionTest() : Unit =
     action = SabotageAction(cityList)
     val result = action.execute
     assertEquals("SabotageAction on " + value, result)
-  }
 
   @Test
-  def executeEvolveActionTest() : Unit = {
+  def executeEvolveActionTest() : Unit =
     action = EvolveAction()
     val result = action.execute
     assertEquals("Evolving", result)
-  }
-
 
 
