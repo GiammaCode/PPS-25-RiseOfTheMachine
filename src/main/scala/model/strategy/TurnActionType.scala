@@ -1,3 +1,4 @@
 package model.strategy
 
-trait TurnActionType
+trait TurnActionType :
+  def execute(targets :  Option[List[String]]) : String
