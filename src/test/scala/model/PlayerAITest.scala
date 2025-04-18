@@ -7,6 +7,4 @@ class PlayerAITest :
   var player : PlayerAI = _
 
   @Test
-  def applyEvolveAbilityTest() : Unit = {
-    ???
-  }
+  def applyEvolveAbilityTest() : Unit = ???
