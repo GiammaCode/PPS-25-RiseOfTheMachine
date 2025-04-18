@@ -11,15 +11,15 @@ object MenageCity:
     def getName: String
     def getOwner: Owner
     def getSize: Int
-    def changeOwner(newOwner: Owner): Unit
+    def conqueredCity(): Unit
 
   object City:
-    def apply(name:String, size:Int) : City = BasicCity(name, Owner.HUMAN, size)
+    def apply(name:String, size:Int) : City = new BasicCity(name, size)
 
 
-  private class BasicCity(name: String, startingOwner: Owner, size: Int) extends City:
+  private class BasicCity(name: String, size: Int) extends City:
 
-    private var owner: Owner = startingOwner
+    private var owner: Owner = Owner.HUMAN
 
     override def getName: String = name
 
@@ -27,8 +27,8 @@ object MenageCity:
 
     override def getOwner: Owner = owner
 
-    override def changeOwner(newOwner: Owner): Unit =
-      owner = newOwner
+    override def conqueredCity(): Unit =
+      owner = Owner.AI
 
 
 

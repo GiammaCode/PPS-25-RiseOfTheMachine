@@ -10,8 +10,18 @@ First Realese:
 
 Strutture: 
     WorldState,
+        turn
+        world map
+        IA action
+        Human Action
+        
     WorldMap,
     City
 
 Stampare 
-Test unitari di base
+Test unitari di 
+
+una città è un insieme di caselle che può essere attaccata, sabotata(abbassata la difesa)
+una città può essere anche una capitale quindi più grande e più difficile da sabotare e attaccare
+le città possono essere sabotate, attaccate difese singolarmente e difese collettivamente
+
