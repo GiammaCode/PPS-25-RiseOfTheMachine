@@ -10,5 +10,3 @@ case class InfectAction(targets: Option[List[String]] = None)
 object InfectAction extends TurnActionType :
   override def execute(targets: Option[List[String]]): String =
     s"InfectAction on ${targets}"
-
-
