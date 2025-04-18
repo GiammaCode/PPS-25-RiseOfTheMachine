@@ -4,8 +4,7 @@ import model.strategy.{TurnAction, TurnActionType}
 
 case class SabotageAction(targets: Option[List[String]] = None)
     extends TurnAction(SabotageAction, targets)
-    with TurnActionType
 
-object SabotageAction extends TurnActionType {
-  override def toString: String = "SabotageAction"
-}
+object SabotageAction extends TurnActionType :
+  override def execute(targets: Option[List[String]]): String =
+    s"SabotageAction on ${targets}"
