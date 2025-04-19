@@ -2,8 +2,12 @@ package model.strategy
 
 import model.strategy.turnAction.*
 import Ability.*
+import util.chaining.scalaUtilChainingOps
 
 import scala.util.Random
+
+
+
 case class PlayerAI(
                      // possible extensions: base value should be inherited from the difficulty options
                      unlockedAbilities : Set[Ability] = Set.empty,
@@ -14,23 +18,39 @@ case class PlayerAI(
                      sabotagedCities: Set[String] = Set.empty
                    ):
 
-  def executeAction(action: TurnAction) : PlayerAI =
-    val updatedPlayer = action match
-      case evolve : EvolveAction =>
-        val maybeNewAbility = Random.shuffle(Ability.allAbilities.diff(unlockedAbilities).toList).headOption
-        maybeNewAbility match
-          case Some(newAbility) =>
-            this.copy(
-              unlockedAbilities = unlockedAbilities + newAbility,
-              infectionChance = infectionChance + newAbility.infectionBonus,
-              sabotagePower = sabotagePower + newAbility.sabotageBonus
-            )
-          case None => this
+  def executeAction(action: TurnAction): PlayerAI = action match
+    case action: EvolveAction => evolve
+    case action: InfectAction =>
+      val targets = action.targets.getOrElse(Nil)
+      this.infect(targets)
+    case action: SabotageAction =>
+      val targets = action.targets.getOrElse(Nil)
+      this.sabotage(targets)
+    case _ => this.addAction(action)
 
-      case infect : InfectAction => val newCities = infect.targets.getOrElse(Nil)
-        this.copy(conqueredCities = conqueredCities ++ newCities)
 
-      case sabotage : SabotageAction => val newCities = sabotage.targets.getOrElse(Nil)
-        this.copy(sabotagedCities = sabotagedCities ++ newCities)
+  private def withNewAbility(ability: Ability): PlayerAI = copy(
+    unlockedAbilities = unlockedAbilities + ability,
+    infectionChance = infectionChance + ability.infectionBonus,
+    sabotagePower = sabotagePower + ability.sabotageBonus
+  )
 
-    updatedPlayer.copy(executedActions = action :: executedActions)
+  private def evolve: PlayerAI =
+    Ability.allAbilities
+      .diff(unlockedAbilities)
+      .toList
+      .pipe(Random.shuffle)
+      .headOption
+      .fold(this)(withNewAbility)
+      .addAction(EvolveAction())
+
+  private def infect(cities: List[String]): PlayerAI =
+    copy(conqueredCities = conqueredCities ++ cities)
+      .addAction(InfectAction(Some(cities)))
+
+  private def sabotage(cities: List[String]): PlayerAI =
+    copy(sabotagedCities = sabotagedCities ++ cities)
+      .addAction(SabotageAction(Some(cities)))
+
+  private def addAction(action: TurnAction): PlayerAI =
+    copy(executedActions = action :: executedActions)
