@@ -1,10 +1,11 @@
 import model.WorldMap
+import model.WorldMap.{WorldMap, createWorldMap}
 import org.junit.Assert.{assertEquals, assertFalse, assertTrue}
 import org.junit.Test
 
 class WorldMapTest:
 
-  var worldMap: WorldMap = WorldMap(10)
+  var worldMap: WorldMap = createWorldMap(10)
 
   @Test
   def GetCityTest(): Unit =
