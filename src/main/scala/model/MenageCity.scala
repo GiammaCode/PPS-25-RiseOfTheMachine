@@ -6,29 +6,27 @@ object MenageCity:
     case AI
     case HUMAN
 
-  trait City:
+  trait CityModule:
 
-    def getName: String
-    def getOwner: Owner
-    def getSize: Int
-    def conqueredCity(): Unit
+    type City
+    def createCity(name: String, size: Int): City
+    extension(city: City)
+      def getName: String
+      def getOwner: Owner
+      def getSize: Int
+      def conqueredCity(): City
 
-  object City:
-    def apply(name:String, size:Int) : City = new BasicCity(name, size)
 
+  object BasicCity extends CityModule:
+    case class cityImpl(name:String, size:Int, owner: Owner)
 
-  private class BasicCity(name: String, size: Int) extends City:
-
-    private var owner: Owner = Owner.HUMAN
-
-    override def getName: String = name
-
-    override def getSize: Int = size
-
-    override def getOwner: Owner = owner
-
-    override def conqueredCity(): Unit =
-      owner = Owner.AI
+    opaque type City = cityImpl
+    override def createCity(name: String, size : Int): City = cityImpl(name, size, Owner.HUMAN)
+    extension (city: City)
+      def getName: String = city.name
+      def getSize: Int = city.size
+      def getOwner: Owner = city.owner
+      def conqueredCity(): City = city.copy(owner = Owner.AI)
 
 
 
