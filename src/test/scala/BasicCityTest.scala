@@ -1,15 +1,15 @@
 
-import model.MenageCity.{BasicCity, CityModule, Owner}
 import model.MenageCity.BasicCity.{City, createCity}
+import model.MenageCity.{BasicCity, Owner}
 import org.junit.*
 import org.junit.Assert.*
 class BasicCityTest:
-  val cityModule: CityModule = BasicCity
-  var city: cityModule.City = cityModule.createCity("A", 3)
-
+  var city: City = createCity("A", 3)
+  @Test
+  def CreateMethodBasicCityTest():Unit =
+    assertEquals(city, createCity("A",3))
   @Test
   def GetMethodBasicCityTest(): Unit =
-    assertEquals(3,createCity("B",3).getSize)
     assertEquals( "A", city.getName)
     assertEquals( Owner.HUMAN, city.getOwner)
 
