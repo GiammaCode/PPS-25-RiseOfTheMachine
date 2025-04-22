@@ -19,7 +19,7 @@ case class PlayerAI(
                    ):
 
   def executeAction(action: TurnAction): PlayerAI = action match
-    case action: EvolveAction => evolve
+    case _: EvolveAction => evolve
     case action: InfectAction =>
       val targets = action.targets.getOrElse(Nil)
       this.infect(targets)
