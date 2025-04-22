@@ -61,3 +61,11 @@ class CLIViewTest:
       view.showTurn(turn)
     )
     assertTrue(output.contains("TURN 5"))
+
+  @Test
+  def showStatusTest() : Unit =
+    val output = captureStdOut {
+      view.showStatus(5, 15, List("ability1", "ability2"))
+    }
+    assertTrue(output.contains("Infected city: 5/15 (33%)"))
+    assertTrue(output.contains("ability1, ability2"))
