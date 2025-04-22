@@ -1,7 +1,8 @@
 package model
 
-import model.strategy.turnAction.{EvolveAction, InfectAction, SabotageAction}
+
 import model.strategy.TurnAction
+import model.strategy.playerActions.*
 import org.junit.Test
 import org.junit.*
 import org.junit.Assert.assertEquals
@@ -9,9 +10,9 @@ import org.junit.Assert.assertEquals
 
 class  PlayerActionTest:
   var action : TurnAction = _
-  var cityList: Option[List[String]] = Some(List("Milan", "Rome"))
+  var cityList: List[String] = List("Milan", "Rome")
 
-  var value: Option[List[String]] = Some(List("Milan", "Rome"))
+  var value: List[String] = List("Milan", "Rome")
 
   @Test
   def executeInfectActionTest(): Unit =
