@@ -1,9 +1,9 @@
 package model.strategy
 
-import model.strategy.turnAction.*
 import Ability.*
-import util.chaining.scalaUtilChainingOps
+import model.strategy.playerActions.*
 
+import util.chaining.scalaUtilChainingOps
 import scala.util.Random
 
 
@@ -21,10 +21,10 @@ case class PlayerAI(
   def executeAction(action: TurnAction): PlayerAI = action match
     case _: EvolveAction => evolve
     case action: InfectAction =>
-      val targets = action.targets.getOrElse(Nil)
+      val targets = action.targets
       this.infect(targets)
     case action: SabotageAction =>
-      val targets = action.targets.getOrElse(Nil)
+      val targets = action.targets
       this.sabotage(targets)
     case _ => this.addAction(action)
 
@@ -46,11 +46,11 @@ case class PlayerAI(
 
   private def infect(cities: List[String]): PlayerAI =
     copy(conqueredCities = conqueredCities ++ cities)
-      .addAction(InfectAction(Some(cities)))
+      .addAction(InfectAction(cities))
 
   private def sabotage(cities: List[String]): PlayerAI =
     copy(sabotagedCities = sabotagedCities ++ cities)
-      .addAction(SabotageAction(Some(cities)))
+      .addAction(SabotageAction(cities))
 
   private def addAction(action: TurnAction): PlayerAI =
     copy(executedActions = action :: executedActions)

@@ -1,7 +1,7 @@
 package model
 
+import model.strategy.playerActions.*
 import model.strategy.{Ability, PlayerAI, TurnAction}
-import model.strategy.turnAction.{EvolveAction, InfectAction, SabotageAction}
 import org.junit.*
 import org.junit.Assert.assertEquals
 
@@ -38,7 +38,7 @@ class PlayerAITest :
 
   @Test
   def applyInfectActionTest(): Unit =
-    action = InfectAction(Some(cities))
+    action = InfectAction(cities)
     val updatedPlayer = player.executeAction(action)
 
     assert(updatedPlayer.conqueredCities.contains("Milan"))
@@ -47,7 +47,7 @@ class PlayerAITest :
 
   @Test
   def applySabotageActionTest(): Unit =
-    action = SabotageAction(Some(cities))
+    action = SabotageAction(cities)
     val updatedPlayer = player.executeAction(action)
 
     assert(updatedPlayer.sabotagedCities.contains("Milan"))
