@@ -53,3 +53,25 @@ class PlayerAITest :
     assert(updatedPlayer.sabotagedCities.contains("Milan"))
     assert(updatedPlayer.sabotagedCities.contains("Rome"))
     assert(updatedPlayer.sabotagedCities.size == 2)
+
+  @Test
+  def playerToStringTest(): Unit =
+    val infectedPlayer = player.executeAction(InfectAction(List("Milan")))
+    val sabotagedPlayer = infectedPlayer.executeAction(SabotageAction(List("Rome")))
+    val evolvedPlayer = sabotagedPlayer.executeAction(EvolveAction())
+
+    val output = evolvedPlayer.toString
+    print(output)
+
+    assert(output.contains("Unlocked Abilities"))
+    assert(output.contains("Infection Chance"))
+    assert(output.contains("Sabotage Power"))
+    assert(output.contains("Conquered Cities"))
+    assert(output.contains("Sabotaged Cities"))
+    assert(output.contains("Executed Actions"))
+
+    assert(output.contains("Milan"))
+    assert(output.contains("Rome"))
+    assert(output.contains("InfectAction"))
+    assert(output.contains("SabotageAction"))
+    assert(output.contains("Evolving")) // da EvolveAction

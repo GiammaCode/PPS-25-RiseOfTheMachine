@@ -28,6 +28,17 @@ case class PlayerAI(
       this.sabotage(targets)
     case _ => this.addAction(action)
 
+  override def toString: String =
+    s"""|--- PlayerAI Status ---
+        |Unlocked Abilities   : ${if (unlockedAbilities.isEmpty) "None" else unlockedAbilities.mkString(", ")}
+        |Infection Chance     : $infectionChance%
+        |Sabotage Power       : $sabotagePower
+        |Conquered Cities     : ${if (conqueredCities.isEmpty) "None" else conqueredCities.mkString(", ")}
+        |Sabotaged Cities     : ${if (sabotagedCities.isEmpty) "None" else sabotagedCities.mkString(", ")}
+        |Executed Actions     :
+        |  ${if (executedActions.isEmpty) "None" else executedActions.map(_.execute).mkString("\n  ")}
+        |------------------------
+     """.stripMargin
 
   private def withNewAbility(ability: Ability): PlayerAI = copy(
     unlockedAbilities = unlockedAbilities + ability,
