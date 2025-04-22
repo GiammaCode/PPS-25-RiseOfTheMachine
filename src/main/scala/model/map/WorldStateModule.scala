@@ -1,8 +1,9 @@
-package model
+package model.map
 
-import model.WorldMap.{WorldMap, createWorldMap}
+import model.map.WorldMap.{WorldMap, createWorldMap}
 
-class WorldState():
+object  WorldStateModule:
+  type WorldState
 
   val turn: Int = 0
   val worldMap: WorldMap = createWorldMap(10)
