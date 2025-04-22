@@ -25,3 +25,10 @@ una città è un insieme di caselle che può essere attaccata, sabotata(abbassat
 una città può essere anche una capitale quindi più grande e più difficile da sabotare e attaccare
 le città possono essere sabotate, attaccate difese singolarmente e difese collettivamente
 
+
+
+Interazioni:
+    Creo due variabili sia l'IA che l'umanità dove ad ogni turno dopo la scelta dell'utente/i 
+    chiamo il metodo execute action che mi restituisce la variabile aggiornata da cui aggiorno la mappa
+
+

@@ -1,15 +1,21 @@
 package model.map
 
-import model.map.WorldMap.{WorldMap, createWorldMap}
+import model.map.WorldMapModule.{WorldMap, createWorldMap}
 
 object  WorldStateModule:
-  type WorldState
 
-  val turn: Int = 0
+  opaque type WorldState = (Int, WorldMap)
+
+  private var turn: Int = 0
   val worldMap: WorldMap = createWorldMap(10)
   val killSwitchPercentage: Int= 0
 
-  def IsGameOver(): Boolean = ???//worldMap.AIConquerPercetage > 70
-  def updateState(): WorldState = ???
+  private def currentTurn(): Int =
+    turn = turn+1
+    turn
+
+  def IsGameOver(): Boolean = worldMap.numberOfCityInfected() > 10//worldMap.AIConquerPercetage > 70
+  def updateState(): WorldState = (currentTurn(),worldMap.update()) //come input avremo le azione dell'IA e degli umani
+  def getMap: WorldMap = worldMap
 
 
