@@ -1,7 +1,8 @@
 package view
 
 case class CLIView() extends GameView():
-  def showTurn(turn: Int): Unit = ???
+  def showTurn(turn: Int): Unit =
+    println(s"\n-----RISE OF THE MACHINE - TURN $turn-----\n")
 
   //showMap(map: MapGrid)
   def showMap(): Unit = ???
