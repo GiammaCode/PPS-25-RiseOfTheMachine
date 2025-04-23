@@ -1,5 +1,7 @@
 package model.strategy
 
+trait PlayerAIAction extends TurnAction
+
 object PlayerAIActionTypes :
   
   case object Sabotage extends TurnActionType :
@@ -18,9 +20,9 @@ package object playerActions :
   import PlayerAIActionTypes._
 
   case class SabotageAction(override val targets: List[String] = List.empty)
-    extends TurnAction(Sabotage, targets)
+    extends TurnAction(Sabotage, targets) with PlayerAIAction
 
   case class InfectAction(override val targets: List[String] = List.empty)
-    extends TurnAction(Infect, targets)
+    extends TurnAction(Infect, targets) with PlayerAIAction
 
-  case class EvolveAction() extends TurnAction(Evolve)
+  case class EvolveAction() extends TurnAction(Evolve) with PlayerAIAction
