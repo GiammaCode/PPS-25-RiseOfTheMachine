@@ -1,6 +1,6 @@
 package model
 
-import model.strategy.HumanActions.*
+import model.strategy.humanActions.*
 import model.strategy.{TurnAction, TurnActionType}
 import org.junit.Test
 import org.junit.*
