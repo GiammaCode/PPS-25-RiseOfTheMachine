@@ -1,6 +1,6 @@
 package model.strategy
 
-import Ability.*
+import AiAbility.*
 import model.strategy.playerActions.*
 
 import util.chaining.scalaUtilChainingOps
@@ -10,7 +10,7 @@ import scala.util.Random
 
 case class PlayerAI(
                      // possible extensions: base value should be inherited from the difficulty options
-                     unlockedAbilities : Set[Ability] = Set.empty,
+                     unlockedAbilities : Set[AiAbility] = Set.empty,
                      executedActions: List[PlayerAIAction] = List.empty,
                      infectionChance: Int = 50, // base probability to infect
                      sabotagePower: Int = 5, // need to decide,
@@ -40,14 +40,14 @@ case class PlayerAI(
         |------------------------
      """.stripMargin
 
-  private def withNewAbility(ability: Ability): PlayerAI = copy(
+  private def withNewAbility(ability: AiAbility): PlayerAI = copy(
     unlockedAbilities = unlockedAbilities + ability,
     infectionChance = infectionChance + ability.infectionBonus,
     sabotagePower = sabotagePower + ability.sabotageBonus
   )
 
   private def evolve: PlayerAI =
-    Ability.allAbilities
+    AiAbility.allAbilities
       .diff(unlockedAbilities)
       .toList
       .pipe(Random.shuffle)

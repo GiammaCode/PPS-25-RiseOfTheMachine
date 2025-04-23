@@ -1,7 +1,7 @@
 package model
 
 import model.strategy.playerActions.*
-import model.strategy.{Ability, PlayerAI, PlayerAIAction, TurnAction}
+import model.strategy.{AiAbility, PlayerAI, PlayerAIAction, TurnAction}
 import org.junit.*
 import org.junit.Assert.assertEquals
 
@@ -18,10 +18,10 @@ class PlayerAITest :
     action = EvolveAction()
     val updatedPlayer = player.executeAction(action)
     assert(updatedPlayer.unlockedAbilities.nonEmpty)
-    if (updatedPlayer.unlockedAbilities.contains(Ability.ImprovedInfection)) {
+    if (updatedPlayer.unlockedAbilities.contains(AiAbility.ImprovedInfection)) {
       assert(updatedPlayer.infectionChance == player.infectionChance + 10)
     }
-    if (updatedPlayer.unlockedAbilities.contains(Ability.StealthSabotage)) {
+    if (updatedPlayer.unlockedAbilities.contains(AiAbility.StealthSabotage)) {
       assert(updatedPlayer.sabotagePower == player.sabotagePower + 5)
     }
 
