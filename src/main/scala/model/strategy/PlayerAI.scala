@@ -11,18 +11,18 @@ import scala.util.Random
 case class PlayerAI(
                      // possible extensions: base value should be inherited from the difficulty options
                      unlockedAbilities : Set[AiAbility] = Set.empty,
-                     executedActions: List[PlayerAIAction] = List.empty,
+                     executedActions: List[AiAction] = List.empty,
                      infectionChance: Int = 50, // base probability to infect
                      sabotagePower: Int = 5, // need to decide,
                      conqueredCities: Set[String] = Set.empty,
                      sabotagedCities: Set[String] = Set.empty
                    ) extends PlayerEntity:
 
-  override type ValidAction = PlayerAIAction
+  override type ValidAction = AiAction
 
   override def executeAction(action: ValidAction): PlayerAI = doExecuteAction(action)
 
-  private def doExecuteAction(action: PlayerAIAction): PlayerAI = action match
+  private def doExecuteAction(action: AiAction): PlayerAI = action match
     case _: EvolveAction => evolve
     case action: InfectAction => this.infect(action.targets)
     case action: SabotageAction => this.sabotage(action.targets)
@@ -63,5 +63,5 @@ case class PlayerAI(
     copy(sabotagedCities = sabotagedCities ++ cities)
       .addAction(SabotageAction(cities))
 
-  private def addAction(action: PlayerAIAction): PlayerAI =
+  private def addAction(action: AiAction): PlayerAI =
     copy(executedActions = action :: executedActions)

@@ -1,8 +1,8 @@
 package model.strategy
 
-trait PlayerAIAction extends TurnAction
+trait AiAction extends TurnAction
 
-object PlayerAIActionTypes :
+object AiActionTypes :
   
   case object Sabotage extends TurnActionType :
     override def execute(targets: List[String]): String =
@@ -17,12 +17,12 @@ object PlayerAIActionTypes :
       s"Evolving"
 
 package object playerActions :
-  import PlayerAIActionTypes._
+  import AiActionTypes._
 
   case class SabotageAction(override val targets: List[String] = List.empty)
-    extends TurnAction(Sabotage, targets) with PlayerAIAction
+    extends TurnAction(Sabotage, targets) with AiAction
 
   case class InfectAction(override val targets: List[String] = List.empty)
-    extends TurnAction(Infect, targets) with PlayerAIAction
+    extends TurnAction(Infect, targets) with AiAction
 
-  case class EvolveAction() extends TurnAction(Evolve) with PlayerAIAction
+  case class EvolveAction() extends TurnAction(Evolve) with AiAction
