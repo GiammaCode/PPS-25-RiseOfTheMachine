@@ -33,12 +33,12 @@ class CLIViewTest:
   @Test
   def showTurnTest(): Unit =
     val turn = 5
-    val result = view.showTurn(turn)
+    val result = view.renderTurn(turn)
     assertEquals("\n-----RISE OF THE MACHINE - TURN 5-----\n", result)
 
   @Test
   def showStatusTest(): Unit =
-    val result = view.showStatus(3, 15, List("ability1", "ability2"))
+    val result = view.renderStatus(3, 15, List("ability1", "ability2"))
     assertEquals("Infected city: 3/15 --> 20.0%\nAbilities unlocked: ability1,ability2\n", result)
 
   @Test
@@ -48,7 +48,7 @@ class CLIViewTest:
       ("B", Set((2, 0), (0, 1), (1, 1), (2, 1))),
       ("C", Set((0, 2), (1, 2), (2, 2)))
     )
-    val output = view.showMap(testMatrix, 3, 3)
+    val output = view.renderMap(testMatrix, 3, 3)
 
     assertTrue(output.contains("A B C"))
     assertTrue(output.contains("A B C"))
@@ -57,7 +57,7 @@ class CLIViewTest:
   @Test
   def askActionTest(): Unit =
     val options = List("Infect", "Sabotages", "Exit")
-    val result = view.askAction(options)
+    val result = view.renderActionMenu(options)
     assertEquals("\nSelect your action:" +
       "\n1. Infect" +
       "\n2. Sabotages" +
