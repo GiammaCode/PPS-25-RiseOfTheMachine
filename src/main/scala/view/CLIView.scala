@@ -17,9 +17,13 @@ case class CLIView() extends GameView():
     println(s"Infected city: $infectedCity/$totalCity --> $percentageDone" +
       s"\nAbilities unlocked: ${abilities.mkString(",")}")
 
-  def askAction(option: List[String]): Unit = ???
-
-  def showMessages(msg: String): Unit = ???
+  def askAction(options: List[String]): Int =
+    println("select your action:")
+    options.zipWithIndex.foreach { case (option,index) =>
+      println(s"$index. $option")
+    }
+    println("Insert your action > ")
+    scala.io.StdIn.readInt()
 
 @main def CliViewMain(): Unit =
   val worldMap: Set[(String, Set[(Int, Int)])] = Set(
@@ -37,8 +41,14 @@ case class CLIView() extends GameView():
 
   val view  = CLIView()
   val abilities = List("ab1", "ab2")
+  val options = List("Infect adjacent city", "Sabotages adjacent city",
+  "Evolve new capacity", "Auto -shift", "Exit")
+
   view.showTurn(5)
   view.showStatus(3,15, abilities)
   view.showMap(worldMap, 10, 10)
+  val opt = view.askAction(options)
+
+  print(s"option choosed: $opt")
 
 

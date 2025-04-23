@@ -4,7 +4,7 @@ import org.junit.Test
 import org.junit.*
 import org.junit.Assert.{assertEquals, assertTrue}
 
-import java.io.{ByteArrayOutputStream, PrintStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 
 /**
 ## Esempio di turno
@@ -22,14 +22,14 @@ Stato attuale:
 3  S I S S S S S S S S
 4  S S S S S S S S S S
 
-Seleziona la tua azione:
-1. Infetta città adiacente
-3. Sabota città adiacente
-4. Evolvi nuova capacità
-5. Auto-turno (AI decide)
-0. Esci
+Select your action:
+1. Infect adjacent city
+2. Sabotages adjacent city
+3. Evolve new capacity
+4. Auto-shift
+0. Exit
 
-Inserisci il numero dell'azione > _
+Insert your action > _
  */
 
 class CLIViewTest:
@@ -69,3 +69,35 @@ class CLIViewTest:
     }
     assertTrue(output.contains("Infected city: 5/15 (33%)"))
     assertTrue(output.contains("ability1, ability2"))
+
+  /*
+  Test matrix layout
+  A B C
+  A B C
+  B B C
+  * */
+  @Test
+  def showMapTest() : Unit =
+    val testMatrix  = Set(
+      ("A", Set((0,0),(1,0))),
+      ("B", Set((2,0), (0,1), (1,1), (2,1))),
+      ("C", Set((0,2), (1,2), (2,2)))
+    )
+    val output = captureStdOut{
+      view.showMap(testMatrix, 3, 3)
+    }
+    assertTrue(output.contains("A B C"))
+    assertTrue(output.contains("A B C"))
+    assertTrue(output.contains("B B C"))
+
+  @Test
+  def askActionTest: Unit =
+    val fakeInput = new ByteArrayInputStream("2\n".getBytes)
+    val originalIn = System.in
+    val options = List("Infect", "Sabotages", "Exit")
+
+    System.setIn(fakeInput)
+    val result = view.askAction(options)
+    assertEquals(2, result)
+    System.setIn(originalIn)
+
