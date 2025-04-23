@@ -4,16 +4,16 @@ import model.map.WorldMapModule.WorldMap
 object ViewModule:
   trait GameView:
     def renderTurn(turn: Int): String
-    def renderMap(worldMap: WorldMap, size: Int): String
+    def renderMap(worldMap: WorldMap): String
     def renderStatus(infectedCity: Int, totalCity: Int, abilities: List[String]): String
     def renderActionMenu(options: List[String]): String
 
   case class CLIView() extends GameView():
     def renderTurn(turn: Int): String = s"\n-----RISE OF THE MACHINE - TURN $turn-----\n"
 
-    def renderMap(worldMap: WorldMap, size:Int): String =
-      (0 until size).map { y =>
-        (0 until size).map { x =>
+    def renderMap(worldMap: WorldMap): String =
+      (0 until worldMap.getSize).map { y =>
+        (0 until worldMap.getSize).map { x =>
           worldMap.findInMap { case (_, coords) => coords.contains((x, y)) }
             .get
         }.mkString(" ")

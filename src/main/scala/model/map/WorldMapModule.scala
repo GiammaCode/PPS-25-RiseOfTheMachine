@@ -61,16 +61,17 @@ object WorldMapModule:
       CreateMapModule.createMap(size)
 
     extension (worldMap: WorldMap)
-
       def update(): WorldMap = ???
+      def getSize: Int =
+      worldMap.flatMap(_._2).foldLeft(0) { case (acc, (x, y)) =>
+        math.max(acc, math.max(x, y))} + 1
       def targetCity(name:String): City =
       worldMap.find(_._1.getName=="A").get._1
       def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
-
       def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
-        worldMap.find { case (city, coords) => f(city, coords) }
-        .flatMap { case (city, coords) => coords.headOption.map(c => city.getName)}
-      def renderMap (): Set[String] =worldMap.map(_._1.getName);
+        worldMap.collectFirst { case (city, coords) if f(city, coords) => city.getName }
+      def renderMap (): Set[String] = worldMap.map(_._1.getName);
+
 
 
 
