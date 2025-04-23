@@ -4,12 +4,10 @@ case class CLIView() extends GameView():
   def renderTurn(turn: Int): String = s"\n-----RISE OF THE MACHINE - TURN $turn-----\n"
 
   def renderMap(worldMap: Set[(String, Set[(Int, Int)])], width: Int, height: Int): String =
-    val matrix: Map[(Int, Int), String] = worldMap.flatMap {
-      case (city, coords) => coords.map(coord => coord -> city)
-    }.toMap
     (0 until height).map { y =>
       (0 until width).map { x =>
-        matrix.getOrElse((x, y), " ")
+        worldMap.find { case (_, coords) => coords.contains((x, y)) }
+          .get._1
       }.mkString(" ")
     }.mkString("\n")
 

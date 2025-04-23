@@ -12,9 +12,9 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
  * Infected city: 3/15 --> 20.0%
  * Abilities unlocked: ab1,ab2
  *
- * A B C
- * A B C
- * B B C
+ * A A B
+ * B B B
+ * C C C
  * Select your action:
  * 1. Infect
  * 2. Sabotages
