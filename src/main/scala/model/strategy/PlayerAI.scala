@@ -17,11 +17,11 @@ case class PlayerAI(
                      conqueredCities: Set[String] = Set.empty,
                      sabotagedCities: Set[String] = Set.empty
                    ) extends PlayerEntity:
-  
+
   override type ValidAction = PlayerAIAction
 
-  override def executeAction(action: ValidAction): PlayerEntity = doExecuteAction(action)
-  
+  override def executeAction(action: ValidAction): PlayerAI = doExecuteAction(action)
+
   private def doExecuteAction(action: PlayerAIAction): PlayerAI = action match
     case _: EvolveAction => evolve
     case action: InfectAction => this.infect(action.targets)
