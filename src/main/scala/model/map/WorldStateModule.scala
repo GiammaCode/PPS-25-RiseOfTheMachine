@@ -1,13 +1,12 @@
 package model.map
-
-import model.map.WorldMapModule.{WorldMap, createWorldMap}
+import model.map.WorldMapModule.*
 
 object  WorldStateModule:
 
   opaque type WorldState = (Int, WorldMap)
 
   private var turn: Int = 0
-  val worldMap: WorldMap = createWorldMap(10)
+  val worldMap: WorldMap = createWorldMap(10)(UndeterministicMapModule)
   val killSwitchPercentage: Int= 0
 
   private def currentTurn(): Int =
