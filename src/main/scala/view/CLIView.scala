@@ -4,11 +4,14 @@ case class CLIView() extends GameView():
   def renderTurn(turn: Int): String = s"\n-----RISE OF THE MACHINE - TURN $turn-----\n"
 
   def renderMap(worldMap: Set[(String, Set[(Int, Int)])], width: Int, height: Int): String =
-    val grid = Array.fill(height, width)(" ")
-    for (city, coords) <- worldMap do
-      for (x, y) <- coords do
-        grid(x)(y) = city
-    grid.map(_.mkString(" ")).mkString("\n")
+    val matrix: Map[(Int, Int), String] = worldMap.flatMap {
+      case (city, coords) => coords.map(coord => coord -> city)
+    }.toMap
+    (0 until height).map { y =>
+      (0 until width).map { x =>
+        matrix.getOrElse((x, y), " ")
+      }.mkString(" ")
+    }.mkString("\n")
 
   def renderStatus(infectedCity: Int, totalCity: Int, abilities: List[String]): String =
     val percentageDone: Double = infectedCity.toDouble / totalCity * 100
@@ -16,9 +19,8 @@ case class CLIView() extends GameView():
       s"\nAbilities unlocked: ${abilities.mkString(",")}\n"
 
   def renderActionMenu(options: List[String]): String =
-    "\nSelect your action:\n" +
-      options.zipWithIndex.map { case (option, index) => s"${index + 1}. $option" }.mkString("\n") +
-      "\nInsert your action > "
-
-
+    val header = "\nSelect your action:\n"
+    val body = options.zipWithIndex.map { case (option, index) => s"${index + 1}. $option" }.mkString("\n")
+    val footer = "\nInsert your action > "
+    header + body + footer
 
