@@ -1,6 +1,6 @@
 package model.strategy
 
-object PlayerActionTypes :
+object PlayerAIActionTypes :
   
   case object Sabotage extends TurnActionType :
     override def execute(targets: List[String]): String =
@@ -15,7 +15,7 @@ object PlayerActionTypes :
       s"Evolving"
 
 package object playerActions :
-  import PlayerActionTypes._
+  import PlayerAIActionTypes._
 
   case class SabotageAction(override val targets: List[String] = List.empty)
     extends TurnAction(Sabotage, targets)
