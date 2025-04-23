@@ -1,7 +1,6 @@
 package model
 
-import model.strategy.turnAction.CityDefenseAction
-import model.strategy.turnAction.GlobalDefenseAction
+import model.strategy.turnAction.{CityDefenseAction, DevelopKillSwitchAction, GlobalDefenseAction}
 import model.strategy.{TurnAction, TurnActionType}
 import org.junit.Test
 import org.junit.*
@@ -19,7 +18,14 @@ class HumanActiontest:
     assertEquals("CityDefenseAction on Some(List(Milan))", result)
 
   @Test
-  def AllCityDefenseTest(): Unit =
+  def allCityDefenseTest(): Unit =
     action = GlobalDefenseAction(targets)
     val result = action.execute
     assertEquals("GlobalDefenseAction on Some(List(Milan, Rome))", result)
+
+  @Test
+  def developKillSwitchTest(): Unit =
+    action = DevelopKillSwitchAction()
+    val result = action.execute
+    assertEquals("DevelopKillSwitchAction is done", result)
+
