@@ -11,8 +11,12 @@ object  WorldStateModule:
   val killSwitchPercentage: Int= 0
 
   private def currentTurn(): Int =
-    turn = turn+1
+    increaseTurn()
     turn
+
+  private def increaseTurn(): Unit =
+    turn = turn + 1
+
 
   def IsGameOver(): Boolean = worldMap.numberOfCityInfected() > 10//worldMap.AIConquerPercetage > 70
   def updateState(): WorldState = (currentTurn(),worldMap.update()) //come input avremo le azione dell'IA e degli umani

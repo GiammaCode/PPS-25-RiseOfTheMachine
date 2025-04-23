@@ -32,3 +32,7 @@ Interazioni:
     chiamo il metodo execute action che mi restituisce la variabile aggiornata da cui aggiorno la mappa
 
 
+- loro mi restituiscono delle azioni da applicare alle città
+- come facciamo con le evoluzioni?
+- nella cli per ogni azione dobbiamo restituire le possibilità di successo per permettere 
+  all'utente di decidere in maniera sensata all'azione da fare
