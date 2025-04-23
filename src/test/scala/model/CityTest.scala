@@ -1,3 +1,5 @@
+package model
+
 
 import model.map.CityModule.CityImpl.{City, createCapital, createCity}
 import model.map.CityModule.Owner

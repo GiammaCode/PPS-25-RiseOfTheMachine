@@ -1,3 +1,5 @@
+package model
+
 import org.junit.*
 import org.junit.Assert.*
 

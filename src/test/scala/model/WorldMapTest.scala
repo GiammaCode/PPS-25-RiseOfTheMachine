@@ -1,5 +1,7 @@
-import model.map.WorldMapModule.{WorldMap, createWorldMap}
+package model
+
 import model.map.WorldMapModule
+import model.map.WorldMapModule.{WorldMap, createWorldMap}
 import org.junit.Assert.{assertEquals, assertFalse, assertTrue}
 import org.junit.Test
 
