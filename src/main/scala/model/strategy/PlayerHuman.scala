@@ -1,27 +1,35 @@
 package model.strategy
 
-import  model.strategy.humanActions.*
+import model.strategy.humanActions.*
 
 case class PlayerHuman(
-                      executedActions: List[HumanAction],
-                      conqueredCities: Set[String] = Set("A", "B", "c"),
-                      killSwitch: Int = 0,
-                      defendedCities : Set[String]
+                        executedActions: List[HumanAction] = List.empty,
+                        conqueredCities: Set[String] = Set("A", "B", "c"),
+                        killSwitch: Int = 0,
+                        defendedCities: Set[String] = Set.empty
                       ) extends PlayerEntity:
 
   override type ValidAction = HumanAction
 
   override def executeAction(action: ValidAction): PlayerHuman =
-
     doExecuteAction(action)
+
+  override def toString : String =
+  s"""|--- Human Status ---
+      |Conquered Cities     : ${if (conqueredCities.isEmpty) "None" else conqueredCities.mkString(", ")}
+      |Defended Cities     : ${if (defendedCities.isEmpty) "None" else defendedCities.mkString(", ")}
+      |Executed Actions     :
+      |  ${if (executedActions.isEmpty) "None" else executedActions.map(_.execute).mkString("\n  ")}
+      |------------------------
+     """.stripMargin
+
 
   private def doExecuteAction(action: HumanAction): PlayerHuman = action match
     case action: CityDefenseAction => singleCityDefense(action.targets)
     case action: GlobalDefenseAction => globalDefense(action.targets)
     case action: DevelopKillSwitchAction => developKillSwitchAction
 
-
-  private def singleCityDefense(city: List[String]) : PlayerHuman =
+  private def singleCityDefense(city: List[String]): PlayerHuman =
     copy(defendedCities = defendedCities ++ city)
       .addAction(CityDefenseAction(city))
 
@@ -33,4 +41,5 @@ case class PlayerHuman(
 
   private def addAction(action: HumanAction): PlayerHuman =
     copy(executedActions = action :: executedActions)
+
 
