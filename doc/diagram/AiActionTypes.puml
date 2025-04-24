@@ -1,0 +1,13 @@
+@startuml AiActionTypes
+
+package model.strategy {
+  interface TurnActionType {
+    +execute(targets: List<String>): String
+  }
+
+  class Sabotage implements TurnActionType
+  class Infect implements TurnActionType
+  class Evolve implements TurnActionType
+}
+
+@enduml
