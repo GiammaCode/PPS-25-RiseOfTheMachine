@@ -1,13 +1,13 @@
 package model
 
 import model.strategy.playerActions.*
-import model.strategy.{AiAbility, PlayerAI, PlayerAIAction, TurnAction}
+import model.strategy.{AiAbility, PlayerAI, AiAction, TurnAction}
 import org.junit.*
 import org.junit.Assert.assertEquals
 
 class PlayerAITest :
   var player : PlayerAI = _
-  var action : PlayerAIAction = _
+  var action : AiAction = _
   var cities: List[String] = List("Milan", "Rome")
 
   @Before
