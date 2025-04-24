@@ -1,13 +1,13 @@
 package model
 
 import model.strategy.playerActions.*
-import model.strategy.{Ability, PlayerAI, TurnAction}
+import model.strategy.{AiAbility, PlayerAI, AiAction, TurnAction}
 import org.junit.*
 import org.junit.Assert.assertEquals
 
 class PlayerAITest :
   var player : PlayerAI = _
-  var action : TurnAction = _
+  var action : AiAction = _
   var cities: List[String] = List("Milan", "Rome")
 
   @Before
@@ -18,10 +18,10 @@ class PlayerAITest :
     action = EvolveAction()
     val updatedPlayer = player.executeAction(action)
     assert(updatedPlayer.unlockedAbilities.nonEmpty)
-    if (updatedPlayer.unlockedAbilities.contains(Ability.ImprovedInfection)) {
+    if (updatedPlayer.unlockedAbilities.contains(AiAbility.ImprovedInfection)) {
       assert(updatedPlayer.infectionChance == player.infectionChance + 10)
     }
-    if (updatedPlayer.unlockedAbilities.contains(Ability.StealthSabotage)) {
+    if (updatedPlayer.unlockedAbilities.contains(AiAbility.StealthSabotage)) {
       assert(updatedPlayer.sabotagePower == player.sabotagePower + 5)
     }
 
