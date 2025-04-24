@@ -26,7 +26,6 @@ case class PlayerAI(
     case _: EvolveAction => evolve
     case action: InfectAction => this.infect(action.targets)
     case action: SabotageAction => this.sabotage(action.targets)
-    case _ => this.addAction(action)
 
   override def toString: String =
     s"""|--- PlayerAI Status ---
