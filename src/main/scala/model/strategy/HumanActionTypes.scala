@@ -1,4 +1,5 @@
 package model.strategy
+trait HumanAction extends TurnAction
 
 object HumanActionTypes:
 
@@ -14,16 +15,16 @@ object HumanActionTypes:
     override def execute(targets: List[String]): String =
       s"DevelopKillSwitchAction is done"
 
-package object HumanActions:
+package object humanActions:
   import HumanActionTypes._
 
   case class CityDefenseAction(override val targets: List[String] = List.empty)
-    extends TurnAction(CityDefense, targets)
+    extends TurnAction(CityDefense, targets) with HumanAction
 
   case class GlobalDefenseAction(override val targets: List[String] = List.empty)
-    extends TurnAction(GlobalDefense, targets)
+    extends TurnAction(GlobalDefense, targets)  with HumanAction
 
   case class DevelopKillSwitchAction(override val targets: List[String] = List.empty)
-    extends TurnAction(DevelopKillSwitch, targets)
+    extends TurnAction(DevelopKillSwitch, targets)  with HumanAction
 
 
