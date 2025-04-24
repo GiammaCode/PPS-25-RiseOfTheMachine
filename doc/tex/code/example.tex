@@ -1,0 +1,31 @@
+\usepackage{listings}%! Author = giamm
+%! Date = 24/04/2025
+
+\begin{lstlisting}[language=Scala, label=code:example, caption= Questo è un codice di esempio]
+package model.map
+
+import model.util.Percentage.*
+
+object CityModule:
+
+enum Owner:
+case AI, HUMAN
+
+trait CityInterface:
+
+type City
+def createCapital(name: String, size: Int): City
+def createCity(name: String, size: Int): City
+
+extension (city: City)
+def getName: String
+def getSize: Int
+def getOwner: Owner
+def getDefense: Int
+def isCapital: Boolean
+def tryToInfectCity(): City
+def tryToSabotateCity(poss: Int): City
+
+\end{lstlisting}
+
+
