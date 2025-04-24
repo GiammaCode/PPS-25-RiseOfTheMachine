@@ -2,6 +2,7 @@ package model.map
 
 import model.map.CityModule.*
 import model.map.CityModule.CityImpl.*
+import model.util.States.State.State
 
 import scala.util.Random
 
@@ -33,26 +34,10 @@ object WorldMapModule:
         city -> tiles
       }.toSet
   object UndeterministicMapModule extends CreateModuleType:
-      case class State[S, A](run: S => (S, A)):
-        def map[B](f: A => B): State[S, B] =
-          State(s =>
-            val (s1, a) = run(s)
-            (s1, f(a)))
-
-        def flatMap[B](f: A => State[S, B]): State[S, B] =
-          State(s =>
-            val (s1, a) = run(s)
-            f(a).run(s1))
-
-        def withFilter(p: A => Boolean): State[S, A] = State ( s =>
-          val (s1, a) = run(s)
-          if p(a) then (s1, a)
-          else throw new NoSuchElementException("State.withFilter predicate failed"))
 
 
       opaque type RNGState[A] = State[Random, A]
 
-      // Helpers
       private def randomInt(max: Int): RNGState[Int] =
         State(rng => (rng, rng.nextInt(max)))
 
