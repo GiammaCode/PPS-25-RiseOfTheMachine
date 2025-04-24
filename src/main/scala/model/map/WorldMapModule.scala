@@ -3,79 +3,119 @@ package model.map
 import model.map.CityModule.*
 import model.map.CityModule.CityImpl.*
 
+import scala.util.Random
 
 
 object WorldMapModule:
-    trait CreateModuleType:
-      def createMap(size: Int): WorldMap
+  trait CreateModuleType:
+    def createMap(cityCount: Int, citySize: Int, mapSize: Int): WorldMap
 
-    opaque type WorldMap = Set[(City, Set[(Int, Int)])]
+  opaque type WorldMap = Set[(City, Set[(Int, Int)])]
 
-    object DeterministicMapModule extends CreateModuleType:
-      def createMap(size:Int): WorldMap =
-        Set((createCity("A", 3), Set((0, 0), (0, 1), (1, 0))),
-          (createCity("B", 3), Set((1, 1), (2, 1), (2, 2))),
-          (createCity("C", 3), Set((0, 2), (1, 2), (2, 0))))
+  object DeterministicMapModule extends CreateModuleType:
+    override def createMap(cityCount: Int, citySize: Int, mapSize: Int): WorldMap =
+      // Pattern regolare: una città a "blocco" 2xN oppure 3xN
+      def generateCityTiles(startX: Int, startY: Int, count: Int): Set[(Int, Int)] =
+        (0 until count).map(i => (startX + (i % 2), startY + (i / 2))).toSet
 
-    object UndeterministicMapModule extends CreateModuleType:
-      private val rand = scala.util.Random
-      def createMap(size: Int): WorldMap =
-        var occupied: Set[(Int, Int)] = Set()
-        var cityCount = 0
-        var world: Set[(City, Set[(Int, Int)])] = Set()
+      def positionForCity(index: Int): (Int, Int) =
+        val citiesPerRow = math.max(1, mapSize / 3)
+        val row = index / citiesPerRow
+        val col = index % citiesPerRow
+        val spacing = 3 // spaziatura costante
+        (col * spacing, row * spacing)
 
-        def isValid(cell: (Int, Int)): Boolean =
-          cell._1 >= 0 && cell._1 < size && cell._2 >= 0 && cell._2 < size && !occupied.contains(cell)
+      (0 until cityCount).map { i =>
+        val name = s"City$i"
+        val city = createCity(name, citySize)
+        val (startX, startY) = positionForCity(i)
+        val tiles = generateCityTiles(startX, startY, citySize)
+        city -> tiles
+      }.toSet
+  object UndeterministicMapModule extends CreateModuleType:
+      case class State[S, A](run: S => (S, A)):
+        def map[B](f: A => B): State[S, B] =
+          State(s =>
+            val (s1, a) = run(s)
+            (s1, f(a)))
 
-        def adjacent(cell: (Int, Int)): List[(Int, Int)] =
-          List(
-            (cell._1 + 1, cell._2), (cell._1 - 1, cell._2),
-            (cell._1, cell._2 + 1), (cell._1, cell._2 - 1)
-          ).filter(isValid)
+        def flatMap[B](f: A => State[S, B]): State[S, B] =
+          State(s =>
+            val (s1, a) = run(s)
+            f(a).run(s1))
 
-        while occupied.size < size * size - 6 do
-          val citySize = 3 + rand.nextInt(4) // 3 to 6 cells
-          val startCell = (rand.nextInt(size), rand.nextInt(size))
-          if isValid(startCell) then
-            var cityCells: Set[(Int, Int)] = Set(startCell)
-            var frontier = List(startCell)
-
-            while cityCells.size < citySize && frontier.nonEmpty do
-              val current = frontier.head
-              frontier = frontier.tail
-              val options = adjacent(current).filterNot(cityCells.contains)
-              val selected = rand.shuffle(options).take(citySize - cityCells.size)
-              cityCells ++= selected
-              frontier ++= selected
-
-            if cityCells.size == citySize then
-              occupied ++= cityCells
-              val name = ('A' + cityCount).toChar.toString
-              val city = createCity(name, citySize)
-              world += (city -> cityCells)
-              cityCount += 1
-
-        world
-
-    def createWorldMap(size:Int)( CreateMapModule: CreateModuleType) : WorldMap =
-      CreateMapModule.createMap(size)
-
-    extension (worldMap: WorldMap)
-
-      def update(): WorldMap = ???
-      def targetCity(name:String): City =
-      worldMap.find(_._1.getName=="A").get._1
-      def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
-
-      def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
-        worldMap.find { case (city, coords) => f(city, coords) }
-        .flatMap { case (city, coords) => coords.headOption.map(c => city.getName)}
-      def renderMap (): Set[String] =worldMap.map(_._1.getName);
+        def withFilter(p: A => Boolean): State[S, A] = State ( s =>
+          val (s1, a) = run(s)
+          if p(a) then (s1, a)
+          else throw new NoSuchElementException("State.withFilter predicate failed"))
 
 
+      opaque type RNGState[A] = State[Random, A]
+
+      // Helpers
+      private def randomInt(max: Int): RNGState[Int] =
+        State(rng => (rng, rng.nextInt(max)))
 
 
+      private def shuffleList[A](list: List[A]): RNGState[List[A]] =
+        State(rng => (rng, rng.shuffle(list)))
 
+
+      private def generateCityTiles(start: (Int, Int), desiredSize: Int, occupied: Set[(Int, Int)], size: Int): RNGState[Set[(Int, Int)]] =
+        def expand(frontier: List[(Int, Int)], current: Set[(Int, Int)]): RNGState[Set[(Int, Int)]] =
+          if current.size >= desiredSize || frontier.isEmpty then State(rng => (rng, current))
+          else
+            val neighbors = frontier.headOption.toList.flatMap  ((x, y) =>
+              List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
+              ).filter { case (x, y) =>
+              x >= 0 && y >= 0 && x < size && y < size &&
+                !occupied.contains((x, y)) && !current.contains((x, y))
+            }
+
+            shuffleList(neighbors).flatMap { shuffled =>
+              val next = shuffled.take(desiredSize - current.size)
+              expand(frontier.tail ++ next, current ++ next)
+            }
+
+        expand(List(start), Set(start))
+
+      private def generateMapState(cityCount: Int, citySize: Int, mapSize: Int): RNGState[WorldMap] =
+        def loop(n: Int, acc: WorldMap, occupied: Set[(Int, Int)]): RNGState[WorldMap] =
+          if n == 0 then State(r => (r, acc))
+          else
+            for
+              x <- randomInt(mapSize)
+              y <- randomInt(mapSize)
+              start = (x, y)
+              tiles <- generateCityTiles(start, citySize, occupied, mapSize)
+              city = createCity(s"City$n", citySize)
+              next <- loop(n - 1, acc + (city -> tiles), occupied ++ tiles)
+            yield next
+
+        loop(cityCount, Set.empty, Set.empty)
+
+      def createMap(cityCount: Int, citySize: Int, mapSize: Int): WorldMap =
+        val (finalRng, worldMap) = generateMapState(cityCount, citySize, mapSize).run(Random())
+        worldMap
+
+
+  def createWorldMap(size: Int)(CreateMapModule: CreateModuleType): WorldMap =
+    CreateMapModule.createMap(size,3,size)
+
+  extension (worldMap: WorldMap)
+
+    def update(): WorldMap = ???
+    def targetCity(name: String): City =
+      worldMap.find(_._1.getName == "A").get._1
+    def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
+
+    def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
+      worldMap.find { case (city, coords) => f(city, coords) }
+        .flatMap { case (city, coords) => coords.headOption.map(c => city.getName) }
+    def renderNamedCoordinates(): Unit =
+      worldMap.foreach { case (city, coords) =>
+        println(s"${city.getName}: ${coords.mkString(", ")}")
+      }
 
 
 

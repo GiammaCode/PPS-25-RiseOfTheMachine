@@ -1,7 +1,7 @@
 package model
 
 import model.map.WorldMapModule
-import model.map.WorldMapModule.{UndeterministicMapModule, WorldMap, createWorldMap}
+import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
 import org.junit.Assert.{assertEquals, assertFalse, assertTrue}
 import org.junit.Test
 
@@ -11,9 +11,21 @@ class WorldMapTest:
 
   @Test
   def GetCityTest(): Unit =
-    println(worldMap.renderMap())
     assertTrue(worldMap.targetCity("A").getName=="A")
     assertFalse(worldMap.targetCity("A")!=worldMap.targetCity("B"))
     val maybeCityAndCoord = worldMap.findInMap((city,coords) => coords.contains(1,1))
     print(maybeCityAndCoord.get)
+
+  @Test
+  def CreationOfDeterministicMap(): Unit =
+    val worldMap = createWorldMap(10)(DeterministicMapModule).renderNamedCoordinates()
+
+
+  @Test
+  def CreationOfUndeterministicMap(): Unit =
+    val map = createWorldMap(10)(UndeterministicMapModule).renderNamedCoordinates()
+
+
+
+
 
