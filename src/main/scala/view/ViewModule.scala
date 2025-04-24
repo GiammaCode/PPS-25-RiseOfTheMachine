@@ -15,7 +15,7 @@ object ViewModule:
       (0 until worldMap.getSize).map { y =>
         (0 until worldMap.getSize).map { x =>
           worldMap.findInMap { case (_, coords) => coords.contains((x, y)) }
-            .get
+            .getOrElse(None)
         }.mkString(" ")
       }.mkString("\n")
 

@@ -44,8 +44,14 @@ class CLIViewTest:
     assertEquals("Infected city: 3/15 --> 20.0%\nAbilities unlocked: ability1,ability2\n", result)
 
   @Test
-  def renderDeterministicMapTest(): Unit =
-    val map = createWorldMap(5)(DeterministicMapModule)
+  def RenderDeterministicMapTest(): Unit =
+    val map = createWorldMap(10)(DeterministicMapModule)
+    val output = view.renderMap(map)
+    println(output)
+
+  @Test
+  def RenderUndeterministicMapTest(): Unit =
+    val map = createWorldMap(10)(UndeterministicMapModule)
     val output = view.renderMap(map)
     println(output)
 
