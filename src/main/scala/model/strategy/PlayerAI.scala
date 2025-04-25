@@ -8,8 +8,17 @@ import scala.util.Random
 
 
 object PlayerAI:
-  def default: PlayerAI = PlayerAI()
+  opaque type PlayerAI = PlayerAIImpl
+  
+  def default: PlayerAI = PlayerAIImpl()
   //add here creation fromDifficulty
+
+  // Interfaccia pubblica
+  extension (ai: PlayerAI)
+    def executeAction(action: AiAction): PlayerAI =
+      ai.executeAction(action)
+    def toString: String = ai.toString
+  
 
 /** Represents an AI-controlled player.
  *
@@ -20,7 +29,7 @@ object PlayerAI:
  * @param conqueredCities   Cities that have been infected.
  * @param sabotagedCities   Cities that have been sabotaged.
  */
-case class PlayerAI private(
+private case class PlayerAIImpl (
                      // possible extensions: base value should be inherited from the difficulty options
                      unlockedAbilities : Set[AiAbility] = Set.empty,
                      executedActions: List[AiAction] = List.empty,
@@ -33,12 +42,12 @@ case class PlayerAI private(
   override type ValidAction = AiAction
 
   /** Executes a given AI action and updates the player's state. */
-  override def executeAction(action: ValidAction): PlayerAI = doExecuteAction(action)
+  override def executeAction(action: ValidAction): PlayerAIImpl = doExecuteAction(action)
 
-  private def doExecuteAction(action: AiAction): PlayerAI = action match
+  private def doExecuteAction(action: AiAction): PlayerAIImpl = action match
     case _: EvolveAction => evolve
-    case action: InfectAction => this.infect(action.targets)
-    case action: SabotageAction => this.sabotage(action.targets)
+    case a: InfectAction => this.infect(a.targets)
+    case a: SabotageAction => this.sabotage(a.targets)
 
   /** String representation of the AI's current status. */
   override def toString: String =
@@ -54,14 +63,14 @@ case class PlayerAI private(
      """.stripMargin
 
   /** Adds a new ability to the AI and adjusts stats accordingly. */
-  private def withNewAbility(ability: AiAbility): PlayerAI = copy(
+  private def withNewAbility(ability: AiAbility): PlayerAIImpl = copy(
     unlockedAbilities = unlockedAbilities + ability,
     infectionChance = infectionChance + ability.infectionBonus,
     sabotagePower = sabotagePower + ability.sabotageBonus
   )
 
   /** Unlocks a new random ability, if available. */
-  private def evolve: PlayerAI =
+  private def evolve: PlayerAIImpl =
     AiAbility.allAbilities
       .diff(unlockedAbilities)
       .toList
@@ -71,15 +80,15 @@ case class PlayerAI private(
       .addAction(EvolveAction())
 
   /** Conquers the given cities and adds the infect action to history. */
-  private def infect(cities: List[String]): PlayerAI =
+  private def infect(cities: List[String]): PlayerAIImpl =
     copy(conqueredCities = conqueredCities ++ cities)
       .addAction(InfectAction(cities))
 
   /** Sabotages the given cities and adds the sabotage action to history. */
-  private def sabotage(cities: List[String]): PlayerAI =
+  private def sabotage(cities: List[String]): PlayerAIImpl =
     copy(sabotagedCities = sabotagedCities ++ cities)
       .addAction(SabotageAction(cities))
 
   /** Adds an executed action to the history. */
-  private def addAction(action: AiAction): PlayerAI =
+  private def addAction(action: AiAction): PlayerAIImpl =
     copy(executedActions = action :: executedActions)
