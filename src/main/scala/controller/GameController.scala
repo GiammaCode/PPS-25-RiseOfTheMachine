@@ -42,10 +42,6 @@ case class GameState(ai: PlayerAI,
       yield()
 
   def startGame() : Unit = ???
-  /**
-   * Execute a full turn
-   * @return the updated controller
-   */
-  def executeTurn(): Unit = ???
+
 
 

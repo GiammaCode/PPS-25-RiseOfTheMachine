@@ -3,6 +3,7 @@ package model.map
 import model.map.CityModule.*
 import model.map.CityModule.CityImpl.*
 import model.util.States.State.State
+import model.util.Util.letterAt
 
 import scala.util.Random
 
@@ -27,7 +28,7 @@ object WorldMapModule:
         (col * spacing, row * spacing)
 
       (0 until cityCount).map { i =>
-        val name = s"City$i"
+        val name = letterAt(i)
         val city = createCity(name, citySize)
         val (startX, startY) = positionForCity(i)
         val tiles = generateCityTiles(startX, startY, citySize)
@@ -73,7 +74,7 @@ object WorldMapModule:
               y <- randomInt(mapSize)
               start = (x, y)
               tiles <- generateCityTiles(start, citySize, occupied, mapSize)
-              city = createCity(s"City$n", citySize)
+              city = createCity(letterAt(n), citySize)
               next <- loop(n - 1, acc + (city -> tiles), occupied ++ tiles)
             yield next
 
