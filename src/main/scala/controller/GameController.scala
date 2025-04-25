@@ -4,7 +4,7 @@ import model.map.WorldMapModule.WorldMap
 import model.strategy.*
 import model.strategy.PlayerAI.PlayerAI
 import model.strategy.playerActions.*
-import view.ViewModule.*
+import view.ViewModule.{CLIView, GameView}
 
 object GameController:
   /**
@@ -35,12 +35,15 @@ case class GameState(ai: PlayerAI,
   private def doHumanAction(action: HumanAction): State[GameState, Unit] =
     State { gs => (gs.copy(human = gs.currentHuman.executeAction(action)),())}
 
-  private def renderTurn(): Unit =
-    view.renderTurn(6)
-
+  private def renderTurn(): State[GameState,Unit] =
+    val actions = List("SabotageAction", "InfectAction", "EvolveAction","Exit")
+    State { state => view.renderGameTurn(3, worldMap, worldMap.numberOfCityInfected(), 13, currentAi.unlockedAbilities, actions)
+      (state, ())
+    }
 
   def gameTurn(aiAction: AiAction, humanAction: HumanAction): State[GameState, Unit] =
       for
+        _ <- renderTurn()
         _ <- doPlayerAction(aiAction)
        // _ <- doHumanAction(humanAction)
       yield()
