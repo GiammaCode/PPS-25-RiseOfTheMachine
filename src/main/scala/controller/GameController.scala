@@ -30,16 +30,19 @@ case class GameState(ai: PlayerAI,
   import model.util.States.State.State
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] =
-    State { gs =>
-      (gs.copy(ai = gs.currentAi.executeAction(action)), ())}
+    State { gs =>(gs.copy(ai = gs.currentAi.executeAction(action)), ())}
 
   private def doHumanAction(action: HumanAction): State[GameState, Unit] =
     State { gs => (gs.copy(human = gs.currentHuman.executeAction(action)),())}
 
+  private def renderTurn(): Unit =
+    view.renderTurn(6)
+
+
   def gameTurn(aiAction: AiAction, humanAction: HumanAction): State[GameState, Unit] =
       for
         _ <- doPlayerAction(aiAction)
-        _ <- doHumanAction(humanAction)
+       // _ <- doHumanAction(humanAction)
       yield()
 
   def startGame() : Unit =
