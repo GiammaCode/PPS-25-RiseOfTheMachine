@@ -2,6 +2,7 @@ package controller
 
 import model.map.WorldMapModule.WorldMap
 import model.strategy.*
+import view.ViewModule.*
 
 object GameController:
   /**
@@ -11,32 +12,33 @@ object GameController:
    */
   def apply(): GameState =
     val (ai, human, worldMap) = model.GameFactory.createGame()
-      GameState(ai, human, worldMap)
+    val view = CLIView
+    GameState(ai, human, worldMap,view)
 
 case class GameState(ai: PlayerAI,
                      human: PlayerHuman,
-                     worldMap: WorldMap):
+                     worldMap: WorldMap,
+                      view: GameView):
 
-  private var currentAi : PlayerAI = ai
-  private var currentHuman : PlayerHuman = human
+  private val currentAi : PlayerAI = ai
+  private val currentHuman : PlayerHuman = human
   private var currentMap : WorldMap = worldMap
-
 
 
   import model.util.States.State.State
 
-  def playerAction(action: AiAction): State[GameState, Unit] =
-    State { gs => ???}
+  private def doPlayerAction(action: AiAction): State[GameState, Unit] =
+    State { gs =>
+      (gs.copy(ai = gs.currentAi.executeAction(action)), ())}
 
+  private def doHumanAction(action: HumanAction): State[GameState, Unit] =
+    State { gs => (gs.copy(human = gs.currentHuman.executeAction(action)),())}
 
-  def humanAction(action: HumanAction): State[GameState, Unit] =
-    State { gs => ???}
-
- /*   def gameTurn(turn: Int): State[GameState, Unit] = for
-      action = rendermapAndwaitForPlayer(worldMap)
-      _ <- playerAction(action)
-      _ <- humanAction(action)
-    yield ()*/
+  def gameTurn(aiAction: AiAction, humanAction: HumanAction): State[GameState, Unit] =
+      for
+        _ <- doPlayerAction(aiAction)
+        _ <- doHumanAction(humanAction)
+      yield()
 
   def startGame() : Unit = ???
   /**
@@ -44,8 +46,5 @@ case class GameState(ai: PlayerAI,
    * @return the updated controller
    */
   def executeTurn(): Unit = ???
-
-
-  def rendermapAndwaitForPlayer(worldMap: WorldMap): TurnAction = ???
 
 
