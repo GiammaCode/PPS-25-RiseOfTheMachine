@@ -20,7 +20,7 @@ object PlayerAI:
  * @param conqueredCities   Cities that have been infected.
  * @param sabotagedCities   Cities that have been sabotaged.
  */
-case class PlayerAI(
+case class PlayerAI private(
                      // possible extensions: base value should be inherited from the difficulty options
                      unlockedAbilities : Set[AiAbility] = Set.empty,
                      executedActions: List[AiAction] = List.empty,
