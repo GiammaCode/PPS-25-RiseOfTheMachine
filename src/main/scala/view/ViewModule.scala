@@ -8,6 +8,7 @@ object ViewModule:
     def renderMap(worldMap: WorldMap): Unit
     def renderStatus(infectedCity: Int, totalCity: Int, abilities: List[String]): Unit
     def renderActionMenu(options: List[String]): Int
+    def getInputForAction(options: List[String]): Int
 
   object CLIView extends GameView:
     override def renderTurn(turn: Int): Unit =
@@ -34,4 +35,7 @@ object ViewModule:
       }
       print("Insert your action > ")
       scala.io.StdIn.readInt()
+
+    override def getInputForAction(options: List[String]): Int =
+      renderActionMenu(options)
 

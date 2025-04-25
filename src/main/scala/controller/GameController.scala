@@ -3,6 +3,7 @@ package controller
 import model.map.WorldMapModule.WorldMap
 import model.strategy.*
 import model.strategy.PlayerAI.PlayerAI
+import model.strategy.playerActions.*
 import view.ViewModule.*
 
 object GameController:
@@ -41,7 +42,17 @@ case class GameState(ai: PlayerAI,
         _ <- doHumanAction(humanAction)
       yield()
 
-  def startGame() : Unit = ???
+  def startGame() : Unit =
+    //TODO: used to create a dedicated test
+    val actions = List(SabotageAction(), InfectAction(), EvolveAction())
+    val userChoice = view.getInputForAction(List("Sabotage", "Infect", "Evolve")) // ottieni l'input
+    val aiActionResult = InputHandler.getActionFromChoice(userChoice, actions)
 
+    aiActionResult match {
+      case Right(aiAction) =>
+        doPlayerAction(aiAction)
+      case Left(error) =>
+        view.renderActionMenu(List("Sabotage", "Infect", "Evolve"))
+    }
 
 
