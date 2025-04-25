@@ -1,7 +1,8 @@
 package model
 
+import model.strategy.PlayerAI.PlayerAI
 import model.strategy.playerActions.*
-import model.strategy.{AiAbility, PlayerAI, AiAction, TurnAction}
+import model.strategy.{AiAbility, AiAction, PlayerAI, TurnAction}
 import org.junit.*
 import org.junit.Assert.assertEquals
 

@@ -13,11 +13,28 @@ object PlayerAI:
   def default: PlayerAI = PlayerAIImpl()
   //add here creation fromDifficulty
 
-  // Interfaccia pubblica
   extension (ai: PlayerAI)
     def executeAction(action: AiAction): PlayerAI =
       ai.executeAction(action)
     def toString: String = ai.toString
+
+    /** Returns the set of abilities unlocked by the AI. */
+    def unlockedAbilities: Set[AiAbility] = ai.unlockedAbilities
+
+    /** Returns the list of actions executed by the AI. */
+    def executedActions: List[AiAction] = ai.executedActions
+
+    /** Returns the current infection chance percentage. */
+    def infectionChance: Int = ai.infectionChance
+
+    /** Returns the current sabotage power. */
+    def sabotagePower: Int = ai.sabotagePower
+
+    /** Returns the set of cities conquered by the AI. */
+    def conqueredCities: Set[String] = ai.conqueredCities
+
+    /** Returns the set of cities sabotaged by the AI. */
+    def sabotagedCities: Set[String] = ai.sabotagedCities
   
 
 /** Represents an AI-controlled player.

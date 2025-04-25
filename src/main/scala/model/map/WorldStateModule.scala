@@ -1,5 +1,6 @@
 package model.map
 import model.map.WorldMapModule.*
+import model.strategy.PlayerAI.PlayerAI
 import model.strategy.{AiAction, HumanAction, PlayerAI, PlayerHuman}
 
 object  WorldStateModule:
