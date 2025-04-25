@@ -67,4 +67,4 @@ case class GameState(ai: PlayerAI,
 @main def tryController(): Unit =
   val actions = SabotageAction()
   val game = GameController.apply()
-  game.gameTurn(actions)
+  game.gameTurn(actions)(game)
