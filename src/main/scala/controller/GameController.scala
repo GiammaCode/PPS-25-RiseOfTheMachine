@@ -36,12 +36,13 @@ case class GameState(ai: PlayerAI,
     State { gs => (gs.copy(human = gs.currentHuman.executeAction(action)),())}
 
   private def renderTurn(): State[GameState,Unit] =
+    val actionsString: Set[String] = Set.empty
     val actions = List("SabotageAction", "InfectAction", "EvolveAction","Exit")
-    State { state => view.renderGameTurn(3, worldMap, worldMap.numberOfCityInfected(), 13, currentAi.unlockedAbilities, actions)
+    State { state => view.renderGameTurn(3, worldMap, worldMap.numberOfCityInfected(), 13, actionsString, actions)
       (state, ())
     }
 
-  def gameTurn(aiAction: AiAction, humanAction: HumanAction): State[GameState, Unit] =
+  def gameTurn(aiAction: AiAction): State[GameState, Unit] =
       for
         _ <- renderTurn()
         _ <- doPlayerAction(aiAction)
@@ -62,3 +63,8 @@ case class GameState(ai: PlayerAI,
         view.renderActionMenu(List("Sabotage", "Infect", "Evolve"))
     }
   */
+
+@main def tryController(): Unit =
+  val actions = SabotageAction()
+  val game = GameController.apply()
+  game.gameTurn(actions)
