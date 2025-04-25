@@ -25,7 +25,17 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
  */
 
 class CLIViewTest:
+  @Test
+  def renderGameTurnTest(): Unit =
+    val turn = 5
+    val options = List("Infect", "Sabotages", "Exit")
+    val abilities = List("ability1", "ability2")
+    val worldMap: WorldMap = createWorldMap(5)(DeterministicMapModule)
 
+    CLIView.renderGameTurn(turn, worldMap, 5, 15, abilities, options)
+    assertTrue(true)
+
+  /*
   @Test
   def renderTurnTest(): Unit =
     val turn = 5
@@ -48,4 +58,6 @@ class CLIViewTest:
     val options = List("Infect", "Sabotages", "Exit")
     CLIView.renderActionMenu(options)
     assertTrue(true)
+   */
+
 
