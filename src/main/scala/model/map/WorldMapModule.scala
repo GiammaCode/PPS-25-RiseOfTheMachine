@@ -90,6 +90,11 @@ object WorldMapModule:
   extension (worldMap: WorldMap)
 
     def update(): WorldMap = ???
+
+    def getSize: Int =
+      worldMap.flatMap(_._2).foldLeft(0) { case (acc, (x, y)) =>
+        math.max(acc, math.max(x, y))
+      } + 1
     def targetCity(name: String): City =
       worldMap.find(_._1.getName == name).get._1
     def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
