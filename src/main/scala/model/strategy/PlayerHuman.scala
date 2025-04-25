@@ -2,7 +2,10 @@ package model.strategy
 
 import model.strategy.humanActions.*
 
-case class PlayerHuman(
+object PlayerHuman:
+  def apply: PlayerHuman = PlayerHuman()
+
+case class PlayerHuman private(
                         executedActions: List[HumanAction] = List.empty,
                         conqueredCities: Set[String] = Set("A", "B", "c"),
                         killSwitch: Int = 0,
