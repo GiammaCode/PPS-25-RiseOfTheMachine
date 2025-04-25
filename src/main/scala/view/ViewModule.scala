@@ -16,7 +16,8 @@ object ViewModule:
     override def renderMap(worldMap: WorldMap): Unit =
       val mapString = (0 until worldMap.getSize).map { y =>
         (0 until worldMap.getSize).map { x =>
-          worldMap.findInMap { case (_, coords) => coords.contains((x, y)) }.get
+          worldMap.findInMap { case (_, coords) => coords.contains((x, y)) }.
+            getOrElse("x")
         }.mkString(" ")
       }.mkString("\n")
       println(mapString)
