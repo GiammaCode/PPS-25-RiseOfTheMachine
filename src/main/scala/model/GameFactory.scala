@@ -6,7 +6,7 @@ import model.strategy.{PlayerAI, PlayerHuman}
 
 object GameFactory : 
   def createGame() : (PlayerAI, PlayerHuman, WorldMap) =
-    (PlayerAI() , PlayerHuman(), createWorldMap(10)(UndeterministicMapModule)) //TODO: add creation method for player in common trait
+    (PlayerAI.default , PlayerHuman(), createWorldMap(10)(UndeterministicMapModule)) //TODO: add creation method for player in common trait
     
     
 

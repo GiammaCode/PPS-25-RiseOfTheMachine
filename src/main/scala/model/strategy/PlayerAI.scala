@@ -7,6 +7,10 @@ import util.chaining.scalaUtilChainingOps
 import scala.util.Random
 
 
+object PlayerAI:
+  def default: PlayerAI = PlayerAI()
+  //add here creation fromDifficulty
+
 /** Represents an AI-controlled player.
  *
  * @param unlockedAbilities Abilities the AI has unlocked.
