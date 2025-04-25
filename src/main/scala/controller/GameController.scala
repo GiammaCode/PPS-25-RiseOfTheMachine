@@ -1,9 +1,7 @@
 package controller
 
-import model.strategy.{AiAction, HumanAction, PlayerAI, PlayerEntity, PlayerHuman, TurnAction}
 import model.map.WorldMapModule.WorldMap
-import model.map.WorldStateModule
-import view.GameView
+import model.strategy.*
 
 object GameController:
   /**
@@ -13,12 +11,11 @@ object GameController:
    */
   def apply(): GameState =
     val (ai, human, worldMap) = model.GameFactory.createGame()
-    GameState(ai, human, worldMap, ViewModule)
+      GameState(ai, human, worldMap)
 
 case class GameState(ai: PlayerAI,
                      human: PlayerHuman,
-                     worldMap: WorldMap,
-                     view: GameView):
+                     worldMap: WorldMap):
 
   private var currentAi : PlayerAI = ai
   private var currentHuman : PlayerHuman = human
@@ -35,11 +32,11 @@ case class GameState(ai: PlayerAI,
   def humanAction(action: HumanAction): State[GameState, Unit] =
     State { gs => ???}
 
-    def gameTurn(turn: Int): State[GameState, Unit] = for
+ /*   def gameTurn(turn: Int): State[GameState, Unit] = for
       action = rendermapAndwaitForPlayer(worldMap)
       _ <- playerAction(action)
       _ <- humanAction(action)
-    yield ()
+    yield ()*/
 
   def startGame() : Unit = ???
   /**
