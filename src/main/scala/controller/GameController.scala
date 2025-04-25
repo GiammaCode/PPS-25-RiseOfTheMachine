@@ -1,6 +1,6 @@
 package controller
 
-import model.strategy.{AiAction, HumanAction, PlayerAI, PlayerEntity, PlayerHuman}
+import model.strategy.{AiAction, HumanAction, PlayerAI, PlayerEntity, PlayerHuman, TurnAction}
 import model.map.WorldMapModule.WorldMap
 import model.map.WorldStateModule
 import view.{CLIView, GameView}
@@ -11,20 +11,35 @@ object GameController:
    *
    * @return Un nuovo GameController
    */
-  def apply(): GameController =
+  def apply(): GameState =
     val (ai, human, worldMap) = model.GameFactory.createGame()
-    new GameController(ai, human, worldMap, CLIView())
+    GameState(ai, human, worldMap, )
 
-case class GameController(
-                           ai: PlayerAI,
-                           human: PlayerHuman,
-                           worldMap: WorldMap,
-                           view: GameView,
-                         ):
+case class GameState(ai: PlayerAI,
+                     human: PlayerHuman,
+                     worldMap: WorldMap,
+                     view: GameView):
 
   private var currentAi : PlayerAI = ai
   private var currentHuman : PlayerHuman = human
   private var currentMap : WorldMap = worldMap
+
+
+
+  import model.util.States.State.State
+
+  def playerAction(action: AiAction): State[GameState, Unit] =
+    State { gs => ???}
+
+
+  def humanAction(action: HumanAction): State[GameState, Unit] =
+    State { gs => ???}
+
+    def gameTurn(turn: Int): State[GameState, Unit] = for
+      action <-rendermapAndwaitForPlayer(worldMap)
+      _ <- playerAction(action)
+      _ <- humanAction(action)
+    yield ()
 
   def startGame() : Unit = ???
   /**
@@ -33,5 +48,7 @@ case class GameController(
    */
   def executeTurn(): Unit = ???
 
+
+  def rendermapAndwaitForPlayer(): TurnAction = ???
 
 
