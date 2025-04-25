@@ -12,7 +12,7 @@ class PlayerAITest :
 
   @Before
   def init(): Unit =
-    player = PlayerAI()
+    player = PlayerAI.default
   @Test
   def applyEvolveAbilityTest() : Unit =
     action = EvolveAction()
