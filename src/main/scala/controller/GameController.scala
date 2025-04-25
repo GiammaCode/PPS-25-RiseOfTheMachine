@@ -45,6 +45,7 @@ case class GameState(ai: PlayerAI,
        // _ <- doHumanAction(humanAction)
       yield()
 
+  /*
   def startGame() : Unit =
     //TODO: used to create a dedicated test
     val actions = List(SabotageAction(), InfectAction(), EvolveAction())
@@ -57,5 +58,4 @@ case class GameState(ai: PlayerAI,
       case Left(error) =>
         view.renderActionMenu(List("Sabotage", "Infect", "Evolve"))
     }
-
-
+  */
