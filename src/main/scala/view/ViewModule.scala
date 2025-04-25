@@ -6,14 +6,14 @@ object ViewModule:
   trait GameView:
     def renderGameTurn(turn: Int, worldMap: WorldMap,
                        infectedCity: Int, totalCity: Int,
-                       abilities: List[String], options: List[String]) : Int
+                       abilities: Set[String], options: List[String]) : Int
 
 
   object CLIView extends GameView:
 
     override def renderGameTurn(turn: Int, worldMap: WorldMap,
                                 infectedCity: Int, totalCity: Int,
-                                abilities: List[String], options: List[String]): Int =
+                                abilities: Set[String], options: List[String]): Int =
       renderTurn(turn)
       renderMap(worldMap)
       renderStatus(infectedCity, totalCity, abilities)
@@ -31,7 +31,7 @@ object ViewModule:
       }.mkString("\n")
       println(mapString)
 
-    private def renderStatus(infectedCity: Int, totalCity: Int, abilities: List[String]): Unit =
+    private def renderStatus(infectedCity: Int, totalCity: Int, abilities: Set[String]): Unit =
       val percentageDone = infectedCity.toDouble / totalCity * 100
       println(s"Infected city: $infectedCity/$totalCity --> $percentageDone%.2f%%".format(percentageDone))
       println(s"Abilities unlocked: ${abilities.mkString(", ")}\n")
