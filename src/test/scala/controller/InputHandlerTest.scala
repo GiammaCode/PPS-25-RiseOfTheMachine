@@ -9,7 +9,6 @@ import org.junit.{Before, Test}
 class InputHandlerTest :
   val actions : List[AiAction] = List(SabotageAction(), InfectAction(), EvolveAction())
 
-  // Test: Test for a valid action selection
   @Test
   def testGetActionFromChoiceValid(): Unit =
     val result = InputHandler.getActionFromChoice(2, actions)
@@ -20,8 +19,7 @@ class InputHandlerTest :
       case _ =>
         fail("Expected 'InfectAction'.")
     }
-
-  // Test: Test for invalid action selection (choice out of range)
+  
   @Test
   def testGetActionFromChoiceInvalidChoice(): Unit =
     val result = InputHandler.getActionFromChoice(5, actions)
