@@ -1,5 +1,6 @@
 package controller
 
+import controller.InputHandling.InputHandlingError
 import model.map.WorldMapModule.WorldMap
 import model.strategy.*
 import model.strategy.PlayerAI.PlayerAI
@@ -42,12 +43,17 @@ case class GameState(ai: PlayerAI,
       (state, ())
     }
 
-  def gameTurn(aiAction: AiAction): State[GameState, Unit] =
-      for
-        _ <- renderTurn()
-        _ <- doPlayerAction(aiAction)
-       // _ <- doHumanAction(humanAction)
-      yield()
+  def gameTurn(aiActionResult: Either[InputHandlingError, AiAction]): State[GameState, Unit] =
+    aiActionResult match {
+      case Right(aiAction) =>
+        for
+          _ <- renderTurn()
+          _ <- doPlayerAction(aiAction)
+        // _ <- doHumanAction(humanAction)
+        yield()
+      case Left(error) => ???
+    }
+
 
   /*
   def startGame() : Unit =
@@ -65,6 +71,7 @@ case class GameState(ai: PlayerAI,
   */
 
 @main def tryController(): Unit =
-  val actions = SabotageAction()
   val game = GameController.apply()
-  game.gameTurn(actions)(game)
+  val actions = List(SabotageAction(), InfectAction(), EvolveAction()) //ai.getPossibleActions
+  val aiActionResult = InputHandler.getActionFromChoice(3, actions)
+  game.gameTurn(aiActionResult)(game)
