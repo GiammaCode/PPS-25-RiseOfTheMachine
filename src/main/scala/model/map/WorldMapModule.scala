@@ -27,7 +27,7 @@ object WorldMapModule:
         (col * spacing, row * spacing)
 
       (0 until 10).map( i =>
-        val name = letterAt(i,true)
+        val name = letterAt(i,false)
         val city = createCity(name, size,false)
         val (startX, startY) = positionForCity(i)
         val tiles = generateCityTiles(startX, startY, size)
@@ -49,28 +49,27 @@ object WorldMapModule:
         then randomInt(3).map(_ + 7)
         else randomInt(3).map(_ + 3)
 
+      private def validNeighbors(tiles: Iterable[(Int, Int)], size: Int, exclude: Set[(Int, Int)] = Set.empty): List[(Int, Int)] =
+        tiles.toList
+          .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+          .filter((x, y) =>
+            x >= 0 && y >= 0 && x < size && y < size &&
+              !exclude.contains((x, y))
+          )
+          .distinct
+
       private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
-        tiles.toList.flatMap { case (x, y) =>
-          List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
-        }.filter { case (x, y) =>
-          x >= 0 && y >= 0 && x < size && y < size && !tiles.contains((x, y))
-        }.distinct
+        validNeighbors(tiles, size, tiles)
 
       private def generateCityTiles(start: (Int, Int), desiredSize: Int, occupied: Set[(Int, Int)], size: Int): RNGState[Set[(Int, Int)]] =
         def expand(frontier: List[(Int, Int)], current: Set[(Int, Int)]): RNGState[Set[(Int, Int)]] =
           if current.size >= desiredSize || frontier.isEmpty then State(rng => (rng, current))
           else
-            val neighbors = frontier.headOption.toList
-              .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
-              .filter((x, y) =>
-                x >= 0 && y >= 0 && x < size && y < size &&
-                  !occupied.contains((x, y)) && !current.contains((x, y))
-              )
+            val neighbors = validNeighbors(frontier.headOption.toList, size, occupied ++ current)
             shuffleList(neighbors).flatMap(shuffled =>
               val next = shuffled.take(desiredSize - current.size)
               expand(frontier.tail ++ next, current ++ next)
             )
-
         expand(List(start), Set(start))
 
       private def chooseStartingPoint(acc: WorldMap, occupied: Set[(Int, Int)], mapSize: Int): RNGState[(Int, Int)] =
@@ -104,7 +103,7 @@ object WorldMapModule:
 
 
       def createMap(citySize: Int): WorldMap =
-        val (finalRng, worldMap) = generateMapState(citySize,5).run(Random())
+        val (finalRng, worldMap) = generateMapState(citySize,5).run(Random(5))
         worldMap
 
 
