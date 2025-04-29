@@ -5,6 +5,7 @@ import model.map.CityModule.CityImpl.*
 import model.util.States.State.State
 import model.util.Util.letterAt
 
+import scala.::
 import scala.util.Random
 
 
@@ -88,8 +89,12 @@ object WorldMapModule:
 
   extension (worldMap: WorldMap)
 
-    def update(): WorldMap = ???
-
+    def changeACityOfTheMap(city: City): WorldMap =
+      worldMap.find(_._1.getName == city.getName)
+        .map { case (_, coords) =>
+          worldMap.filterNot(_._1.getName == city.getName) + (city -> coords)
+        }
+        .getOrElse(worldMap)
     def getSize: Int =
       worldMap.flatMap(_._2).foldLeft(0) { case (acc, (x, y)) =>
         math.max(acc, math.max(x, y))
@@ -101,6 +106,10 @@ object WorldMapModule:
     def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
       worldMap.find { case (city, coords) => f(city, coords) }
         .flatMap { case (city, coords) => coords.headOption.map(c => city.getName) }
+
+
+
+
 
 
 

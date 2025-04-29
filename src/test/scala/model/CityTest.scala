@@ -15,9 +15,7 @@ class CityTest:
 
   @Test
   def AIInfectsACityTest(): Unit =
-    city = city.tryToInfectCity()
-    city = city.tryToInfectCity()
-    city = city.tryToInfectCity()
+    city = city.infectCity()
     assertEquals(city.getOwner, Owner.AI)
 
   @Test
@@ -25,7 +23,7 @@ class CityTest:
     assertNotEquals(createCity("Monta",8), createCapital("Monza",8))
     assertEquals(true , createCapital("Roma",8).isCapital)
     assertEquals(80, createCapital("Roma",8).getDefense)
-    assertEquals(60, createCapital("Roma",8).tryToSabotateCity(0).getDefense)
+    assertEquals(60, createCapital("Roma",8).sabotateCity().getDefense)
 
 
 

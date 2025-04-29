@@ -4,7 +4,7 @@ import scala.util.Random
 
 object Util:
   def doesAttackWorks(percentage: Int): Boolean =
-    Random.nextInt(100) > percentage
+    Random.nextInt(100) < percentage
 
   def letterAt(n: Int): String =
     (64 + n).toChar.toString
