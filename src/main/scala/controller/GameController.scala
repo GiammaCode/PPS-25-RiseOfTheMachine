@@ -4,6 +4,7 @@ import controller.InputHandling.InputHandlingError
 import model.map.WorldMapModule.WorldMap
 import model.strategy.*
 import model.strategy.PlayerAI.PlayerAI
+import model.strategy.PlayerHuman.PlayerHuman
 import model.strategy.playerActions.*
 import view.ViewModule.{CLIView, GameView}
 

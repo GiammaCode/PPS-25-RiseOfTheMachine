@@ -8,7 +8,8 @@ object Util:
 
   def letterAt(n: Int): String =
     (64 + n).toChar.toString
-
     //97 for minus
 
-
+  def calculatePercentageOfSuccess: Int =
+    val percentage = 50
+    percentage
