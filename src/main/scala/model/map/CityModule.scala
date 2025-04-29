@@ -1,6 +1,6 @@
 package model.map
 
-import model.util.Percentage.*
+import model.util.Util.*
 
 object CityModule:
 

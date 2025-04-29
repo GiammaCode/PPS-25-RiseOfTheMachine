@@ -1,6 +1,5 @@
 package model.util
 
-
 object States:
 
   trait Monad[M[_]]:

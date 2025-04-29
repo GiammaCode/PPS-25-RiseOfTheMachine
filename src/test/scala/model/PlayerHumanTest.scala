@@ -15,7 +15,7 @@ class PlayerHumanTest :
 
   @Before
   def init(): Unit =
-    human = PlayerHuman()
+    human = PlayerHuman.default
 
   @Test
   def applyGlobalDefenseTest() : Unit=
