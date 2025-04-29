@@ -27,7 +27,7 @@ class CLIViewTest:
     val turn = 5
     val options = List("Infect", "Sabotages", "Exit")
     val abilities = Set("ability1", "ability2")
-    val worldMap: WorldMap = createWorldMap(15)(UndeterministicMapModule)
+    val worldMap: WorldMap = createWorldMap(10)(UndeterministicMapModule)
 
 
     CLIView.renderGameTurn(turn, worldMap, 5, 15, abilities, options)
