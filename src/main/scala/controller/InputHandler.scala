@@ -1,8 +1,8 @@
 package controller
 
-import InputHandling.{InputHandlingError, InvalidChoice}
-import model.strategy.AiAction
-// --- Input Error Handling Module ---
+import InputHandling.{InputHandlingError, InputParsingError, InvalidChoice}
+import model.map.WorldMapModule
+import model.strategy.{AiAction, playerActions}
 
 object InputHandling:
 
@@ -19,28 +19,30 @@ object InputHandling:
       /** Generates a user-friendly message based on the error type. */
       def userMessage: String = e match
         case InvalidChoice(choice, range) =>
-          // Assumes that the range is 1-based for user message (range.min/max on Range are inclusive)
           s"Invalid choice: ${choice}. Please enter a number between ${range.min} and ${range.max}."
         case InputParsingError(input, msg) => s"Input format error: '${input}'. You must enter a valid number."
 
-
-// --- Input Handler Module (Pure Logic for Mapping) ---
 
 object InputHandler:
 
   /** A pure object responsible for mapping the user's numeric input to a valid game action. */
   def getActionFromChoice(
                            choice: Int,
+                           cityName: String,
+                           attackableCities : Set[String],
                            availableActions: List[AiAction]
-                         ): Either[InputHandlingError, AiAction] = {
-    // Check if there are any available actions
-    if (availableActions.isEmpty) {
-      Left(InvalidChoice(choice, 1 to 0)) // Return error if no actions are available
-    } else {
-      // Map the numeric choice (1-based) to a 0-based index
-      val index = choice - 1
-      // Try to find the action corresponding to the chosen number, return error if not found
-      availableActions.lift(index)
-        .toRight(InvalidChoice(choice, Range(1, availableActions.size)))
-    }
-  }
+                         ): Either[InputHandlingError, AiAction] =
+    for {
+      _ <- Either.cond(
+        attackableCities.contains(cityName),
+        (),
+        InputParsingError(cityName, s"The city '$cityName' is not attackable.")
+      )
+
+      action <- availableActions.lift(choice - 1)
+        .toRight(InvalidChoice(choice, 1 to availableActions.size))
+
+    } yield action match
+      case _: playerActions.SabotageAction => playerActions.SabotageAction(List(cityName))
+      case _: playerActions.InfectAction => playerActions.InfectAction(List(cityName))
+      case _: playerActions.EvolveAction => playerActions.EvolveAction()

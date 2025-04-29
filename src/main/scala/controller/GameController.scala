@@ -5,6 +5,7 @@ import model.map.WorldMapModule.WorldMap
 import model.strategy.*
 import model.strategy.PlayerAI.PlayerAI
 import model.strategy.playerActions.*
+import model.util.States.State.State
 import view.ViewModule.{CLIView, GameView}
 
 object GameController:
@@ -73,5 +74,6 @@ case class GameState(ai: PlayerAI,
 @main def tryController(): Unit =
   val game = GameController.apply()
   val actions = List(SabotageAction(), InfectAction(), EvolveAction()) //ai.getPossibleActions
-  val aiActionResult = InputHandler.getActionFromChoice(3, actions)
+  val attackableCities = Set("Rome", "Paris", "Berlin")
+  val aiActionResult = InputHandler.getActionFromChoice(1, "Rome", attackableCities, actions)
   game.gameTurn(aiActionResult)(game)
