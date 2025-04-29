@@ -24,14 +24,15 @@ object WorldStateModule:
 
   extension (worldState: WorldState)
     def IsGameOver(): Boolean = worldState._1.numberOfCityInfected() > 10 //worldMap.AIConquerPercetage > 70
+
     def getMap: WorldMap = worldState._1
+
     def attackableCity: Set[(String, Int, Int)] = getMap.cities.map { (city, _) =>
       val name = city.getName
       (name, calculatePercentageOfSuccess, calculatePercentageOfSuccess)
     }
-
-    def getAiCities: Set[City] = ???
-    def getHumanCities: Set[City] = ???
+    //def getAiCities(player :PlayerAI): Set[City] = player.conqueredCities
+    //def getHumanCities(player: PlayerHuman): Set[City] = player.conqueredCities
 
 
 
