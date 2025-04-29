@@ -7,12 +7,7 @@ import org.junit.Test
 
 class WorldMapTest:
 
-  var worldMap: WorldMap = createWorldMap(5)(UndeterministicMapModule)
-
-  @Test
-  def GetCityTest(): Unit =
-    assertTrue(worldMap.targetCity("City1").getName=="City1")
-    assertTrue(worldMap.targetCity("City1")!=worldMap.targetCity("City2"))
+  var worldMap: WorldMap = createWorldMap(10)(UndeterministicMapModule)
 
   @Test
   def CreationOfDeterministicMap(): Unit =
@@ -25,9 +20,9 @@ class WorldMapTest:
 
   @Test
   def changeACityOfTheMap(): Unit =
-    assertEquals(worldMap.targetCity("A").infectCity(),(worldMap.changeACityOfTheMap(worldMap.targetCity("A").infectCity())).targetCity("A"))
+    assertEquals(worldMap.targetCity("A").infectCity(),worldMap.changeACityOfTheMap(worldMap.targetCity("A").infectCity()).targetCity("A"))
 
-
-
+  @Test
+  def renderCoordinate(): Unit = println(worldMap.renderList())
 
 

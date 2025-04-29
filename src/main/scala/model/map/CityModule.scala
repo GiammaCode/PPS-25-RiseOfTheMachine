@@ -10,8 +10,7 @@ object CityModule:
   trait CityInterface:
 
     type City
-    def createCapital(name: String, size: Int): City
-    def createCity(name: String, size: Int): City
+    def createCity(name: String, size: Int, isCapital: Boolean): City
 
     extension (city: City)
       def getName: String
@@ -33,11 +32,9 @@ object CityModule:
 
     opaque type City = CityImpl
 
-    def createCapital(name: String, size: Int): City =
-      CityImpl(name, size, Owner.HUMAN, true,40)
 
-    def createCity(name: String, size: Int): City =
-      CityImpl(name, size, Owner.HUMAN, false,40)
+    def createCity(name: String, size: Int,isCapital: Boolean): City =
+      CityImpl(name, size, Owner.HUMAN, isCapital,40)
 
     extension (city: City)
       def getName: String = city.name

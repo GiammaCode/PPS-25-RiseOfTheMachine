@@ -6,9 +6,10 @@ object Util:
   def doesAttackWorks(percentage: Int): Boolean =
     Random.nextInt(100) < percentage
 
-  def letterAt(n: Int): String =
-    (64 + n).toChar.toString
+  def letterAt(n: Int, isCapital: Boolean): String =
+    if isCapital
+    then (65 + n).toChar.toString
+    else (97 + n).toChar.toString
 
-    //97 for minus
 
 

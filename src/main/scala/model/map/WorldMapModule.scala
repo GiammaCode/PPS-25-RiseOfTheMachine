@@ -10,29 +10,28 @@ import scala.util.Random
 
 object WorldMapModule:
   trait CreateModuleType:
-    def createMap(cityCount: Int, citySize: Int, mapSize: Int): WorldMap
+    def createMap(size: Int): WorldMap
 
   opaque type WorldMap = Set[(City, Set[(Int, Int)])]
 
   object DeterministicMapModule extends CreateModuleType:
-    override def createMap(cityCount: Int, citySize: Int, mapSize: Int): WorldMap =
+    override def createMap(size: Int): WorldMap =
       def generateCityTiles(startX: Int, startY: Int, count: Int): Set[(Int, Int)] =
         (0 until count).map(i => (startX + (i % 2), startY + (i / 2))).toSet
 
       def positionForCity(index: Int): (Int, Int) =
-        val citiesPerRow = math.max(1, mapSize / 3)
+        val citiesPerRow = math.max(1, size / 3)
         val row = index / citiesPerRow
         val col = index % citiesPerRow
         val spacing = 3
         (col * spacing, row * spacing)
 
-      (0 until cityCount).map { i =>
-        val name = letterAt(i)
-        val city = createCity(name, citySize)
+      (0 until 10).map( i =>
+        val name = letterAt(i,true)
+        val city = createCity(name, size,false)
         val (startX, startY) = positionForCity(i)
-        val tiles = generateCityTiles(startX, startY, citySize)
-        city -> tiles
-      }.toSet
+        val tiles = generateCityTiles(startX, startY, size)
+        city -> tiles).toSet
   object UndeterministicMapModule extends CreateModuleType:
 
       opaque type RNGState[A] = State[Random, A]
@@ -44,6 +43,18 @@ object WorldMapModule:
       private def shuffleList[A](list: List[A]): RNGState[List[A]] =
         State(rng => (rng, rng.shuffle(list)))
 
+
+      private def randomCitySize(isCapital:Boolean): RNGState[Int] =
+        if isCapital
+        then randomInt(3).map(_ + 7)
+        else randomInt(3).map(_ + 3)
+
+      private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
+        tiles.toList.flatMap { case (x, y) =>
+          List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
+        }.filter { case (x, y) =>
+          x >= 0 && y >= 0 && x < size && y < size && !tiles.contains((x, y))
+        }.distinct
 
       private def generateCityTiles(start: (Int, Int), desiredSize: Int, occupied: Set[(Int, Int)], size: Int): RNGState[Set[(Int, Int)]] =
         def expand(frontier: List[(Int, Int)], current: Set[(Int, Int)]): RNGState[Set[(Int, Int)]] =
@@ -59,30 +70,46 @@ object WorldMapModule:
               val next = shuffled.take(desiredSize - current.size)
               expand(frontier.tail ++ next, current ++ next)
             )
+
         expand(List(start), Set(start))
 
-      private def generateMapState(cityCount: Int, citySize: Int, mapSize: Int): RNGState[WorldMap] =
-        def loop(n: Int, acc: WorldMap, occupied: Set[(Int, Int)]): RNGState[WorldMap] =
-          if n == 0 then State (r => (r, acc))
+      private def chooseStartingPoint(acc: WorldMap, occupied: Set[(Int, Int)], mapSize: Int): RNGState[(Int, Int)] =
+        if acc.isEmpty then
+          for
+            x <- randomInt(mapSize)
+            y <- randomInt(mapSize)
+          yield (x, y)
+        else
+          val allCoords = acc.flatMap(_._2)
+          val possibleStarts = adjacentTo(allCoords, mapSize).filterNot(occupied.contains)
+          if possibleStarts.isEmpty then
+            State(rng => (rng, allCoords.head)) // fallback se non ci sono spazi adiacenti
           else
+            shuffleList(possibleStarts).map(_.head)
+
+      private def generateMapState(mapSize: Int, capitalCount: Int): RNGState[WorldMap] =
+        def loop(n: Int, capitalsLeft: Int, acc: WorldMap, occupied: Set[(Int, Int)]): RNGState[WorldMap] =
+          val remainingTiles = mapSize * mapSize - occupied.size
+          if remainingTiles <= 1 then State(rng => (rng, acc))
+          else
+            val isCapital = capitalsLeft > 0
             for
-              x <- randomInt(mapSize)
-              y <- randomInt(mapSize)
-              start = (x, y)
-              tiles <- generateCityTiles(start, citySize, occupied, mapSize)
-              city = createCity(letterAt(n), citySize)
-              next <- loop(n - 1, acc + (city -> tiles), occupied ++ tiles)
+              size <- randomCitySize(isCapital)
+              start <- chooseStartingPoint(acc, occupied, mapSize)
+              tiles <- generateCityTiles(start, size, occupied, mapSize)
+              city = createCity(letterAt(n, isCapital), size,isCapital)
+              next <- loop(n + 1, if isCapital then capitalsLeft - 1 else capitalsLeft, acc + (city -> tiles), occupied ++ tiles)
             yield next
+        loop(0, capitalCount, Set.empty, Set.empty)
 
-        loop(cityCount, Set.empty, Set.empty)
 
-      def createMap(cityCount: Int, citySize: Int, mapSize: Int): WorldMap =
-        val (finalRng, worldMap) = generateMapState(cityCount, citySize, mapSize).run(Random())
+      def createMap(citySize: Int): WorldMap =
+        val (finalRng, worldMap) = generateMapState(citySize,5).run(Random())
         worldMap
 
 
   def createWorldMap(size: Int)(CreateMapModule: CreateModuleType): WorldMap =
-    CreateMapModule.createMap(size,3,6)
+    CreateMapModule.createMap(size)
 
   extension (worldMap: WorldMap)
 
@@ -99,6 +126,12 @@ object WorldMapModule:
 
     def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
       worldMap.find(f.tupled).flatMap((city, coords) => coords.headOption.map(_ => city.getName))
+
+    def renderList(): Unit =
+      worldMap.foreach { case (city, coords) =>
+        val coordsStr = coords.toList.sortBy(_._1).mkString(", ")
+        println(s"- ${city.getName}: $coordsStr")
+      }
 
 
 
