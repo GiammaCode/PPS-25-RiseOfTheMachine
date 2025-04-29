@@ -16,7 +16,6 @@ object WorldMapModule:
 
   object DeterministicMapModule extends CreateModuleType:
     override def createMap(cityCount: Int, citySize: Int, mapSize: Int): WorldMap =
-      // Pattern regolare: una città a "blocco" 2xN oppure 3xN
       def generateCityTiles(startX: Int, startY: Int, count: Int): Set[(Int, Int)] =
         (0 until count).map(i => (startX + (i % 2), startY + (i / 2))).toSet
 
@@ -24,7 +23,7 @@ object WorldMapModule:
         val citiesPerRow = math.max(1, mapSize / 3)
         val row = index / citiesPerRow
         val col = index % citiesPerRow
-        val spacing = 3 // spaziatura costante
+        val spacing = 3
         (col * spacing, row * spacing)
 
       (0 until cityCount).map { i =>
@@ -92,10 +91,8 @@ object WorldMapModule:
         .map ((_, coords) => worldMap.filterNot(_._1.getName == city.getName) + (city -> coords))
         .getOrElse(worldMap)
 
-    def getSize: Int =
-      worldMap.flatMap(_._2).foldLeft(0) { case (acc, (x, y)) =>
-        math.max(acc, math.max(x, y))
-      } + 1
+    def getSize: Int = worldMap.flatMap(_._2).foldLeft(0)((acc, xy) => math.max(acc, math.max(xy._1, xy._2))) + 1
+
     def targetCity(name: String): City =
       worldMap.find(_._1.getName == name).get._1
     def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
