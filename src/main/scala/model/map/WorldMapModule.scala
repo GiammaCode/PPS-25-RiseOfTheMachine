@@ -5,7 +5,6 @@ import model.map.CityModule.CityImpl.*
 import model.util.States.State.State
 import model.util.Util.letterAt
 
-import scala.::
 import scala.util.Random
 
 
@@ -51,17 +50,16 @@ object WorldMapModule:
         def expand(frontier: List[(Int, Int)], current: Set[(Int, Int)]): RNGState[Set[(Int, Int)]] =
           if current.size >= desiredSize || frontier.isEmpty then State(rng => (rng, current))
           else
-            val neighbors = frontier.headOption.toList.flatMap  ((x, y) =>
-              List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
-              ).filter { case (x, y) => x >= 0 && y >= 0 && x < size && y < size &&
-                !occupied.contains((x, y)) && !current.contains((x, y))
-            }
-
-            shuffleList(neighbors).flatMap { shuffled =>
+            val neighbors = frontier.headOption.toList
+              .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+              .filter((x, y) =>
+                x >= 0 && y >= 0 && x < size && y < size &&
+                  !occupied.contains((x, y)) && !current.contains((x, y))
+              )
+            shuffleList(neighbors).flatMap(shuffled =>
               val next = shuffled.take(desiredSize - current.size)
               expand(frontier.tail ++ next, current ++ next)
-            }
-
+            )
         expand(List(start), Set(start))
 
       private def generateMapState(cityCount: Int, citySize: Int, mapSize: Int): RNGState[WorldMap] =
@@ -90,11 +88,10 @@ object WorldMapModule:
   extension (worldMap: WorldMap)
 
     def changeACityOfTheMap(city: City): WorldMap =
-      worldMap.find(_._1.getName == city.getName)
-        .map { case (_, coords) =>
-          worldMap.filterNot(_._1.getName == city.getName) + (city -> coords)
-        }
+        worldMap.find(_._1.getName == city.getName)
+        .map ((_, coords) => worldMap.filterNot(_._1.getName == city.getName) + (city -> coords))
         .getOrElse(worldMap)
+
     def getSize: Int =
       worldMap.flatMap(_._2).foldLeft(0) { case (acc, (x, y)) =>
         math.max(acc, math.max(x, y))
@@ -104,8 +101,7 @@ object WorldMapModule:
     def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
 
     def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
-      worldMap.find { case (city, coords) => f(city, coords) }
-        .flatMap { case (city, coords) => coords.headOption.map(c => city.getName) }
+      worldMap.find(f.tupled).flatMap((city, coords) => coords.headOption.map(_ => city.getName))
 
 
 

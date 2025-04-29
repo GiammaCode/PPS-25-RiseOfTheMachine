@@ -23,6 +23,10 @@ class WorldMapTest:
   def CreationOfUndeterministicMap(): Unit =
      assertNotEquals( createWorldMap(10)(UndeterministicMapModule), createWorldMap(10)(UndeterministicMapModule))
 
+  @Test
+  def changeACityOfTheMap(): Unit =
+    assertEquals(worldMap.targetCity("A").infectCity(),(worldMap.changeACityOfTheMap(worldMap.targetCity("A").infectCity())).targetCity("A"))
+
 
 
 
