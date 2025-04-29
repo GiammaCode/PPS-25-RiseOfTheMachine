@@ -1,17 +1,17 @@
 package model.map
+import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.*
-import model.strategy.PlayerAI.PlayerAI
-import model.strategy.{AiAction, HumanAction, PlayerAI, PlayerHuman}
+import model.strategy.PlayerAI
 
 object  WorldStateModule:
 
-  opaque type WorldState = (WorldMap,PlayerAI,PlayerHuman)
+  opaque type WorldState = (WorldMap,Int)
 
   private var turn: Int = 0
   val killSwitchPercentage: Int= 0
 
-  def creteWorldState(): WorldState =
-    (createWorldMap(10)(UndeterministicMapModule), PlayerAI.default ,PlayerHuman.default)
+  def creteWorldState(): WorldState = ???
+
   private def currentTurn(): Int =
     increaseTurn()
     turn
@@ -21,9 +21,12 @@ object  WorldStateModule:
   
   extension(worldState: WorldState)
     def IsGameOver(): Boolean = worldState._1.numberOfCityInfected() > 10//worldMap.AIConquerPercetage > 70
-    def doHumanAction(action : HumanAction): Unit = ???
-    def doPlayerAction(action: AiAction): Unit = ???
     def getMap: WorldMap = worldState._1
+    def attackableCity(f: Int => Int): Set[(String,Int,Int)] = ???
+    def getAiCities(): Set[City] = ???
+    def getHumanCities(): Set[City] = ???
+
+
 
 
 

@@ -37,9 +37,9 @@ case class GameState(ai: PlayerAI,
     State { gs => (gs.copy(human = gs.currentHuman.executeAction(action)),())}
 
   private def renderTurn(): State[GameState,Unit] =
-    val actionsString: Set[String] = Set.empty
-    val actions = List("SabotageAction", "InfectAction", "EvolveAction","Exit")
-    State { state => view.renderGameTurn(3, worldMap, worldMap.numberOfCityInfected(), 13, actionsString, actions)
+    val abilities: Set[String] = Set.empty
+    val options = List("SabotageAction", "InfectAction", "EvolveAction","Exit")
+    State { state => view.renderGameTurn(3, worldMap, worldMap.numberOfCityInfected(), 13, abilities, options)
       (state, ())
     }
 

@@ -7,7 +7,7 @@ object Util:
     Random.nextInt(100) > percentage
 
   def letterAt(n: Int): String =
-    (65 + n).toChar.toString
+    (64 + n).toChar.toString
 
     //97 for minus
 

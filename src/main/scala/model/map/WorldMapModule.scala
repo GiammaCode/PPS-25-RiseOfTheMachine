@@ -36,7 +36,6 @@ object WorldMapModule:
       }.toSet
   object UndeterministicMapModule extends CreateModuleType:
 
-
       opaque type RNGState[A] = State[Random, A]
 
       private def randomInt(max: Int): RNGState[Int] =
@@ -53,8 +52,7 @@ object WorldMapModule:
           else
             val neighbors = frontier.headOption.toList.flatMap  ((x, y) =>
               List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
-              ).filter { case (x, y) =>
-              x >= 0 && y >= 0 && x < size && y < size &&
+              ).filter { case (x, y) => x >= 0 && y >= 0 && x < size && y < size &&
                 !occupied.contains((x, y)) && !current.contains((x, y))
             }
 
@@ -67,7 +65,7 @@ object WorldMapModule:
 
       private def generateMapState(cityCount: Int, citySize: Int, mapSize: Int): RNGState[WorldMap] =
         def loop(n: Int, acc: WorldMap, occupied: Set[(Int, Int)]): RNGState[WorldMap] =
-          if n == 0 then State(r => (r, acc))
+          if n == 0 then State (r => (r, acc))
           else
             for
               x <- randomInt(mapSize)
@@ -86,7 +84,7 @@ object WorldMapModule:
 
 
   def createWorldMap(size: Int)(CreateMapModule: CreateModuleType): WorldMap =
-    CreateMapModule.createMap(size,3,size)
+    CreateMapModule.createMap(size,3,6)
 
   extension (worldMap: WorldMap)
 

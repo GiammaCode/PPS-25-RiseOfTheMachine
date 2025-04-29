@@ -1,12 +1,9 @@
 package view
 
-import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
-import org.junit.Test
+import model.map.WorldMapModule.{UndeterministicMapModule, WorldMap, createWorldMap}
+import org.junit.Assert.assertTrue
 import org.junit.*
-import org.junit.Assert.{assertEquals, assertTrue}
 import view.ViewModule.*
-
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 
 /** Example of layout
  * -----RISE OF THE MACHINE - TURN 5-----
@@ -30,7 +27,7 @@ class CLIViewTest:
     val turn = 5
     val options = List("Infect", "Sabotages", "Exit")
     val abilities = Set("ability1", "ability2")
-    val worldMap: WorldMap = createWorldMap(5)(DeterministicMapModule)
+    val worldMap: WorldMap = createWorldMap(15)(UndeterministicMapModule)
 
 
     CLIView.renderGameTurn(turn, worldMap, 5, 15, abilities, options)
