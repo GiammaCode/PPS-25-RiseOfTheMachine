@@ -39,6 +39,7 @@ case class PlayerHuman private(
    * Defines the type of actions this player can perform.
    */
   override type ValidAction = HumanAction
+  override type Self = PlayerHuman
 
   /**
    * Executes a given human action and returns the updated player state.
@@ -46,7 +47,7 @@ case class PlayerHuman private(
    * @param action the action to execute
    * @return a new PlayerHuman with the action applied
    */
-  override def executeAction(action: ValidAction): ExecuteActionResult =
+  override def executeAction(action: ValidAction): ExecuteActionResult[Self] =
     doExecuteAction(action)
 
   /**
@@ -66,7 +67,7 @@ case class PlayerHuman private(
   /**
    * Internal handler for action execution.
    */
-  private def doExecuteAction(action: HumanAction): ExecuteActionResult = ??? 
+  private def doExecuteAction(action: HumanAction): ExecuteActionResult[Self] = ??? 
 //  action match
 //    case action: CityDefenseAction => singleCityDefense(action.targets)
 //    case action: GlobalDefenseAction => globalDefense(action.targets)

@@ -7,6 +7,7 @@ import model.strategy.ExecuteActionResult.ExecuteActionResult
 trait PlayerEntity :
     /** The type of actions this entity can perform. */
     type ValidAction <: TurnAction
+    type Self <: PlayerEntity
 
     /** All actions this entity has executed. */
     def executedActions: List[ValidAction]
@@ -15,4 +16,4 @@ trait PlayerEntity :
     def conqueredCities: Set[String]
 
     /** Executes a valid action, returning the updated player entity. */
-    def executeAction(action: ValidAction): ExecuteActionResult
+    def executeAction(action: ValidAction): ExecuteActionResult[Self]
