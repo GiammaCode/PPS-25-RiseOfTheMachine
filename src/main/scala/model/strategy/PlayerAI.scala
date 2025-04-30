@@ -12,7 +12,7 @@
 //
 //object PlayerAI:
 //  opaque type PlayerAI = PlayerAIImpl
-//  
+//
 //  def default: PlayerAI = PlayerAIImpl()
 //  //add here creation fromDifficulty
 //
@@ -38,7 +38,7 @@
 //
 //    /** Returns the set of cities sabotaged by the AI. */
 //    def sabotagedCities: Set[String] = ai.sabotagedCities
-//  
+//
 //
 ///** Represents an AI-controlled player.
 // *
@@ -129,32 +129,23 @@ import model.strategy.playerActions.*
 import util.chaining.scalaUtilChainingOps
 import scala.util.Random
 
-// 1. PlayerAI diventa un trait che estende PlayerEntity
 trait PlayerAI extends PlayerEntity:
-  // Definisci qui i membri pubblici del PlayerAI
-  // Sposta i metodi dall'estensione dell'opaque type qui
   def unlockedAbilities: Set[AiAbility]
   def executedActions: List[AiAction]
   def infectionChance: Int
   def sabotagePower: Int
   def conqueredCities: Set[String]
   def sabotagedCities: Set[String]
-  // Assicurati che il tipo associato ValidAction sia corretto
-  override type ValidAction = AiAction // Specifica il bound superiore
+  override type ValidAction = AiAction
 
-  // Il metodo executeAction definito in PlayerEntity ora è astratto qui
   override def executeAction(action: ValidAction): ExecuteActionResult
 
-  // Puoi anche definire un metodo toString qui se lo vuoi parte dell'interfaccia
   override def toString: String
 
-// 3. Companion object per PlayerAI (per factory methods)
 object PlayerAI:
-  // Il metodo default crea un'istanza di PlayerAIImpl (che è un PlayerAI)
   def default: PlayerAI = PlayerAIImpl()
 //add here creation fromDifficulty
 
-// 2. PlayerAIImpl estende il trait PlayerAI
 private case class PlayerAIImpl (
                                   unlockedAbilities : Set[AiAbility] = Set.empty,
                                   executedActions: List[AiAction] = List.empty,
@@ -164,21 +155,17 @@ private case class PlayerAIImpl (
                                   sabotagedCities: Set[String] = Set.empty
                                 ) extends PlayerAI: // Ora estende PlayerAI
 
-  // 4. Implementa i membri definiti nel trait PlayerAI
-  override type ValidAction = AiAction // Specifica il tipo concreto
+  override type ValidAction = AiAction
 
   /** Executes a given AI action and updates the player's state. */
-  // Implementa il metodo executeAction del trait PlayerAI
   override def executeAction(action: ValidAction): ExecuteActionResult = doExecuteAction(action)
 
-  // Metodo interno per l'esecuzione delle azioni specifiche
   private def doExecuteAction(action: AiAction): ExecuteActionResult = action match
     case _: EvolveAction => evolve
     case a: InfectAction => this.infect(a.targets)
     case a: SabotageAction => this.sabotage(a.targets)
 
   /** String representation of the AI's current status. */
-  // Implementa il metodo toString del trait PlayerAI
   override def toString: String =
     s"""|--- PlayerAI Status ---
         |Unlocked Abilities   : ${if (unlockedAbilities.isEmpty) "None" else unlockedAbilities.mkString(", ")}
@@ -207,9 +194,6 @@ private case class PlayerAIImpl (
       .headOption
       .fold(this)(withNewAbility)
       .addAction(EvolveAction())
-
-    // Ora updatedPlayer (che è un PlayerAIImpl) può essere passato dove si aspetta PlayerAI
-    // perché PlayerAIImpl estende PlayerAI
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, None)
 
 
@@ -218,18 +202,13 @@ private case class PlayerAIImpl (
     val updatedPlayer: PlayerAIImpl = copy(conqueredCities = conqueredCities ++ cities).addAction(InfectAction(cities))
     // Assuming CityModule.CityImpl.createCity and tryToInfectCity work as expected
     val updatedCity: City = CityModule.CityImpl.createCity(cities.head, 40).tryToInfectCity()
-
-    // updatedPlayer (PlayerAIImpl) può essere passato a fromPlayerEntity che aspetta PlayerAI
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, Some(updatedCity))
 
 
   /** Sabotages the given cities and adds the sabotage action to history. */
   private def sabotage(cities: List[String]): ExecuteActionResult =
     val updatedPlayer: PlayerAIImpl = copy(sabotagedCities = sabotagedCities ++ cities).addAction(SabotageAction(cities))
-    // Assuming CityModule.CityImpl.createCity and tryToSabotateCity work as expected
     val updatedCity: City = CityModule.CityImpl.createCity(cities.head, 40).tryToSabotateCity(sabotagePower)
-
-    // updatedPlayer (PlayerAIImpl) può essere passato a fromPlayerEntity che aspetta PlayerAI
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, Some(updatedCity))
 
 
