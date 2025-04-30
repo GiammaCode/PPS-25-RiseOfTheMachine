@@ -12,9 +12,6 @@ class WorldStateTest :
   var human: PlayerHuman = _
   var ai: PlayerAI = _
   var worldMap: WorldMap = _
-  var cities: List[String] = List("Milan", "Rome")
-  var city: List[String] = List("Milan")
-
 
   @Before
   def init(): Unit =
