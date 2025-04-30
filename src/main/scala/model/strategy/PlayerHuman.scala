@@ -1,5 +1,6 @@
 package model.strategy
 
+import model.strategy.ExecuteActionResult.ExecuteActionResult
 import model.strategy.humanActions.*
 
 /**
@@ -45,7 +46,7 @@ case class PlayerHuman private(
    * @param action the action to execute
    * @return a new PlayerHuman with the action applied
    */
-  override def executeAction(action: ValidAction): PlayerHuman =
+  override def executeAction(action: ValidAction): ExecuteActionResult =
     doExecuteAction(action)
 
   /**
@@ -65,10 +66,11 @@ case class PlayerHuman private(
   /**
    * Internal handler for action execution.
    */
-  private def doExecuteAction(action: HumanAction): PlayerHuman = action match
-    case action: CityDefenseAction => singleCityDefense(action.targets)
-    case action: GlobalDefenseAction => globalDefense(action.targets)
-    case action: DevelopKillSwitchAction => developKillSwitchAction
+  private def doExecuteAction(action: HumanAction): ExecuteActionResult = ??? 
+//  action match
+//    case action: CityDefenseAction => singleCityDefense(action.targets)
+//    case action: GlobalDefenseAction => globalDefense(action.targets)
+//    case action: DevelopKillSwitchAction => developKillSwitchAction
 
   /**
    * Executes a city defense on a single city.

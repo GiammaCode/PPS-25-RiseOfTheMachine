@@ -3,7 +3,7 @@ package controller
 import controller.InputHandling.InputHandlingError
 import model.map.WorldMapModule.WorldMap
 import model.strategy.*
-import model.strategy.PlayerAI.PlayerAI
+import model.strategy.PlayerAI
 import model.strategy.playerActions.*
 import model.util.States.State.State
 import view.ViewModule.{CLIView, GameView}
@@ -32,10 +32,17 @@ case class GameState(ai: PlayerAI,
   import model.util.States.State.State
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] =
-    State { gs =>(gs.copy(ai = gs.currentAi.executeAction(action)), ())}
+    State { gs =>
+      val result = gs.currentAi.executeAction(action)
+      val updatedAi = result.getPlayer
+      val maybeCity = result.getCity
+      println(">>> After action: " + updatedAi)
+      maybeCity.foreach(city => println(">>> City updated: " + city.getName + " | Defense: " + city.getDefense))
+      (gs.copy(ai = updatedAi), ())
+    }//(gs.copy(ai = gs.currentAi.executeAction(action)), ())}
 
-  private def doHumanAction(action: HumanAction): State[GameState, Unit] =
-    State { gs => (gs.copy(human = gs.currentHuman.executeAction(action)),())}
+//  private def doHumanAction(action: HumanAction): State[GameState, Unit] =
+//    State { gs => (gs.copy(human = gs.currentHuman.executeAction(action)),())}
 
   private def renderTurn(): State[GameState,Unit] =
     val abilities: Set[String] = Set.empty
@@ -76,4 +83,5 @@ case class GameState(ai: PlayerAI,
   val actions = List(SabotageAction(), InfectAction(), EvolveAction()) //ai.getPossibleActions
   val attackableCities = Set("Rome", "Paris", "Berlin")
   val aiActionResult = InputHandler.getActionFromChoice(1, "Rome", attackableCities, actions)
-  game.gameTurn(aiActionResult)(game)
+  val (updatedGameState, _) = game.gameTurn(aiActionResult).run(game)
+  println("\n>> Final sabotaged cities: " + updatedGameState.ai.sabotagedCities)
