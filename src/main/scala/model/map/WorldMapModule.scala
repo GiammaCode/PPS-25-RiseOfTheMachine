@@ -121,6 +121,7 @@ object WorldMapModule:
 
     def targetCity(name: String): City =
       worldMap.find(_._1.getName == name).get._1
+
     def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
 
     def numberOfCity(): Int = worldMap.size
@@ -134,9 +135,7 @@ object WorldMapModule:
         println(s"- ${city.getName}: $coordsStr")
       }
 
-
-
-
+    def cities: Set[(City, Set[(Int, Int)])] = worldMap
 
 
 
