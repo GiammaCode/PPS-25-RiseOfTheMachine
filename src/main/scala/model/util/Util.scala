@@ -3,7 +3,7 @@ package model.util
 import scala.util.Random
 
 object Util:
-  def doesAttackWorks(percentage: Int): Boolean =
+  def doesTheActionGoesRight(percentage: Int): Boolean =
     Random.nextInt(100) < percentage
 
   def letterAt(n: Int, isCapital: Boolean): String =

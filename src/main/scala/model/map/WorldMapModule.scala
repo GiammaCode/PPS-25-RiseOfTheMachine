@@ -3,7 +3,7 @@ package model.map
 import model.map.CityModule.*
 import model.map.CityModule.CityImpl.*
 import model.util.States.State.State
-import model.util.Util.letterAt
+import model.util.Util.{doesTheActionGoesRight, letterAt}
 
 import scala.util.Random
 
@@ -91,7 +91,7 @@ object WorldMapModule:
           val remainingTiles = mapSize * mapSize - occupied.size
           if remainingTiles <= 1 then State(rng => (rng, acc))
           else
-            val isCapital = capitalsLeft > 0
+            val isCapital = capitalsLeft > 0 && doesTheActionGoesRight(50)
             for
               size <- randomCitySize(isCapital)
               start <- chooseStartingPoint(acc, occupied, mapSize)
@@ -103,7 +103,7 @@ object WorldMapModule:
 
 
       def createMap(citySize: Int): WorldMap =
-        val (finalRng, worldMap) = generateMapState(citySize,5).run(Random(5))
+        val (finalRng, worldMap) = generateMapState(citySize,citySize/2).run(Random())
         worldMap
 
 
@@ -122,6 +122,8 @@ object WorldMapModule:
     def targetCity(name: String): City =
       worldMap.find(_._1.getName == name).get._1
     def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
+
+    def numberOfCity(): Int = worldMap.size
 
     def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
       worldMap.find(f.tupled).flatMap((city, coords) => coords.headOption.map(_ => city.getName))

@@ -14,9 +14,7 @@ Strutture:
         world map
         IA action
         Human Action
-        
-    WorldMap,
-    City
+
 
 Stampare 
 Test unitari di 

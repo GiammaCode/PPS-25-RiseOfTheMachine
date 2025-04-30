@@ -25,4 +25,8 @@ class WorldMapTest:
   @Test
   def renderCoordinate(): Unit = println(worldMap.renderList())
 
+  @Test
+  def numberOfCityTest():Unit =
+    assertEquals(10,createWorldMap(10)(DeterministicMapModule).numberOfCity())
+
 
