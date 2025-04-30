@@ -1,10 +1,13 @@
 package model.strategy
 
+import model.strategy.ExecuteActionResult.ExecuteActionResult
+
 /** Represents any entity(e.g., a Human or AI) that can perform actions in the game
   */
 trait PlayerEntity :
     /** The type of actions this entity can perform. */
     type ValidAction <: TurnAction
+    type Self <: PlayerEntity
 
     /** All actions this entity has executed. */
     def executedActions: List[ValidAction]
@@ -13,4 +16,4 @@ trait PlayerEntity :
     def conqueredCities: Set[String]
 
     /** Executes a valid action, returning the updated player entity. */
-    def executeAction(action: ValidAction): PlayerEntity
+    def executeAction(action: ValidAction): ExecuteActionResult[Self]

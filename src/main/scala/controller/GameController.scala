@@ -3,9 +3,9 @@ package controller
 import controller.InputHandling.InputHandlingError
 import model.map.WorldMapModule.WorldMap
 import model.strategy.*
-import model.strategy.PlayerAI.PlayerAI
-import model.strategy.PlayerHuman.PlayerHuman
+import model.strategy.PlayerAI
 import model.strategy.playerActions.*
+import model.util.States.State.State
 import view.ViewModule.{CLIView, GameView}
 
 object GameController:
@@ -32,19 +32,24 @@ case class GameState(ai: PlayerAI,
   import model.util.States.State.State
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] =
-    State { gs =>(gs.copy(ai = gs.currentAi.executeAction(action)), ())}
+    State { gs =>
+      val result = gs.currentAi.executeAction(action)
+      val updatedAi = result.getPlayer
+      val maybeCity = result.getCity
+      println(">>> After action: " + updatedAi)
+      maybeCity.foreach(city => println(">>> City updated: " + city.getName + " | Defense: " + city.getDefense))
+      (gs.copy(ai = updatedAi), ())
+    }//(gs.copy(ai = gs.currentAi.executeAction(action)), ())}
 
-  private def doHumanAction(action: HumanAction): State[GameState, Unit] =
-    State { gs => (gs.copy(human = gs.currentHuman.executeAction(action)),())}
+//  private def doHumanAction(action: HumanAction): State[GameState, Unit] =
+//    State { gs => (gs.copy(human = gs.currentHuman.executeAction(action)),())}
 
-  /*
   private def renderTurn(): State[GameState,Unit] =
     val abilities: Set[String] = Set.empty
     val options = List("SabotageAction", "InfectAction", "EvolveAction","Exit")
-    //State { state => view.renderGameTurn(3, worldMap, worldMap.numberOfCityInfected(), 13, abilities, options)
-    //  (state, ())
-    //  }
-
+    State { state => view.renderGameTurn(3, worldMap, worldMap.numberOfCityInfected(), 13, abilities, options)
+      (state, ())
+    }
 
   def gameTurn(aiActionResult: Either[InputHandlingError, AiAction]): State[GameState, Unit] =
     aiActionResult match {
@@ -56,7 +61,7 @@ case class GameState(ai: PlayerAI,
         yield()
       case Left(error) => ???
     }
-    */
+
 
   /*
   def startGame() : Unit =
@@ -76,5 +81,7 @@ case class GameState(ai: PlayerAI,
 @main def tryController(): Unit =
   val game = GameController.apply()
   val actions = List(SabotageAction(), InfectAction(), EvolveAction()) //ai.getPossibleActions
-  val aiActionResult = InputHandler.getActionFromChoice(3, actions)
-  //game.gameTurn(aiActionResult)(game)
+  val attackableCities = Set("Rome", "Paris", "Berlin")
+  val aiActionResult = InputHandler.getActionFromChoice(1, "Rome", attackableCities, actions)
+  val (updatedGameState, _) = game.gameTurn(aiActionResult).run(game)
+  println("\n>> Final sabotaged cities: " + updatedGameState.ai.sabotagedCities)

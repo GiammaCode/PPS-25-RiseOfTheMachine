@@ -1,8 +1,8 @@
 package model
 
 import model.map.WorldMapModule.{UndeterministicMapModule, WorldMap, createWorldMap}
-import model.strategy.PlayerAI.PlayerAI
-import model.strategy.PlayerHuman.PlayerHuman
+import model.map.WorldStateModule.WorldState
+import model.strategy.PlayerAI.*
 import model.strategy.{PlayerAI, PlayerHuman}
 
 object GameFactory : 
