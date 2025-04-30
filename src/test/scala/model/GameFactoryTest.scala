@@ -2,8 +2,8 @@ package model
 
 import model.map.WorldMapModule.WorldMap
 import model.strategy.HumanActionTypes.CityDefense
-import model.strategy.PlayerAI.PlayerAI
-import model.strategy.PlayerHuman.PlayerHuman
+import model.strategy.PlayerAI.*
+import model.strategy.PlayerHuman.*
 import model.strategy.humanActions.CityDefenseAction
 import model.strategy.playerActions.EvolveAction
 import model.strategy.{AiAction, HumanAction, PlayerAI, PlayerHuman}

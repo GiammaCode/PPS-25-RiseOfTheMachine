@@ -1,10 +1,7 @@
 package model
 
-import model.strategy.HumanActionTypes.DevelopKillSwitch
-import model.strategy.PlayerHuman.PlayerHuman
 import model.strategy.humanActions.{CityDefenseAction, DevelopKillSwitchAction, GlobalDefenseAction}
 import model.strategy.{HumanAction, PlayerHuman}
-import model.strategy.playerActions.*
 import org.junit.*
 import org.junit.Assert.{assertEquals, assertTrue}
 

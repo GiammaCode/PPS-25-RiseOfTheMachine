@@ -2,9 +2,7 @@ package view
 
 import model.map.WorldMapModule.{UndeterministicMapModule, WorldMap, createWorldMap}
 import model.map.WorldState.{WorldState, createWorldState}
-import model.strategy.PlayerAI.PlayerAI
 import model.strategy.{PlayerAI, PlayerHuman}
-import model.strategy.PlayerHuman.PlayerHuman
 import org.junit.Assert.assertTrue
 import org.junit.*
 import view.ViewModule.*

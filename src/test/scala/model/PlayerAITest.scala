@@ -1,6 +1,6 @@
 package model
 
-import model.strategy.PlayerAI.PlayerAI
+import model.strategy.PlayerAI.*
 import model.strategy.playerActions.*
 import model.strategy.{AiAbility, AiAction, PlayerAI, TurnAction}
 import org.junit.*

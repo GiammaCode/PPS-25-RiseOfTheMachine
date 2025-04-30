@@ -3,9 +3,9 @@ package model.map
 import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.*
 import model.strategy.AiAbility.AiAbility
-import model.strategy.PlayerAI.PlayerAI
+import model.strategy.PlayerAI.*
 import model.strategy.{PlayerAI, PlayerEntity, PlayerHuman}
-import model.strategy.PlayerHuman.PlayerHuman
+import model.strategy.PlayerHuman.*
 import model.util.Util.*
 
 object WorldState:

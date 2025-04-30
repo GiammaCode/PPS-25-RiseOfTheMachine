@@ -2,9 +2,9 @@ package model
 
 import model.map.WorldMapModule.{UndeterministicMapModule, WorldMap, createWorldMap}
 import model.map.WorldState.createWorldState
-import model.strategy.PlayerAI.PlayerAI
+import model.strategy.PlayerAI.*
 import model.strategy.{PlayerAI, PlayerEntity, PlayerHuman}
-import model.strategy.PlayerHuman.PlayerHuman
+import model.strategy.PlayerHuman.*
 import org.junit.*
 import org.junit.Assert.{assertEquals, assertFalse, assertNotNull, assertTrue}
 
