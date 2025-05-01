@@ -20,30 +20,30 @@ class PlayerHumanTest :
   @Test
   def applyGlobalDefenseTest() : Unit=
     action = GlobalDefenseAction(cities)
-    val updateHuman = human.executeAction(action)
+    val updateHuman = human.executeAction(action).getPlayer
     assertTrue(updateHuman.executedActions.nonEmpty)
 
   @Test
   def applyCityDefenseTest() : Unit =
     action = CityDefenseAction(city)
-    val updateHuman = human.executeAction(action)
+    val updateHuman = human.executeAction(action).getPlayer
     assertTrue(updateHuman.executedActions.nonEmpty)
 
 
   @Test
   def applyDevelopKillSwitchTest() : Unit =
     action = DevelopKillSwitchAction(city)
-    val updateHuman = human.executeAction(action)
+    val updateHuman = human.executeAction(action).getPlayer
     assertTrue(updateHuman.executedActions.nonEmpty)
 
   @Test
   def applyMultipleAction() : Unit =
     val firstAction : HumanAction = DevelopKillSwitchAction(city)
-    val firstActionHuman = human.executeAction(firstAction)
+    val firstActionHuman = human.executeAction(firstAction).getPlayer
     assertTrue(firstActionHuman.executedActions.nonEmpty)
 
     val secondAction : HumanAction = CityDefenseAction(city)
-    val secondActionHuman = firstActionHuman.executeAction(secondAction)
+    val secondActionHuman = firstActionHuman.executeAction(secondAction).getPlayer
     assertEquals(2, secondActionHuman.executedActions.size)
 
   @Test

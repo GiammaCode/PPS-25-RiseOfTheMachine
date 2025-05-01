@@ -1,6 +1,6 @@
 package model
 
-import model.strategy.PlayerAI.PlayerAI
+import model.strategy.PlayerAI
 import model.strategy.playerActions.*
 import model.strategy.{AiAbility, AiAction, PlayerAI, TurnAction}
 import org.junit.*
@@ -17,7 +17,7 @@ class PlayerAITest :
   @Test
   def applyEvolveAbilityTest() : Unit =
     action = EvolveAction()
-    val updatedPlayer = player.executeAction(action)
+    val updatedPlayer = player.executeAction(action).getPlayer
     assert(updatedPlayer.unlockedAbilities.nonEmpty)
     if (updatedPlayer.unlockedAbilities.contains(AiAbility.ImprovedInfection)) {
       assert(updatedPlayer.infectionChance == player.infectionChance + 10)
@@ -29,9 +29,9 @@ class PlayerAITest :
   @Test
   def applyMultipleEvolveActionsTest(): Unit =
     action = EvolveAction()
-    val playerAfterFirstEvolve = player.executeAction(action)
+    val playerAfterFirstEvolve = player.executeAction(action).getPlayer
     action = EvolveAction()
-    val playerAfterSecondEvolve = playerAfterFirstEvolve.executeAction(action)
+    val playerAfterSecondEvolve = playerAfterFirstEvolve.executeAction(action).getPlayer
     assert(playerAfterSecondEvolve.executedActions.size == 2)
     assert(playerAfterSecondEvolve.infectionChance == player.infectionChance + 10)
     assert(playerAfterSecondEvolve.sabotagePower == player.sabotagePower + 5)
@@ -40,7 +40,7 @@ class PlayerAITest :
   @Test
   def applyInfectActionTest(): Unit =
     action = InfectAction(cities)
-    val updatedPlayer = player.executeAction(action)
+    val updatedPlayer = player.executeAction(action).getPlayer
 
     assert(updatedPlayer.conqueredCities.contains("Milan"))
     assert(updatedPlayer.conqueredCities.contains("Rome"))
@@ -49,7 +49,7 @@ class PlayerAITest :
   @Test
   def applySabotageActionTest(): Unit =
     action = SabotageAction(cities)
-    val updatedPlayer = player.executeAction(action)
+    val updatedPlayer = player.executeAction(action).getPlayer
 
     assert(updatedPlayer.sabotagedCities.contains("Milan"))
     assert(updatedPlayer.sabotagedCities.contains("Rome"))
@@ -57,9 +57,9 @@ class PlayerAITest :
 
   @Test
   def playerToStringTest(): Unit =
-    val infectedPlayer = player.executeAction(InfectAction(List("Milan")))
-    val sabotagedPlayer = infectedPlayer.executeAction(SabotageAction(List("Rome")))
-    val evolvedPlayer = sabotagedPlayer.executeAction(EvolveAction())
+    val infectedPlayer = player.executeAction(InfectAction(List("Milan"))).getPlayer
+    val sabotagedPlayer = infectedPlayer.executeAction(SabotageAction(List("Rome"))).getPlayer
+    val evolvedPlayer = sabotagedPlayer.executeAction(EvolveAction()).getPlayer
 
     val output = evolvedPlayer.toString
     print(output)

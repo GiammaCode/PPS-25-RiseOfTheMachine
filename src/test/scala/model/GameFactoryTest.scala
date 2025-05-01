@@ -1,8 +1,9 @@
 package model
 
+import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.WorldMap
 import model.strategy.HumanActionTypes.CityDefense
-import model.strategy.PlayerAI.PlayerAI
+import model.strategy.PlayerAI
 import model.strategy.humanActions.CityDefenseAction
 import model.strategy.playerActions.EvolveAction
 import model.strategy.{AiAction, HumanAction, PlayerAI, PlayerHuman}
@@ -25,6 +26,6 @@ class GameFactoryTest :
     val updatedPlayer = worldState._1.executeAction(aiAction)
     val updateHuman = worldState._2.executeAction(humanAction)
     assert(worldState._3.numberOfCityInfected() == 0)
-    assert(updatedPlayer.unlockedAbilities.nonEmpty)
-    assertTrue(updateHuman.executedActions.nonEmpty)
+    assert(updatedPlayer.getPlayer.unlockedAbilities.nonEmpty)
+    assertTrue(updateHuman.getPlayer.executedActions.nonEmpty)
 
