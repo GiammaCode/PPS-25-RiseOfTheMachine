@@ -1,14 +1,13 @@
 package model
 
 import model.map.WorldMapModule.{UndeterministicMapModule, WorldMap, createWorldMap}
-import model.map.WorldState.createWorldState
-import model.strategy.PlayerAI.*
-import model.strategy.{PlayerAI, PlayerEntity, PlayerHuman}
-import model.strategy.PlayerHuman.*
+import model.map.WorldState.*
+import model.strategy.{PlayerAI, PlayerHuman}
 import org.junit.*
-import org.junit.Assert.{assertEquals, assertFalse, assertNotNull, assertTrue}
+import org.junit.Assert.*
 
-class WorldStateTest :
+class WorldStateTest:
+
   var human: PlayerHuman = _
   var ai: PlayerAI = _
   var worldMap: WorldMap = _
@@ -41,8 +40,10 @@ class WorldStateTest :
     })
 
   @Test
-  def testIsGameOverReturnsFalseInitially(): Unit =
+  def testIsGameOverInitially(): Unit =
     val state = createWorldState(worldMap, ai, human)
     assertFalse(state.isGameOver)
+
+
 
 
