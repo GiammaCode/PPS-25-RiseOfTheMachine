@@ -2,11 +2,7 @@ package model
 
 import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.WorldMap
-import model.strategy.HumanActionTypes.CityDefense
-import model.strategy.PlayerAI
-import model.strategy.humanActions.CityDefenseAction
-import model.strategy.playerActions.EvolveAction
-import model.strategy.{AiAction, HumanAction, PlayerAI, PlayerHuman}
+import model.strategy.{AiAction, CityDefense, Evolve, HumanAction, PlayerAI, PlayerHuman}
 import org.junit.Assert.assertTrue
 import org.junit.{Before, Test}
 
@@ -21,8 +17,8 @@ class GameFactoryTest :
 
   @Test
   def applyModelMethodTest() : Unit =
-    aiAction = EvolveAction()
-    humanAction = CityDefenseAction()
+    aiAction = Evolve
+    humanAction = CityDefense()
     val updatedPlayer = worldState._1.executeAction(aiAction)
     //val updateHuman = worldState._2.executeAction(humanAction)
     assert(worldState._3.numberOfCityInfected() == 0)

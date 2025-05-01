@@ -2,12 +2,12 @@ package controller
 
 import controller.InputHandling.InvalidChoice
 import model.strategy.AiAction
-import model.strategy.playerActions.{EvolveAction, InfectAction, SabotageAction}
+import model.strategy.*
 import org.junit.Assert.*
 import org.junit.{Before, Test}
 
 class InputHandlerTest :
-  val actions : List[AiAction] = List(SabotageAction(), InfectAction(), EvolveAction())
+  val actions : List[AiAction] = List(Sabotage(), Infect(), Evolve)
   val userChoice = 2
   val attackableCities = Set("Rome", "Paris", "Berlin")
   val cityChoice = "Rome"
@@ -17,8 +17,8 @@ class InputHandlerTest :
     val result = InputHandler.getActionFromChoice(userChoice, cityChoice, attackableCities, actions)
     val action = result.getOrElse(throw new AssertionError("Expected valid action, but got error."))
     action match {
-      case action: InfectAction =>
-        assertEquals("The action should be 'Infect'.", InfectAction(List("Rome")), action)
+      case action: Infect =>
+        assertEquals("The action should be 'Infect'.", Infect(List("Rome")), action)
       case _ =>
         fail("Expected 'InfectAction'.")
     }

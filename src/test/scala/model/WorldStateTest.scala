@@ -43,6 +43,6 @@ class WorldStateTest :
   @Test
   def testIsGameOverReturnsFalseInitially(): Unit =
     val state = createWorldState(worldMap, ai, human)
-    assertFalse(state.IsGameOver)
+    assertFalse(state.isGameOver)
 
 

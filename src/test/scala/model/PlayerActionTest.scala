@@ -1,8 +1,7 @@
 package model
 
 
-import model.strategy.TurnAction
-import model.strategy.playerActions.*
+import model.strategy.*
 import org.junit.Test
 import org.junit.*
 import org.junit.Assert.assertEquals
@@ -16,19 +15,19 @@ class  PlayerActionTest:
 
   @Test
   def executeInfectActionTest(): Unit =
-    action = InfectAction(cityList)
+    action = Infect(cityList)
     val result = action.execute
     assertEquals("InfectAction on " + value, result)
 
   @Test
   def executeSabotageActionTest() : Unit =
-    action = SabotageAction(cityList)
+    action = Sabotage(cityList)
     val result = action.execute
     assertEquals("SabotageAction on " + value, result)
 
   @Test
   def executeEvolveActionTest() : Unit =
-    action = EvolveAction()
+    action = Evolve
     val result = action.execute
     assertEquals("Evolving", result)
 
