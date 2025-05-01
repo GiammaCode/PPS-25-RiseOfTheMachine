@@ -6,7 +6,7 @@ import org.junit.Test
 
 class GameControllerTest :
   @Test
-  def testUserInputActionSelection(): Unit = 
+  def testUserInputActionSelection(): Unit =
     val actions = List(SabotageAction(), InfectAction(), EvolveAction())
     val userChoice = 2
     val attackableCities = Set("Rome", "Paris", "Berlin")
@@ -14,6 +14,6 @@ class GameControllerTest :
     assertTrue("Expected valid action, but got error.", result.isRight)
     result.getOrElse(throw new AssertionError("Expected an action, but got error.")) match {
       case action: InfectAction =>
-        assertEquals("Expected action should be InfectAction", InfectAction(), action)
+        assertEquals("Expected action should be InfectAction", InfectAction(List("Rome")), action)
       case _ => fail("Expected InfectAction, but got different action.")
     }

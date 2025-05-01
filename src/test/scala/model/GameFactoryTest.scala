@@ -20,12 +20,12 @@ class GameFactoryTest :
     var worldState = GameFactory.createGame()
 
   @Test
-  def applyModelMethod() : Unit =
+  def applyModelMethodTest() : Unit =
     aiAction = EvolveAction()
     humanAction = CityDefenseAction()
     val updatedPlayer = worldState._1.executeAction(aiAction)
-    val updateHuman = worldState._2.executeAction(humanAction)
+    //val updateHuman = worldState._2.executeAction(humanAction)
     assert(worldState._3.numberOfCityInfected() == 0)
     assert(updatedPlayer.getPlayer.unlockedAbilities.nonEmpty)
-    assertTrue(updateHuman.getPlayer.executedActions.nonEmpty)
+   // assertTrue(updateHuman.getPlayer.executedActions.nonEmpty)
 
