@@ -1,66 +1,66 @@
 package model.map
 
-import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.*
 import model.strategy.AiAbility.AiAbility
-import model.strategy.PlayerAI.*
-import model.strategy.{PlayerAI, PlayerEntity, PlayerHuman}
-import model.strategy.PlayerHuman.*
+import model.strategy.{PlayerAI, PlayerHuman}
 import model.util.Util.*
+import model.map.CityModule.CityImpl.City
 
 object WorldState:
+
+  // Implementazione interna: completamente nascosta
+  private enum WorldStateImpl:
+    case State(worldMap: WorldMap, playerAI: PlayerAI,
+               playerHuman: PlayerHuman, turn: Int = 0)
+
+  import WorldStateImpl.*
+
+  // Opaque type esposto esternamente
   opaque type WorldState = WorldStateImpl
-  def createWorldState(worldMap: WorldMap, playerAI: PlayerAI,
-                       playerHuman: PlayerHuman): WorldState = WorldStateImpl(worldMap, playerAI, playerHuman)
-  extension (worldState: WorldState)
-    def IsGameOver: Boolean = worldState.isGameOver
-    def attackableCities: Set[(String, Int, Int)] = worldState.getAttackableCities
-    def AIConqueredCities: Set[String] = worldState.getAIconqueredCities
-    def humanConqueredCities: Set[String] = worldState.getHumaconqueredCities
-    def turn: Int = worldState.getTurn
-    def worldMap: WorldMap = worldState.getWorldMap
-    def AIUnlockedAbilities: Set[AiAbility] = worldState.getAIUnlockedAbilities
-    def infectionState: (Int, Int) = worldState.getInfectionState
-    def options: List[String] = worldState.getOptions
 
+  // Costruttore
+  def createWorldState(worldMap: WorldMap, playerAI: PlayerAI, playerHuman: PlayerHuman): WorldState =
+    State(worldMap, playerAI, playerHuman)
 
+  // Metodi estesi (come map nella slide)
+  extension (ws: WorldState)
 
-private case class WorldStateImpl(worldMap: WorldMap, playerAI: PlayerAI,
-                                  playerHuman: PlayerHuman, turn: Int = 0):
+    def isGameOver: Boolean = ws match
+      case State(map, _, _, _) => map.numberOfCityInfected() > 10
 
-  val killSwitchPercentage: Int = 0
-  def isGameOver: Boolean =
-    worldMap.numberOfCityInfected() > 10
+    def attackableCities: Set[(String, Int, Int)] = ws match
+      case State(map, _, _, _) =>
+        map.cities.map { (city, _) =>
+          val name = city.getName
+          (name, calculatePercentageOfSuccess, calculatePercentageOfSuccess)
+        }
 
-  def getAttackableCities: Set[(String, Int, Int)]  = worldMap
-    .cities.map { (city, _) => val name = city.getName
-      (name, calculatePercentageOfSuccess, calculatePercentageOfSuccess)
-    }
-  def getAIconqueredCities: Set[String] = playerAI.conqueredCities
+    def AIConqueredCities: Set[String] = ws match
+      case State(_, ai, _, _) => ai.conqueredCities
 
-  def getHumaconqueredCities: Set[String] = playerHuman.conqueredCities
+    def humanConqueredCities: Set[String] = ws match
+      case State(_, _, human, _) => human.conqueredCities
 
-  def getTurn: Int = turn
+    def turn: Int = ws match
+      case State(_, _, _, t) => t
 
-  def getWorldMap: WorldMap = worldMap
+    def worldMap: WorldMap = ws match
+      case State(map, _, _, _) => map
 
-  def getAIUnlockedAbilities: Set[AiAbility] = playerAI.unlockedAbilities
+    def playerAI: PlayerAI = ws match
+      case State(_, ai, _, _) => ai
 
-  //need to change hardcoded
-  def getInfectionState: (Int, Int) = (worldMap.numberOfCityInfected(), 15)
+    def playerHuman: PlayerHuman = ws match
+      case State(_, _, human, _) => human
 
-  def getOptions: List[String] = List("Opt1", "Opt2", "Exit")
+    def AIUnlockedAbilities: Set[AiAbility] = ws match
+      case State(_, ai, _, _) => ai.unlockedAbilities
 
+    def infectionState: (Int, Int) = ws match
+      case State(map, _, _, _) => (map.numberOfCityInfected(), 15)
 
+    def options: List[String] = List("Opt1", "Opt2", "Exit")
 
-
-
-
-
-
-
-
-
-
-
-
+    // Esempio update immutabile (puoi definire altri update simili)
+    def updatePlayer(newAI: PlayerAI): WorldState = ws match
+      case State(map, _, human, t) => State(map, newAI, human, t)
