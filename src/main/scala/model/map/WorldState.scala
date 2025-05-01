@@ -64,3 +64,11 @@ object WorldState:
     // Esempio update immutabile (puoi definire altri update simili)
     def updatePlayer(newAI: PlayerAI): WorldState = ws match
       case State(map, _, human, t) => State(map, newAI, human, t)
+
+    //metodo che presa una city ritrna un WorldState,
+    //player e human rimangono uguale e io chiamo il metodo changeACityOfTheMap
+    def updateMap(newCity: City): WorldState = ws match
+      case State(map, ai, human, t) =>
+        val updatedMap = map.changeACityOfTheMap(newCity)
+        State(updatedMap, ai, human, t)
+
