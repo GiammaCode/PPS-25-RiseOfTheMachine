@@ -32,6 +32,7 @@ object WorldMapModule:
         val (startX, startY) = positionForCity(i)
         val tiles = generateCityTiles(startX, startY, size)
         city -> tiles).toSet
+
   object UndeterministicMapModule extends CreateModuleType:
 
       opaque type RNGState[A] = State[Random, A]
@@ -119,7 +120,7 @@ object WorldMapModule:
 
     def getSize: Int = worldMap.flatMap(_._2).foldLeft(0)((acc, xy) => math.max(acc, math.max(xy._1, xy._2))) + 1
 
-    def targetCity(name: String): City =
+    def getCityByName(name: String): City =
       worldMap.find(_._1.getName == name).get._1
 
     def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
