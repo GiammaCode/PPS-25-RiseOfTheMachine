@@ -1,30 +1,28 @@
 package model.strategy
-trait HumanAction extends TurnAction
 
-object HumanActionTypes:
+/** Represents actions specifically for human players */
+sealed trait HumanAction extends TurnAction:
+  def targets: List[Target]
+  def execute: Unit
 
-  case object CityDefense extends TurnActionType:
-    override def execute(targets: List[String]): String =
-      s"CityDefenseAction on ${targets}"
+object HumanAction:
+  def cityDefense(targets: List[Target]): HumanAction = CityDefense(targets)
+  def globalDefense(targets: List[Target]): HumanAction = GlobalDefense(targets)
+  def developKillSwitch(): HumanAction = DevelopKillSwitch
 
-  case object GlobalDefense extends TurnActionType:
-    override def execute(targets: List[String]): String =
-      s"GlobalDefenseAction on ${targets}"
+/** Concrete implementation: CityDefense */
+case class CityDefense(targets: List[Target]) extends HumanAction:
+  override def execute: Unit =
+    if (targets.isEmpty) println("City Defense failed: No targets specified")
+    else println(s"City Defense activated on: ${targets.mkString(", ")}")
 
-  case object DevelopKillSwitch extends TurnActionType:
-    override def execute(targets: List[String]): String =
-      s"DevelopKillSwitchAction is done"
+/** Concrete implementation: GlobalDefense */
+case class GlobalDefense(targets: List[Target]) extends HumanAction:
+  override def execute: Unit =
+    if (targets.isEmpty) println("Global Defense failed: No targets specified")
+    else println(s"Global Defense deployed to: ${targets.mkString(", ")}")
 
-package object humanActions:
-  import HumanActionTypes._
-
-  case class CityDefenseAction(override val targets: List[String] = List.empty)
-    extends TurnAction(CityDefense, targets) with HumanAction
-
-  case class GlobalDefenseAction(override val targets: List[String] = List.empty)
-    extends TurnAction(GlobalDefense, targets)  with HumanAction
-
-  case class DevelopKillSwitchAction(override val targets: List[String] = List.empty)
-    extends TurnAction(DevelopKillSwitch, targets)  with HumanAction
-
-
+/** Concrete implementation: DevelopKillSwitch (no targets) */
+case object DevelopKillSwitch extends HumanAction:
+  override def targets: List[Target] = List.empty
+  override def execute: Unit = println("Kill Switch developed successfully")

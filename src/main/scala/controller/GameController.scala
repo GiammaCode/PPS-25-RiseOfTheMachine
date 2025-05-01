@@ -5,7 +5,7 @@ import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.*
 import model.strategy.PlayerAI
-import model.strategy.playerActions.*
+import model.strategy
 import model.util.States.State.State
 import view.ViewModule.{CLIView, GameView}
 

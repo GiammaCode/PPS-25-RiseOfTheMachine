@@ -1,7 +1,6 @@
 package model.strategy
 
 import model.strategy.ExecuteActionResult.ExecuteActionResult
-import model.strategy.humanActions.*
 
 /**
  * Companion object for [[PlayerHuman]].
@@ -78,19 +77,19 @@ case class PlayerHuman private(
    */
   private def singleCityDefense(city: List[String]): PlayerHuman =
     copy(defendedCities = defendedCities ++ city)
-      .addAction(CityDefenseAction(city))
+      .addAction(CityDefense(city))
 
   /**
    * Executes a city defense on a single city.
    */
   private def globalDefense(cities: List[String]) =
     copy(defendedCities = defendedCities ++ cities)
-      .addAction(GlobalDefenseAction(cities))
+      .addAction(GlobalDefense(cities))
 
   /**
    * Executes the kill switch development action.
    */
-  private def developKillSwitchAction = addAction(DevelopKillSwitchAction())
+  private def developKillSwitchAction = addAction(DevelopKillSwitch)
 
   /**
    * Adds an executed action to the action history.

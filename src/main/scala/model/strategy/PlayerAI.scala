@@ -6,7 +6,7 @@ import model.map.{CityModule, WorldMapModule}
 import model.map.CityModule.*
 import model.map.CityModule.CityImpl.{City, createCity}
 import model.strategy.ExecuteActionResult.ExecuteActionResult
-import model.strategy.playerActions.*
+import model.strategy.AiAction
 
 import util.chaining.scalaUtilChainingOps
 import scala.util.Random
@@ -45,9 +45,9 @@ private case class PlayerAIImpl (
   override def executeAction(action: ValidAction): ExecuteActionResult[Self] = doExecuteAction(action)
 
   private def doExecuteAction(action: AiAction): ExecuteActionResult[Self] = action match
-    case _: EvolveAction => evolve
-    case a: InfectAction => this.infect(a.targets)
-    case a: SabotageAction => this.sabotage(a.targets)
+    case Infect(targets) => infect(targets)
+    case Sabotage(targets) => sabotage(targets)
+    case Evolve => evolve
 
   /** String representation of the AI's current status. */
   override def toString: String =
@@ -77,20 +77,20 @@ private case class PlayerAIImpl (
       .pipe(Random.shuffle)
       .headOption
       .fold(this)(withNewAbility)
-      .addAction(EvolveAction())
+      .addAction(Evolve)
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, None)
 
 
   /** Conquers the given cities and adds the infect action to history. */
   private def infect(cities: List[String]): ExecuteActionResult[Self] =
-    val updatedPlayer: PlayerAIImpl = copy(conqueredCities = conqueredCities ++ cities).addAction(InfectAction(cities))
+    val updatedPlayer: PlayerAIImpl = copy(conqueredCities = conqueredCities ++ cities).addAction(Infect(cities))
     val updatedCity: City = createCity(cities.head,4,false).infectCity()
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, Some(updatedCity))
 
 
   /** Sabotages the given cities and adds the sabotage action to history. */
   private def sabotage(cities: List[String]): ExecuteActionResult[Self] =
-    val updatedPlayer: PlayerAIImpl = copy(sabotagedCities = sabotagedCities ++ cities).addAction(SabotageAction(cities))
+    val updatedPlayer: PlayerAIImpl = copy(sabotagedCities = sabotagedCities ++ cities).addAction(Sabotage(cities))
     val updatedCity: City = createCity(cities.head, 40,false).sabotateCity()
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, Some(updatedCity))
 

@@ -2,7 +2,8 @@ package controller
 
 import InputHandling.{InputHandlingError, InputParsingError, InvalidChoice}
 import model.map.WorldMapModule
-import model.strategy.{AiAction, playerActions}
+import model.strategy
+import model.strategy.{AiAction, Evolve, Infect, Sabotage}
 
 object InputHandling:
 
@@ -19,8 +20,8 @@ object InputHandling:
       /** Generates a user-friendly message based on the error type. */
       def userMessage: String = e match
         case InvalidChoice(choice, range) =>
-          s"Invalid choice: ${choice}. Please enter a number between ${range.min} and ${range.max}."
-        case InputParsingError(input, msg) => s"Input format error: '${input}'. You must enter a valid number."
+          s"Invalid choice: $choice. Please enter a number between ${range.min} and ${range.max}."
+        case InputParsingError(input, msg) => s"Input format error: $input. You must enter a valid number."
 
 
 object InputHandler:
@@ -43,6 +44,6 @@ object InputHandler:
         .toRight(InvalidChoice(choice, 1 to availableActions.size))
 
     } yield action match
-      case _: playerActions.SabotageAction => playerActions.SabotageAction(List(cityName))
-      case _: playerActions.InfectAction => playerActions.InfectAction(List(cityName))
-      case _: playerActions.EvolveAction => playerActions.EvolveAction()
+      case _: Sabotage => Sabotage(List(cityName))
+      case _: Infect => Infect(List(cityName))
+      case  Evolve => Evolve
