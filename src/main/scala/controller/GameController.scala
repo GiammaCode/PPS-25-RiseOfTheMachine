@@ -44,12 +44,12 @@ case class GameState(ai: PlayerAI,
 //  private def doHumanAction(action: HumanAction): State[GameState, Unit] =
 //    State { gs => (gs.copy(human = gs.currentHuman.executeAction(action)),())}
 
-  private def renderTurn(): State[GameState,Unit] =
-    val abilities: Set[String] = Set.empty
-    val options = List("SabotageAction", "InfectAction", "EvolveAction","Exit")
-    State { state => view.renderGameTurn(3, worldMap, worldMap.numberOfCityInfected(), 13, abilities, options)
-      (state, ())
-    }
+  private def renderTurn(): State[GameState,Unit] = ???
+//    val abilities: Set[String] = Set.empty
+//    val options = List("SabotageAction", "InfectAction", "EvolveAction","Exit")
+//    State { state => view.renderGameTurn(3, worldMap, worldMap.numberOfCityInfected(), 13, abilities, options)
+//      (state, ())
+//    }
 
   def gameTurn(aiActionResult: Either[InputHandlingError, AiAction]): State[GameState, Unit] =
     aiActionResult match {

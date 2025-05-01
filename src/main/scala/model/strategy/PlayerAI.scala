@@ -122,7 +122,7 @@ package model.strategy
 import AiAbility.*
 import model.map.CityModule
 import model.map.CityModule.*
-import model.map.CityModule.CityImpl.City
+import model.map.CityModule.CityImpl.{City, createCity}
 import model.strategy.ExecuteActionResult.ExecuteActionResult
 import model.strategy.playerActions.*
 
@@ -203,14 +203,14 @@ private case class PlayerAIImpl (
   private def infect(cities: List[String]): ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = copy(conqueredCities = conqueredCities ++ cities).addAction(InfectAction(cities))
     // Assuming CityModule.CityImpl.createCity and tryToInfectCity work as expected
-    val updatedCity: City = CityModule.CityImpl.createCity(cities.head, 40).tryToInfectCity()
+    val updatedCity: City = createCity(cities.head,4,false).infectCity()
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, Some(updatedCity))
 
 
   /** Sabotages the given cities and adds the sabotage action to history. */
   private def sabotage(cities: List[String]): ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = copy(sabotagedCities = sabotagedCities ++ cities).addAction(SabotageAction(cities))
-    val updatedCity: City = CityModule.CityImpl.createCity(cities.head, 40).tryToSabotateCity(sabotagePower)
+    val updatedCity: City = createCity(cities.head, 40,false).sabotateCity()
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, Some(updatedCity))
 
 
