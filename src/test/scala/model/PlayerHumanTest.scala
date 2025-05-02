@@ -29,21 +29,21 @@ class PlayerHumanTest:
 
   @Test
   def testCityDefenseAction(): Unit =
-    val targets = List("CityA")
+    val targets = List("A")
     val result = player.executeAction(CityDefense(targets), worldState.worldMap)
     val updatedPlayer = result.getPlayer
 
-    assertTrue(updatedPlayer.defendedCities.contains("CityA"))
+    assertTrue(updatedPlayer.defendedCities.contains("A"))
     assertTrue(updatedPlayer.executedActions.exists(_.isInstanceOf[CityDefense]))
 
   @Test
   def testGlobalDefenseAction(): Unit =
-    val targets = List("CityA", "CityB")
+    val targets = List("A", "b")
     val result = player.executeAction(GlobalDefense(targets), worldState.worldMap)
     val updatedPlayer = result.getPlayer
 
-    assertTrue(updatedPlayer.defendedCities.contains("CityA"))
-    assertTrue(updatedPlayer.defendedCities.contains("CityB"))
+    assertTrue(updatedPlayer.defendedCities.contains("A"))
+    assertTrue(updatedPlayer.defendedCities.contains("b"))
     assertTrue(updatedPlayer.executedActions.exists(_.isInstanceOf[GlobalDefense]))
 
   @Test
