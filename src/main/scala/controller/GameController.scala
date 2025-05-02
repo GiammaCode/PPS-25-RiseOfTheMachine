@@ -5,7 +5,7 @@ import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.*
 import model.strategy.PlayerAI
-import model.strategy
+import model.{GameFactory, strategy}
 import model.util.States.State.State
 import view.ViewModule.{CLIView, GameView}
 
@@ -16,7 +16,7 @@ object GameController:
    * @return Un nuovo GameController
    */
   def apply(): GameState =
-    val worldState = model.GameFactory.createGame()
+    val worldState = GameFactory.createGame()
     val view = CLIView
     GameState(worldState,view)
 
@@ -36,21 +36,27 @@ case class GameState(worldState: WorldState,
   private def doHumanAction(action: HumanAction): State[GameState, Unit] = ???
    // State { gs => (gs.copy(human = gs.getCurrentHuman.executeAction(action)),())}
 
-  private def renderTurn(): State[GameState,Unit] =
-    State { state => view.renderGameTurn(worldState)
-
-    (state, ())}
-
-  def gameTurn(aiActionResult: Either[InputHandlingError, AiAction]): State[GameState, Unit] =
-    aiActionResult match {
-      case Right(aiAction) =>
-        for
-          _ <- renderTurn()
-          _ <- doPlayerAction(aiAction)
-        // _ <- doHumanAction(humanAction)
-        yield()
-      case Left(error) => ???
+  private def renderTurn(): State[GameState, AiAction] = State { state =>
+      val result = InputHandler.getAiActionFromChoice(
+        view.renderGameTurn(worldState),
+        "m",
+        worldState.attackableCities.map(_._1),
+        worldState.playerAI.getPossibleAction
+      )
+      result match {
+        case Right(action) => (state, action)
+        case Left(_)       => renderTurn().run(state)
+      }
     }
+
+  def gameTurn(): State[GameState, Unit] =
+    for
+      action <- renderTurn()
+      _ <- doPlayerAction(action)
+        // _ <- doHumanAction(humanAction)
+    yield()
+
+
 
 
   /*
@@ -67,7 +73,9 @@ case class GameState(worldState: WorldState,
         view.renderActionMenu(List("Sabotage", "Infect", "Evolve"))
     }
   */
-@main def provaTurn(): Unit =
+@main def tryController(): Unit =
+  val game = GameController.apply()
+  val (updatedGameState, _) = game.gameTurn().run(game)
 
 
 
