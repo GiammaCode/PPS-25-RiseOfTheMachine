@@ -47,7 +47,7 @@ object WorldState:
      *
      * @return list of option strings
      */
-    def options: List[String] = List("Opt1", "Opt2", "Exit")
+    def options: List[String] = List("Sabotage", "Infect", "Evolve", "Exit")
 
     /**
      * The current turn number.
