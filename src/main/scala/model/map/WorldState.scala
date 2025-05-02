@@ -147,6 +147,15 @@ object WorldState:
       case State(map, _, human, t) => State(map, newAI, human, t)
 
     /**
+     * Creates a new WorldState with an updated human player.
+     *
+     * @param newHuman the updated PlayerHuman instance
+     * @return a new WorldState with the new Human
+     */
+    def updateHuman(newHuman: PlayerHuman): WorldState = ws match
+      case State(map, ai, _, t) => State(map, ai, newHuman, t)
+
+    /**
      * Creates a new WorldState with an updated city in the map.
      * The new city replaces the existing one with the same name.
      *
