@@ -129,5 +129,11 @@ object CityModule:
        * @return a new city instance with reduced defense
        */
       def sabotateCity(playerAttack:Int): City = city.copy(defense = city.defense - playerAttack)
+      
 
-
+      /**
+       * Defenses the city, improving its defense by 20 points.
+       *
+       * @return a new city instance with improved defense
+       */
+      def defenseCity(): City = city.copy(defense = city.defense + 20)

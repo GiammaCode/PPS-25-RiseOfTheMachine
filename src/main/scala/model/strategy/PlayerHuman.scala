@@ -1,100 +1,63 @@
 package model.strategy
 
+import model.map.CityModule.CityImpl.City
+import model.map.WorldMapModule.WorldMap
 import model.strategy.ExecuteActionResult.ExecuteActionResult
+import model.strategy.HumanAction
 
-/**
- * Companion object for [[PlayerHuman]].
- * Provides a factory method to create a default instance of a human-controlled player.
- */
-object PlayerHuman:
-  /**
-   * Creates a default PlayerHuman instance.
-   *
-   * @return a PlayerHuman with default state.
-   */
-  def default: PlayerHuman = PlayerHuman()
+trait PlayerHuman extends PlayerEntity:
+  def killSwitch: Int
 
-/**
- * Represents a human-controlled player in the strategy game.
- *
- * This player can perform actions such as defending cities or developing a kill switch.
- * The class is immutable: all state modifications return a new instance.
- *
- * @constructor private to enforce creation through the companion object's `apply` method.
- *
- * @param executedActions List of actions executed by the player.
- * @param conqueredCities Set of cities initially under human control.
- * @param killSwitch Progress of the kill switch development.
- * @param defendedCities Set of cities that have been defended.
- */
-case class PlayerHuman private(
-                        executedActions: List[HumanAction] = List.empty,
-                        conqueredCities: Set[String] = Set("A", "B", "c"),
-                        killSwitch: Int = 0,
-                        defendedCities: Set[String] = Set.empty
-                      ) extends PlayerEntity:
+  def defendedCities: Set[String]
 
-  /**
-   * Defines the type of actions this player can perform.
-   */
+  def executedActions: List[HumanAction]
+
+  def conqueredCities: Set[String]
+
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
 
-  /**
-   * Executes a given human action and returns the updated player state.
-   *
-   * @param action the action to execute
-   * @return a new PlayerHuman with the action applied
-   */
-  override def executeAction(action: ValidAction): ExecuteActionResult[Self] =
-    doExecuteAction(action)
+  override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self]
 
-  /**
-   * Returns a string representation of the player's current state.
-   *
-   * @return human-readable summary
-   */
-  override def toString : String =
-  s"""|--- Human Status ---
-      |Conquered Cities     : ${if (conqueredCities.isEmpty) "None" else conqueredCities.mkString(", ")}
-      |Defended Cities     : ${if (defendedCities.isEmpty) "None" else defendedCities.mkString(", ")}
-      |Executed Actions     :
-      |  ${if (executedActions.isEmpty) "None" else executedActions.map(_.execute).mkString("\n  ")}
-      |------------------------
-     """.stripMargin
+  override def toString: String
 
-  /**
-   * Internal handler for action execution.
-   */
-  private def doExecuteAction(action: HumanAction): ExecuteActionResult[Self] = ??? 
-//  action match
-//    case action: CityDefenseAction => singleCityDefense(action.targets)
-//    case action: GlobalDefenseAction => globalDefense(action.targets)
-//    case action: DevelopKillSwitchAction => developKillSwitchAction
+object PlayerHuman:
+  def default: PlayerHuman = PlayerHumanImpl()
 
-  /**
-   * Executes a city defense on a single city.
-   */
-  private def singleCityDefense(city: List[String]): PlayerHuman =
-    copy(defendedCities = defendedCities ++ city)
-      .addAction(CityDefense(city))
+private case class PlayerHumanImpl(
+                                    killSwitch: Int = 0,
+                                    defendedCities: Set[String] = Set.empty,
+                                    conqueredCities: Set[String] = Set.empty,
+                                    executedActions: List[HumanAction] = List.empty
+                                  ) extends PlayerHuman:
 
-  /**
-   * Executes a city defense on a single city.
-   */
-  private def globalDefense(cities: List[String]) =
-    copy(defendedCities = defendedCities ++ cities)
-      .addAction(GlobalDefense(cities))
+  override type ValidAction = HumanAction
+  override type Self = PlayerHuman
 
-  /**
-   * Executes the kill switch development action.
-   */
-  private def developKillSwitchAction = addAction(DevelopKillSwitch)
+  override def executeAction(action: ValidAction,  worldMap: WorldMap): ExecuteActionResult[Self] = doExecuteAction(action, worldMap)
 
-  /**
-   * Adds an executed action to the action history.
-   */
-  private def addAction(action: HumanAction): PlayerHuman =
+  private def doExecuteAction(action: HumanAction,  worldMap: WorldMap): ExecuteActionResult[Self] = action match
+    case CityDefense(targets) =>
+      val updated = copy(defendedCities = defendedCities ++ targets).addAction(action)
+      val maybeCity = targets.headOption.map(cityName => worldMap.getCityByName(cityName)).map(_.defenseCity())
+      ExecuteActionResult.fromPlayerEntity(updated, maybeCity)
+
+    case GlobalDefense(targets) =>
+      val updated = copy(defendedCities = defendedCities ++ targets).addAction(action)
+      ExecuteActionResult.fromPlayerEntity(updated, None)
+
+    case DevelopKillSwitch =>
+      val updated = copy(killSwitch = killSwitch + 1).addAction(action)
+      ExecuteActionResult.fromPlayerEntity(updated, None)
+
+  private def addAction(action: HumanAction): PlayerHumanImpl =
     copy(executedActions = action :: executedActions)
 
-
+  override def toString: String =
+    s"""|--- Human Status ---
+        |KillSwitch Progress : $killSwitch
+        |Conquered Cities    : ${if (conqueredCities.isEmpty) "None" else conqueredCities.mkString(", ")}
+        |Defended Cities     : ${if (defendedCities.isEmpty) "None" else defendedCities.mkString(", ")}
+        |Executed Actions    :
+        |  ${if (executedActions.isEmpty) "None" else executedActions.map(_.execute).mkString("\n  ")}
+        |------------------------""".stripMargin

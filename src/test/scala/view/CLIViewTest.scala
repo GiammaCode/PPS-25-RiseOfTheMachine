@@ -39,37 +39,11 @@ class CLIViewTest:
   @Test
   def renderGameTurnTest(): Unit =
     val turn = 5
-    val options = List("Infect", "Sabotages", "Exit")
     val abilities = Set("ability1", "ability2")
     val worldMap: WorldMap = createWorldMap(10)(UndeterministicMapModule)
 
 
     CLIView.renderGameTurn(state)
     assertTrue(true)
-
-  /*
-  @Test
-  def renderTurnTest(): Unit =
-    val turn = 5
-    CLIView.renderTurn(turn)
-    assertTrue(true)
-
-  @Test
-  def renderStatusTest(): Unit =
-    CLIView.renderStatus(3, 15, List("ability1", "ability2"))
-    assertTrue(true)
-
-  @Test
-  def renderMapTest(): Unit =
-    var worldMap: WorldMap = createWorldMap(5)(DeterministicMapModule)
-    CLIView.renderMap(worldMap)
-    assertTrue(true)
-
-  @Test
-  def renderActionMenuTest(): Unit =
-    val options = List("Infect", "Sabotages", "Exit")
-    CLIView.renderActionMenu(options)
-    assertTrue(true)
-   */
 
 
