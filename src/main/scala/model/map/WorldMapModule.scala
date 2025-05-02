@@ -90,7 +90,7 @@ object WorldMapModule:
       private def generateMapState(mapSize: Int, capitalCount: Int): RNGState[WorldMap] =
         def loop(n: Int, capitalsLeft: Int, acc: WorldMap, occupied: Set[(Int, Int)]): RNGState[WorldMap] =
           val remainingTiles = mapSize * mapSize - occupied.size
-          if remainingTiles <= 1 then State(rng => (rng, acc))
+          if remainingTiles == 0  then State(rng => (rng, acc))
           else
             val isCapital = capitalsLeft > 0 && doesTheActionGoesRight(50)
             for

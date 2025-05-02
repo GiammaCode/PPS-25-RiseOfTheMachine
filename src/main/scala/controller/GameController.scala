@@ -1,12 +1,9 @@
 package controller
 
 import controller.InputHandling.InputHandlingError
-import model.map.WorldMapModule.WorldMap
-import model.map.WorldState.{WorldState, createWorldState}
+import model.map.WorldState.WorldState
 import model.strategy.*
-import model.strategy.PlayerAI
 import model.{GameFactory, strategy}
-import model.util.States.State.State
 import view.ViewModule.{CLIView, GameView}
 
 object GameController:
@@ -37,6 +34,7 @@ case class GameState(worldState: WorldState,
    // State { gs => (gs.copy(human = gs.getCurrentHuman.executeAction(action)),())}
 
   private def renderTurn(): State[GameState, AiAction] = State { state =>
+
       val result = InputHandler.getAiActionFromChoice(
         view.renderGameTurn(worldState),
         "m",
@@ -55,8 +53,6 @@ case class GameState(worldState: WorldState,
       _ <- doPlayerAction(action)
         // _ <- doHumanAction(humanAction)
     yield()
-
-
 
 
   /*
