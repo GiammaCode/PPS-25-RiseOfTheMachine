@@ -29,12 +29,12 @@ case class GameState(worldState: WorldState,
   import model.util.States.State.State
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] = ???
-//    State { gs =>
-//      val result = worldState.playerAI.executeAction(action)
-//      val updatedAi = result.getPlayer
-//      val maybeCity = result.getCity
-//      (worldState.updatePlayer(updatedAi), ())
-//   }
+    State { gs =>
+      val result = worldState.playerAI.executeAction(action,worldMap)
+      val updatedAi = result.getPlayer
+      val maybeCity = result.getCity
+      (worldState.updatePlayer(updatedAi), ())
+   }
 
   private def doHumanAction(action: HumanAction): State[GameState, Unit] = ???
    // State { gs => (gs.copy(human = gs.getCurrentHuman.executeAction(action)),())}
