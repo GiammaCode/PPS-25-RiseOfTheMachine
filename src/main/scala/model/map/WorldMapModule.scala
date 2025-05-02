@@ -120,8 +120,8 @@ object WorldMapModule:
 
     def getSize: Int = worldMap.flatMap(_._2).foldLeft(0)((acc, xy) => math.max(acc, math.max(xy._1, xy._2))) + 1
 
-    def getCityByName(name: String): City =
-      worldMap.find(_._1.getName == name).get._1
+    def getCityByName(name: String): Option[City] =
+      worldMap.find(_._1.getName == name).map(_._1)
 
     def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
 

@@ -11,5 +11,5 @@ import model.util.States.State
     gameState = newState
 
   println("\n--- Fine partita (raggiunto limite massimo di turni) ---")
-  println(gameState.worldState.playerAI)
+  println(gameState.worldState.playerAI) //TODO: not working 
 

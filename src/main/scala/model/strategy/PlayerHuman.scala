@@ -39,7 +39,11 @@ private case class PlayerHumanImpl(
   private def doExecuteAction(action: HumanAction,  worldMap: WorldMap): ExecuteActionResult[Self] = action match
     case CityDefense(targets) =>
       val updated = copy(defendedCities = defendedCities ++ targets).addAction(action)
-      val maybeCity = targets.headOption.map(cityName => worldMap.getCityByName(cityName)).map(_.defenseCity())
+//      val maybeCity = targets.headOption.map(cityName => worldMap.getCityByName(cityName)).map(_.defenseCity())
+      val maybeCity = for {
+        cityName <- targets.headOption
+        city <- worldMap.getCityByName(cityName) // ora restituisce Option
+      } yield city.defenseCity()
       ExecuteActionResult.fromPlayerEntity(updated, maybeCity)
 
     case GlobalDefense(targets) =>

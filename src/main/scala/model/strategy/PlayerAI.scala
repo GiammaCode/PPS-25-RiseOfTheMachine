@@ -92,14 +92,20 @@ private case class PlayerAIImpl (
   /** Conquers the given cities and adds the infect action to history. */
   private def infect(cities: List[String], worldMap: WorldMap): ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = copy(conqueredCities = conqueredCities ++ cities).addAction(Infect(cities))
-    val maybeCity = cities.headOption.map(cityName => worldMap.getCityByName(cityName)).map(_.infectCity())
+    val maybeCity = for {
+      cityName <- cities.headOption
+      city     <- worldMap.getCityByName(cityName)
+    } yield city.infectCity()
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, maybeCity)
 
 
   /** Sabotages the given cities and adds the sabotage action to history. */
   private def sabotage(cities: List[String], worldMap: WorldMap): ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = copy(sabotagedCities = sabotagedCities ++ cities).addAction(Sabotage(cities))
-    val maybeCity = cities.headOption.map(cityName => worldMap.getCityByName(cityName)).map(_.sabotateCity(10))//TODO: add sabotage power to sabotageCity
+    val maybeCity = for {
+      cityName <- cities.headOption
+      city <- worldMap.getCityByName(cityName)
+    } yield city.sabotateCity(sabotagePower)
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, maybeCity)
 
 

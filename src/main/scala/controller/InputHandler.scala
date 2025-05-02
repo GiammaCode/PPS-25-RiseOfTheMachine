@@ -34,16 +34,18 @@ object InputHandler:
                            availableActions: List[AiAction]
                          ): Either[InputHandlingError, AiAction] =
     for {
-      _ <- Either.cond(
-        attackableCities.contains(cityName),
-        (),
-        InputParsingError(cityName, s"The city '$cityName' is not attackable.")
-      )
-
       action <- availableActions.lift(choice)
-        .toRight(InvalidChoice(choice, 0 to availableActions.size))
+        .toRight(InvalidChoice(choice, 0 to availableActions.size - 1))
 
-    } yield action match
-      case _: Sabotage => Sabotage(List(cityName))
-      case _: Infect => Infect(List(cityName))
-      case  Evolve => Evolve
+      result <- action match
+        case _: Sabotage | _: Infect =>
+          Either.cond(
+            attackableCities.contains(cityName),
+            action match
+              case _: Sabotage => Sabotage(List(cityName))
+              case _: Infect   => Infect(List(cityName))
+              case _ => action, // fallback, should not be hit
+            InputParsingError(cityName, s"The city '$cityName' is not attackable.")
+          )
+        case Evolve => Right(Evolve)
+    } yield result
