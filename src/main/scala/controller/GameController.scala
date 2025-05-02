@@ -16,9 +16,8 @@ object GameController:
    * @return Un nuovo GameController
    */
   def apply(): GameState =
-    val (ai, human, worldMap) = model.GameFactory.createGame()
+    val worldState = model.GameFactory.createGame()
     val view = CLIView
-    val worldState = createWorldState(worldMap,ai,human)
     GameState(worldState,view)
 
 case class GameState(worldState: WorldState,
@@ -28,12 +27,12 @@ case class GameState(worldState: WorldState,
 
   import model.util.States.State.State
 
-  private def doPlayerAction(action: AiAction): State[GameState, Unit] = ???
+  private def doPlayerAction(action: AiAction): State[GameState, Unit] =
     State { gs =>
-      val result = worldState.playerAI.executeAction(action,worldMap)
+      val result = worldState.playerAI.executeAction(action,worldState.worldMap)
       val updatedAi = result.getPlayer
       val maybeCity = result.getCity
-      (worldState.updatePlayer(updatedAi), ())
+      (gs.copy(worldState= worldState.updatePlayer(updatedAi)), ())
    }
 
   private def doHumanAction(action: HumanAction): State[GameState, Unit] = ???
