@@ -40,8 +40,8 @@ object InputHandler:
         InputParsingError(cityName, s"The city '$cityName' is not attackable.")
       )
 
-      action <- availableActions.lift(choice - 1)
-        .toRight(InvalidChoice(choice, 1 to availableActions.size))
+      action <- availableActions.lift(choice)
+        .toRight(InvalidChoice(choice, 0 to availableActions.size))
 
     } yield action match
       case _: Sabotage => Sabotage(List(cityName))

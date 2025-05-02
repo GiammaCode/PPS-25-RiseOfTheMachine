@@ -3,7 +3,7 @@ import model.util.States.State
 
 @main def GameLoop(): Unit =
   var gameState = GameController()
-  val maxTurns = 3
+  val maxTurns = 2
 
   for turn <- 1 to maxTurns do
     println(s"\n--- Turno $turn ---")

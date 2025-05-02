@@ -20,6 +20,7 @@ trait PlayerAI extends PlayerEntity:
   def conqueredCities: Set[String]
   def sabotagedCities: Set[String]
   def getPossibleAction: List[AiAction]
+  def getPossibleActionByName: List[String]
   override type ValidAction = AiAction
   override type Self = PlayerAI
 
@@ -53,6 +54,8 @@ private case class PlayerAIImpl (
 
   override def getPossibleAction: List[AiAction] =
     List(Infect(), Sabotage(), Evolve)
+
+  override def getPossibleActionByName: List[String] = List("Sabotage", "Infect", "Evolve") // TODO: change
 
   /** String representation of the AI's current status. */
   override def toString: String =

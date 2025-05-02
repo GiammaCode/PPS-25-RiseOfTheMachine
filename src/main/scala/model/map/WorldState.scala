@@ -47,7 +47,7 @@ object WorldState:
      *
      * @return list of option strings
      */
-    def options: List[String] = List("Sabotage", "Infect", "Evolve", "Exit")
+    def options: List[String] = playerAI.getPossibleActionByName //TODO: fix and exit
 
     /**
      * The current turn number.
