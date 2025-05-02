@@ -31,7 +31,7 @@ case class GameState(worldState: WorldState,
     }
 
   private def doHumanAction(action: HumanAction): State[GameState, Unit] = ???
-  // State { gs => (gs.copy(human = gs.getCurrentHuman.executeAction(action)),())}
+   //State { gs => (gs.copy(human = gs.getCurrentHuman.executeAction(action)),())}
 
   private def renderTurn(): State[GameState, AiAction] = State { state =>
 
