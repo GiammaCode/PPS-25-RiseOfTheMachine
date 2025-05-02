@@ -1,6 +1,7 @@
 package model.strategy
 
 import model.map.CityModule.CityImpl.City
+import model.map.WorldMapModule.WorldMap
 import model.strategy.ExecuteActionResult.ExecuteActionResult
 import model.strategy.HumanAction
 
@@ -16,7 +17,7 @@ trait PlayerHuman extends PlayerEntity:
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
 
-  override def executeAction(action: ValidAction): ExecuteActionResult[Self]
+  override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self]
 
   override def toString: String
 
@@ -33,12 +34,13 @@ private case class PlayerHumanImpl(
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
 
-  override def executeAction(action: ValidAction): ExecuteActionResult[Self] = doExecuteAction(action)
+  override def executeAction(action: ValidAction,  worldMap: WorldMap): ExecuteActionResult[Self] = doExecuteAction(action, worldMap)
 
-  private def doExecuteAction(action: HumanAction): ExecuteActionResult[Self] = action match
+  private def doExecuteAction(action: HumanAction,  worldMap: WorldMap): ExecuteActionResult[Self] = action match
     case CityDefense(targets) =>
       val updated = copy(defendedCities = defendedCities ++ targets).addAction(action)
-      ExecuteActionResult.fromPlayerEntity(updated, None)
+      val maybeCity = targets.headOption.map(cityName => worldMap.getCityByName(cityName)).map(_.defenseCity())
+      ExecuteActionResult.fromPlayerEntity(updated, maybeCity)
 
     case GlobalDefense(targets) =>
       val updated = copy(defendedCities = defendedCities ++ targets).addAction(action)
