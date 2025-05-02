@@ -23,8 +23,6 @@ object GameController:
 case class GameState(worldState: WorldState,
                       view: GameView):
 
-
-
   import model.util.States.State.State
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] =
