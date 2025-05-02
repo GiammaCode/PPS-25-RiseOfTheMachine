@@ -14,7 +14,7 @@ class InputHandlerTest :
 
   @Test
   def testGetActionFromChoiceValid(): Unit =
-    val result = InputHandler.getActionFromChoice(userChoice, cityChoice, attackableCities, actions)
+    val result = InputHandler.getAiActionFromChoice(userChoice, cityChoice, attackableCities, actions)
     val action = result.getOrElse(throw new AssertionError("Expected valid action, but got error."))
     action match {
       case action: Infect =>
@@ -25,7 +25,7 @@ class InputHandlerTest :
   
   @Test
   def testGetActionFromChoiceInvalidChoice(): Unit =
-    val result = InputHandler.getActionFromChoice(5, cityChoice, attackableCities, actions)
+    val result = InputHandler.getAiActionFromChoice(5, cityChoice, attackableCities, actions)
     val error = result.left.getOrElse(throw new AssertionError("Expected an error due to invalid choice."))
     error match {
       case error: InvalidChoice =>

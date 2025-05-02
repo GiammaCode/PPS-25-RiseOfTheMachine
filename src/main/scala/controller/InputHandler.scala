@@ -27,7 +27,7 @@ object InputHandling:
 object InputHandler:
 
   /** A pure object responsible for mapping the user's numeric input to a valid game action. */
-  def getActionFromChoice(
+  def getAiActionFromChoice(
                            choice: Int,
                            cityName: String,
                            attackableCities : Set[String],

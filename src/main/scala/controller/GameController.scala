@@ -30,7 +30,7 @@ case class GameState(worldState: WorldState,
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] = ???
 //    State { gs =>
-//      val result = worldState.playerAI.executeAction(action)
+//      val result = worldState.playerAI.executeAction(action, worldMap)
 //      val updatedAi = result.getPlayer
 //      val maybeCity = result.getCity
 //      (worldState.updatePlayer(updatedAi), ())
