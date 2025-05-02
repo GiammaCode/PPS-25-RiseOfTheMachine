@@ -140,4 +140,6 @@ object CityModule:
        *
        * @return a new city instance with improved defense
        */
-      def defenseCity(): City = city.copy(defense = city.defense + 20)
+      def defenseCity(): City =
+        println("Città difesaaaa")
+        city.copy(defense = city.defense + 20)

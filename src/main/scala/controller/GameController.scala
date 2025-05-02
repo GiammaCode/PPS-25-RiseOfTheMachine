@@ -27,36 +27,38 @@ case class GameState(worldState: WorldState,
       val result = worldState.playerAI.executeAction(action, worldState.worldMap)
       val updatedAi = result.getPlayer
       val maybeCity = result.getCity
-      (gs.copy(worldState = worldState.updatePlayer(updatedAi)), ())
+      (gs.copy(worldState = worldState.updatePlayer(updatedAi).updateMap(maybeCity)), ())
+
     }
 
-  private def doHumanAction(action: HumanAction): State[GameState, Unit] = ???
-  // State { gs => (gs.copy(human = gs.getCurrentHuman.executeAction(action)),())}
+  private def doHumanAction(): State[GameState, Unit] =
+    State {gs =>
+      val action = CityDefense(List("i"))
+      val result = worldState.playerHuman.executeAction(action, worldState.worldMap)
+      val updatedHuman = result.getPlayer
+      val maybeCity = result.getCity
+      (gs.copy(worldState = worldState.updateHuman(updatedHuman).updateMap(maybeCity)), ())
+    }
 
   private def renderTurn(): State[GameState, AiAction] = State { state =>
 
     val input = view.renderGameTurn(worldState)
-    val a = input._1
-    val b = input._2
-    val c = worldState.attackableCities.map(_._1)
-    val d = worldState.playerAI.getPossibleAction
     val result = InputHandler.getAiActionFromChoice(
       input._1,
       input._2,
       worldState.attackableCities.map(_._1),
       worldState.playerAI.getPossibleAction
     )
-    result match {
+    result match
       case Right(action) => (state, action)
       case Left(_) => renderTurn().run(state)
-    }
   }
 
   def gameTurn(): State[GameState, Unit] =
     for
       action <- renderTurn()
       _ <- doPlayerAction(action)
-    // _ <- doHumanAction(humanAction)
+      _ <- doHumanAction()
     yield ()
 
 
