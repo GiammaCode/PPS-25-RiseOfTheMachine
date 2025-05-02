@@ -7,7 +7,7 @@ import model.strategy.AiAbility.AiAbility
 
 object ViewModule:
   trait GameView:
-    def renderGameTurn(worldState: WorldState) : Int
+    def renderGameTurn(worldState: WorldState): Int
 
   object CLIView extends GameView:
 
@@ -15,6 +15,7 @@ object ViewModule:
       renderTurn(worldState.turn)
       renderMap(worldState.worldMap)
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
+      renderProbability(worldState.attackableCities)
       renderActionMenu(worldState.options)
 
     private def renderTurn(turn: Int): Unit =
@@ -32,7 +33,16 @@ object ViewModule:
     private def renderStatus(infectionState: (Int, Int), abilities: Set[AiAbility]): Unit =
       val percentageDone = infectionState._1.toDouble / infectionState._2 * 100
       println(s"Infected city: ${infectionState._1}/${infectionState._2} --> $percentageDone%.2f%%".format(percentageDone))
-      println(s"Abilities unlocked: NEED TO INSERT ABILITY . tostring\n")
+      println(
+        Option.when(abilities.nonEmpty)(s"Abilities unlocked: ${abilities.mkString(", ")}")
+          .getOrElse("0 abilities unlocked")
+      )
+
+    private def renderProbability(cities: Set[(String, Int, Int)]): Unit =
+      val formatted = cities.map {
+        case (name, infect, sabotage) => s"[$name --> $infect%, $sabotage%]"
+      }.mkString("cities probability:  ", " ", "")
+      println(formatted)
 
     private def renderActionMenu(options: List[String]): Int =
       println("Select your action:")

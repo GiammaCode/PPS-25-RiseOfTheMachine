@@ -1,6 +1,6 @@
 package view
 
-import model.map.WorldMapModule.{UndeterministicMapModule, WorldMap, createWorldMap}
+import model.map.WorldMapModule.{UndeterministicMapModule,DeterministicMapModule, WorldMap, createWorldMap}
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.{PlayerAI, PlayerHuman}
 import org.junit.Assert.assertTrue
@@ -37,12 +37,7 @@ class CLIViewTest:
     state = createWorldState(worldMap, ai, human)
 
   @Test
-  def renderGameTurnTest(): Unit =
-    val turn = 5
-    val abilities = Set("ability1", "ability2")
-    val worldMap: WorldMap = createWorldMap(10)(UndeterministicMapModule)
-
-
+  def testPrintableGameTurn(): Unit =
     CLIView.renderGameTurn(state)
     assertTrue(true)
 

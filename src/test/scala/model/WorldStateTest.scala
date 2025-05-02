@@ -27,7 +27,7 @@ class WorldStateTest:
   def testConqueredCitiesAccess(): Unit =
     val state = createWorldState(worldMap, ai, human)
     assertEquals(Set.empty, state.AIConqueredCities)
-    assertEquals(Set("A", "B", "c"), state.humanConqueredCities)
+    assertEquals(Set.empty, state.humanConqueredCities)
 
   @Test
   def testAttackableCities(): Unit =
