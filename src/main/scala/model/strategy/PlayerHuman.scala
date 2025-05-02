@@ -56,7 +56,6 @@ private case class PlayerHumanImpl(
   override def toString: String =
     s"""|--- Human Status ---
         |KillSwitch Progress : $killSwitch
-        |Conquered Cities    : ${if (conqueredCities.isEmpty) "None" else conqueredCities.mkString(", ")}
         |Defended Cities     : ${if (defendedCities.isEmpty) "None" else defendedCities.mkString(", ")}
         |Executed Actions    :
         |  ${if (executedActions.isEmpty) "None" else executedActions.map(_.execute).mkString("\n  ")}

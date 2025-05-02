@@ -2,7 +2,7 @@ package model.map
 
 import model.map.WorldMapModule.*
 import model.strategy.AiAbility.AiAbility
-import model.strategy.{PlayerAI, PlayerHuman}
+import model.strategy.{AiAction, Infect, PlayerAI, PlayerHuman, Sabotage}
 import model.util.Util.*
 import model.map.CityModule.CityImpl.City
 /**
@@ -99,7 +99,9 @@ object WorldState:
       case State(map, _, _, _) =>
         map.cities.map { (city, _) =>
           val name = city.getName
-          (name, calculatePercentageOfSuccess, calculatePercentageOfSuccess)
+          val infectChance = calculatePercentageOfSuccess(city.getDefense, playerAI.infectionChance)
+          val sabotageChance = calculatePercentageOfSuccess(city.getDefense, playerAI.sabotagePower)
+          (name, infectChance, sabotageChance)
         }
 
     /**
@@ -156,3 +158,13 @@ object WorldState:
         val updatedMap = map.changeACityOfTheMap(newCity)
         State(updatedMap, ai, human, t)
 
+    /**
+     * Private method to calculate a percentage of success
+     * of an attack.
+     *
+     * @param cityDefense the value of city defense
+     * @param playerAttackValue the value of player attack
+     * @return a value to success
+     */
+    private def calculatePercentageOfSuccess(cityDefense: Int, playerAttackValue: Int): Int =
+      100 - cityDefense + playerAttackValue
