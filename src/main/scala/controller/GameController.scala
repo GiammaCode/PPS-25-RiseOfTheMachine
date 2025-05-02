@@ -36,6 +36,10 @@ case class GameState(worldState: WorldState,
   private def renderTurn(): State[GameState, AiAction] = State { state =>
 
     val input = view.renderGameTurn(worldState)
+    val a = input._1
+    val b = input._2
+    val c = worldState.attackableCities.map(_._1)
+    val d = worldState.playerAI.getPossibleAction
     val result = InputHandler.getAiActionFromChoice(
       input._1,
       input._2,
