@@ -15,60 +15,60 @@ object GameController:
   def apply(): GameState =
     val worldState = GameFactory.createGame()
     val view = CLIView
-    GameState(worldState,view)
+    GameState(worldState, view)
 
 case class GameState(worldState: WorldState,
-                      view: GameView):
+                     view: GameView):
 
   import model.util.States.State.State
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] =
     State { gs =>
-      val result = worldState.playerAI.executeAction(action,worldState.worldMap)
+      val result = worldState.playerAI.executeAction(action, worldState.worldMap)
       val updatedAi = result.getPlayer
       val maybeCity = result.getCity
-      (gs.copy(worldState= worldState.updatePlayer(updatedAi)), ())
-   }
+      (gs.copy(worldState = worldState.updatePlayer(updatedAi)), ())
+    }
 
   private def doHumanAction(action: HumanAction): State[GameState, Unit] = ???
-   // State { gs => (gs.copy(human = gs.getCurrentHuman.executeAction(action)),())}
+  // State { gs => (gs.copy(human = gs.getCurrentHuman.executeAction(action)),())}
 
   private def renderTurn(): State[GameState, AiAction] = State { state =>
 
-      val result = InputHandler.getAiActionFromChoice(
-        view.renderGameTurn(worldState),
-        "m",
-        worldState.attackableCities.map(_._1),
-        worldState.playerAI.getPossibleAction
-      )
-      result match {
-        case Right(action) => (state, action)
-        case Left(_)       => renderTurn().run(state)
-      }
+    val input = view.renderGameTurn(worldState)
+    val result = InputHandler.getAiActionFromChoice(
+      input._1,
+      input._2,
+      worldState.attackableCities.map(_._1),
+      worldState.playerAI.getPossibleAction
+    )
+    result match {
+      case Right(action) => (state, action)
+      case Left(_) => renderTurn().run(state)
     }
+  }
 
   def gameTurn(): State[GameState, Unit] =
     for
       action <- renderTurn()
       _ <- doPlayerAction(action)
-        // _ <- doHumanAction(humanAction)
-    yield()
+    // _ <- doHumanAction(humanAction)
+    yield ()
 
+/*
+def startGame() : Unit =
+  //TODO: used to create a dedicated test
+  val actions = List(SabotageAction(), InfectAction(), EvolveAction())
+  val userChoice = view.getInputForAction(List("Sabotage", "Infect", "Evolve")) // ottieni l'input
+  val aiActionResult = InputHandler.getActionFromChoice(userChoice, actions)
 
-  /*
-  def startGame() : Unit =
-    //TODO: used to create a dedicated test
-    val actions = List(SabotageAction(), InfectAction(), EvolveAction())
-    val userChoice = view.getInputForAction(List("Sabotage", "Infect", "Evolve")) // ottieni l'input
-    val aiActionResult = InputHandler.getActionFromChoice(userChoice, actions)
-
-    aiActionResult match {
-      case Right(aiAction) =>
-        doPlayerAction(aiAction)
-      case Left(error) =>
-        view.renderActionMenu(List("Sabotage", "Infect", "Evolve"))
-    }
-  */
+  aiActionResult match {
+    case Right(aiAction) =>
+      doPlayerAction(aiAction)
+    case Left(error) =>
+      view.renderActionMenu(List("Sabotage", "Infect", "Evolve"))
+  }
+*/
 @main def tryController(): Unit =
   val game = GameController.apply()
   val (updatedGameState, _) = game.gameTurn().run(game)
