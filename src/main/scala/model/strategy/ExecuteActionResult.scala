@@ -12,7 +12,5 @@ object ExecuteActionResult:
 
   /** Extension methods for the parameterized ExecuteActionResult. */
   extension [P <: PlayerEntity](res: ExecuteActionResult[P])
-    def getPlayer: P = res._1 // Ora restituisce P, non PlayerAI
+    def getPlayer: P = res._1
     def getCity: Option[City] = res._2
-      
-      //TODO: need to be changed with a PlayerEntity instead of PlayerAIImpl, now is just to develop tests
