@@ -1,5 +1,6 @@
 package model
 
+import model.map.WorldState.*
 import model.strategy.{CityDefense, DevelopKillSwitch, GlobalDefense, HumanAction, PlayerHuman}
 import org.junit.*
 import org.junit.Assert.{assertEquals, assertTrue}
@@ -12,10 +13,12 @@ import org.junit.Assert.*
 class PlayerHumanTest:
 
   var player: PlayerHuman = _
+  var worldState : WorldState = _
 
   @Before
   def init(): Unit =
     player = PlayerHuman.default
+    worldState = GameFactory.createGame()
 
   @Test
   def testInitialState(): Unit =
@@ -27,7 +30,7 @@ class PlayerHumanTest:
   @Test
   def testCityDefenseAction(): Unit =
     val targets = List("CityA")
-    val result = player.executeAction(CityDefense(targets))
+    val result = player.executeAction(CityDefense(targets), worldState.worldMap)
     val updatedPlayer = result.getPlayer
 
     assertTrue(updatedPlayer.defendedCities.contains("CityA"))
@@ -36,7 +39,7 @@ class PlayerHumanTest:
   @Test
   def testGlobalDefenseAction(): Unit =
     val targets = List("CityA", "CityB")
-    val result = player.executeAction(GlobalDefense(targets))
+    val result = player.executeAction(GlobalDefense(targets), worldState.worldMap)
     val updatedPlayer = result.getPlayer
 
     assertTrue(updatedPlayer.defendedCities.contains("CityA"))
@@ -45,7 +48,7 @@ class PlayerHumanTest:
 
   @Test
   def testKillSwitchAction(): Unit =
-    val result = player.executeAction(DevelopKillSwitch)
+    val result = player.executeAction(DevelopKillSwitch, worldState.worldMap)
     val updatedPlayer = result.getPlayer
 
     assertEquals(1, updatedPlayer.killSwitch)
