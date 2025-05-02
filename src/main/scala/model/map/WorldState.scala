@@ -162,11 +162,10 @@ object WorldState:
      * @param newCity the updated City instance
      * @return a new WorldState with the updated map
      */
-    def updateMap(newCity: City): WorldState = ws match
+    def updateMap(newCity: Option[City]): WorldState = ws match
       case State(map, ai, human, t) =>
-        val updatedMap = map.changeACityOfTheMap(newCity)
+        val updatedMap = newCity.map(map.changeACityOfTheMap).getOrElse(map)
         State(updatedMap, ai, human, t)
-
     /**
      * Private method to calculate a percentage of success
      * of an attack.
