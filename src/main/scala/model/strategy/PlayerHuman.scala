@@ -9,22 +9,24 @@ trait PlayerHuman extends PlayerEntity:
 
   def defendedCities: Set[String]
 
-  def executedActions: Set[HumanAction]
+  def executedActions: List[HumanAction]
 
   def conqueredCities: Set[String]
+
+  override type ValidAction = HumanAction
+  override type Self = PlayerHuman
 
   override def executeAction(action: ValidAction): ExecuteActionResult[Self]
 
   override def toString: String
 
 object PlayerHuman:
-
-def default: PlayerHuman = PlayerHumanImpl()
+  def default: PlayerHuman = PlayerHumanImpl()
 
 private case class PlayerHumanImpl(
                                     killSwitch: Int = 0,
-                                    defendedCities: List[String] = List.empty,
-                                    conqueredCities: List[String] = List.empty,
+                                    defendedCities: Set[String] = Set.empty,
+                                    conqueredCities: Set[String] = Set.empty,
                                     executedActions: List[HumanAction] = List.empty
                                   ) extends PlayerHuman:
 

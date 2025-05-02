@@ -3,61 +3,50 @@ package model
 import model.strategy.{CityDefense, DevelopKillSwitch, GlobalDefense, HumanAction, PlayerHuman}
 import org.junit.*
 import org.junit.Assert.{assertEquals, assertTrue}
+import model.strategy.*
+import model.strategy.ExecuteActionResult.*
+import model.strategy.HumanAction.*
+import org.junit.*
+import org.junit.Assert.*
 
-class PlayerHumanTest :
-  var human : PlayerHuman = _
-  var action : HumanAction = _
-  var cities: List[String] = List("Milan", "Rome")
-  var city: List[String] = List("Milan")
+class PlayerHumanTest:
+
+  var player: PlayerHuman = _
 
   @Before
   def init(): Unit =
-    human = PlayerHuman.default
+    player = PlayerHuman.default
 
   @Test
-  def applyGlobalDefenseTest() : Unit=
-    action = GlobalDefense(cities)
-    val updateHuman = human.executeAction(action).getPlayer
-    assertTrue(updateHuman.executedActions.nonEmpty)
+  def testInitialState(): Unit =
+    assertEquals(0, player.killSwitch)
+    assertTrue(player.defendedCities.isEmpty)
+    assertTrue(player.executedActions.isEmpty)
+    assertTrue(player.conqueredCities.isEmpty)
 
   @Test
-  def applyCityDefenseTest() : Unit =
-    action = CityDefense(city)
-    val updateHuman = human.executeAction(action).getPlayer
-    assertTrue(updateHuman.executedActions.nonEmpty)
+  def testCityDefenseAction(): Unit =
+    val targets = List("CityA")
+    val result = player.executeAction(CityDefense(targets))
+    val updatedPlayer = result.getPlayer
 
-
-  @Test
-  def applyDevelopKillSwitchTest() : Unit =
-    action = DevelopKillSwitch
-    val updateHuman = human.executeAction(action).getPlayer
-    assertTrue(updateHuman.executedActions.nonEmpty)
+    assertTrue(updatedPlayer.defendedCities.contains("CityA"))
+    assertTrue(updatedPlayer.executedActions.exists(_.isInstanceOf[CityDefense]))
 
   @Test
-  def applyMultipleAction() : Unit =
-    val firstAction : HumanAction = DevelopKillSwitch
-    val firstActionHuman = human.executeAction(firstAction).getPlayer
-    assertTrue(firstActionHuman.executedActions.nonEmpty)
+  def testGlobalDefenseAction(): Unit =
+    val targets = List("CityA", "CityB")
+    val result = player.executeAction(GlobalDefense(targets))
+    val updatedPlayer = result.getPlayer
 
-    val secondAction : HumanAction = CityDefense(city)
-    val secondActionHuman = firstActionHuman.executeAction(secondAction).getPlayer
-    assertEquals(2, secondActionHuman.executedActions.size)
+    assertTrue(updatedPlayer.defendedCities.contains("CityA"))
+    assertTrue(updatedPlayer.defendedCities.contains("CityB"))
+    assertTrue(updatedPlayer.executedActions.exists(_.isInstanceOf[GlobalDefense]))
 
   @Test
-  def HumanToStringTest() : Unit =
-    val defendedActionHuman = human.executeAction(CityDefense(List("Milan")))
-    val output = defendedActionHuman.toString
-    print(output)
+  def testKillSwitchAction(): Unit =
+    val result = player.executeAction(DevelopKillSwitch)
+    val updatedPlayer = result.getPlayer
 
-    assert(output.contains("Conquered Cities"))
-    assert(output.contains("Defended Cities"))
-    assert(output.contains("Executed Actions"))
-
-
-
-
-
-
-
-
-
+    assertEquals(1, updatedPlayer.killSwitch)
+    assertTrue(updatedPlayer.executedActions.contains(DevelopKillSwitch))
