@@ -138,6 +138,10 @@ object WorldMapModule:
 
     def cities: Set[(City, Set[(Int, Int)])] = worldMap
 
+    def AiCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
+
+    def HumanCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.AI).map(_._1)
+
 
 
 

@@ -37,11 +37,9 @@ case class GameState(worldState: WorldState,
    // State { gs => (gs.copy(human = gs.getCurrentHuman.executeAction(action)),())}
 
   private def renderTurn(): State[GameState,Unit] =
-    val abilities: Set[String] = Set.empty
-    val options = List("SabotageAction", "InfectAction", "EvolveAction","Exit")
     State { state => view.renderGameTurn(worldState)
-      (state, ())
-    }
+
+    (state, ())}
 
   def gameTurn(aiActionResult: Either[InputHandlingError, AiAction]): State[GameState, Unit] =
     aiActionResult match {
@@ -69,3 +67,7 @@ case class GameState(worldState: WorldState,
         view.renderActionMenu(List("Sabotage", "Infect", "Evolve"))
     }
   */
+@main def provaTurn(): Unit =
+
+
+
