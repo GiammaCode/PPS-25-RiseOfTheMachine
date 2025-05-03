@@ -24,34 +24,36 @@ case class GameState(worldState: WorldState,
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] =
     State { gs =>
-      val result = worldState.playerAI.executeAction(action, worldState.worldMap)
+      val currentWorldState = gs.worldState
+      val result = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
       val updatedAi = result.getPlayer
       val maybeCity = result.getCity
-      (gs.copy(worldState = worldState.updatePlayer(updatedAi).updateMap(maybeCity)), ())
+      (gs.copy(worldState = currentWorldState.updatePlayer(updatedAi).updateMap(maybeCity)), ())
 
     }
 
   private def doHumanAction(): State[GameState, Unit] =
     State {gs =>
+      val currentWorldState = gs.worldState
       val action = CityDefense(List("i"))
-      val result = worldState.playerHuman.executeAction(action, worldState.worldMap)
+      val result = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
       val updatedHuman = result.getPlayer
       val maybeCity = result.getCity
-      (gs.copy(worldState = worldState.updateHuman(updatedHuman).updateMap(maybeCity)), ())
+      (gs.copy(worldState = currentWorldState.updateHuman(updatedHuman).updateMap(maybeCity)), ())
     }
 
-  private def renderTurn(): State[GameState, AiAction] = State { state =>
-
-    val input = view.renderGameTurn(worldState)
+  private def renderTurn(): State[GameState, AiAction] = State { gs =>
+    val currentWorldState = gs.worldState
+    val input = view.renderGameTurn(currentWorldState)
     val result = InputHandler.getAiActionFromChoice(
       input._1,
       input._2,
-      worldState.attackableCities.map(_._1),
-      worldState.playerAI.getPossibleAction
+      currentWorldState.attackableCities.map(_._1),
+      currentWorldState.playerAI.getPossibleAction
     )
     result match
-      case Right(action) => (state, action)
-      case Left(_) => renderTurn().run(state)
+      case Right(action) => (gs, action)
+      case Left(_) => renderTurn().run(gs)
   }
 
   def gameTurn(): State[GameState, Unit] =

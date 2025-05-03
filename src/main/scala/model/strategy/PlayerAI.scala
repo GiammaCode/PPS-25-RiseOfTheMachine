@@ -66,7 +66,7 @@ private case class PlayerAIImpl (
         |Conquered Cities     : ${if (conqueredCities.isEmpty) "None" else conqueredCities.mkString(", ")}
         |Sabotaged Cities     : ${if (sabotagedCities.isEmpty) "None" else sabotagedCities.mkString(", ")}
         |Executed Actions     :
-        |  ${if (executedActions.isEmpty) "None" else executedActions.map(_.execute).mkString("\n  ")}
+        |  ${if (executedActions.isEmpty) "None" else executedActions.mkString("\n  ")}
         |------------------------
      """.stripMargin
 
@@ -86,6 +86,7 @@ private case class PlayerAIImpl (
       .headOption
       .fold(this)(withNewAbility)
       .addAction(Evolve)
+    println(s"Evolve, you have unlocked: $unlockedAbilities\n")
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, None)
 
 
@@ -96,6 +97,7 @@ private case class PlayerAIImpl (
       cityName <- cities.headOption
       city     <- worldMap.getCityByName(cityName)
     } yield city.infectCity()
+    println(s"Infect, you have infected: $conqueredCities\n")
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, maybeCity)
 
 
@@ -106,6 +108,7 @@ private case class PlayerAIImpl (
       cityName <- cities.headOption
       city <- worldMap.getCityByName(cityName)
     } yield city.sabotateCity(sabotagePower)
+    println(s"Sabotage, you have sabotaged: $sabotagedCities\n")
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, maybeCity)
 
 
