@@ -51,7 +51,10 @@ private case class PlayerAIImpl (
     case Sabotage(targets) => sabotage(targets, worldMap)
     case Evolve => evolve
 
-  override def getPossibleAction: List[AiAction] = AiAction.allActions
+  override def getPossibleAction: List[AiAction] =
+    AiAction.allActions.filter { action =>
+      (AiAbility.allAbilities -- unlockedAbilities).nonEmpty || action != Evolve
+    }
 
   /** String representation of the AI's current status. */
   override def toString: String =
@@ -82,9 +85,7 @@ private case class PlayerAIImpl (
       .headOption
       .fold(this)(withNewAbility)
       .addAction(Evolve)
-    println(s"Evolve, you have unlocked: $unlockedAbilities\n")
-    ExecuteActionResult.fromPlayerEntity(updatedPlayer, None)
-
+    ExecuteActionResult.apply(updatedPlayer, None, List(s"Evolve, you have unlocked: $unlockedAbilities\n"))
 
   /** Conquers the given cities and adds the infect action to history. */
   private def infect(cities: List[String], worldMap: WorldMap): ExecuteActionResult[Self] =
@@ -93,9 +94,7 @@ private case class PlayerAIImpl (
       cityName <- cities.headOption
       city     <- worldMap.getCityByName(cityName)
     } yield city.infectCity()
-    println(s"Infect, you have infected: $conqueredCities\n")
-    ExecuteActionResult.fromPlayerEntity(updatedPlayer, maybeCity)
-
+    ExecuteActionResult.apply(updatedPlayer, maybeCity, List(s"Infect, you have infected: $conqueredCities\n"))
 
   /** Sabotages the given cities and adds the sabotage action to history. */
   private def sabotage(cities: List[String], worldMap: WorldMap): ExecuteActionResult[Self] =
@@ -104,9 +103,7 @@ private case class PlayerAIImpl (
       cityName <- cities.headOption
       city <- worldMap.getCityByName(cityName)
     } yield city.sabotateCity(sabotagePower)
-    println(s"Sabotage, you have sabotaged: $sabotagedCities\n")
-    ExecuteActionResult.fromPlayerEntity(updatedPlayer, maybeCity)
-
+    ExecuteActionResult.apply(updatedPlayer, maybeCity, List(s"Sabotage, you have sabotaged: $sabotagedCities\n"))
 
   /** Adds an executed action to the history. */
   private def addAction(action: AiAction): PlayerAIImpl =
