@@ -20,7 +20,6 @@ trait PlayerAI extends PlayerEntity:
   def conqueredCities: Set[String]
   def sabotagedCities: Set[String]
   def getPossibleAction: List[AiAction]
-  def getPossibleActionByName: List[String]
   override type ValidAction = AiAction
   override type Self = PlayerAI
 
@@ -52,10 +51,7 @@ private case class PlayerAIImpl (
     case Sabotage(targets) => sabotage(targets, worldMap)
     case Evolve => evolve
 
-  override def getPossibleAction: List[AiAction] =
-    List(Infect(), Sabotage(), Evolve)
-
-  override def getPossibleActionByName: List[String] = List("Sabotage", "Infect", "Evolve") // TODO: change
+  override def getPossibleAction: List[AiAction] = AiAction.allActions
 
   /** String representation of the AI's current status. */
   override def toString: String =
@@ -66,7 +62,7 @@ private case class PlayerAIImpl (
         |Conquered Cities     : ${if (conqueredCities.isEmpty) "None" else conqueredCities.mkString(", ")}
         |Sabotaged Cities     : ${if (sabotagedCities.isEmpty) "None" else sabotagedCities.mkString(", ")}
         |Executed Actions     :
-        |  ${if (executedActions.isEmpty) "None" else executedActions.mkString("\n  ")}
+        |  ${if (executedActions.isEmpty) "None" else executedActions.reverse.mkString("\n  ")}
         |------------------------
      """.stripMargin
 
