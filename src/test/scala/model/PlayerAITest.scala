@@ -4,6 +4,7 @@ import model.strategy.{AiAbility, AiAction, Evolve, Infect, PlayerAI, Sabotage, 
 import org.junit.*
 import org.junit.Assert.assertEquals
 import model.map.WorldState.*
+import model.util.GameDifficulty.Difficulty.Normal
 
 class PlayerAITest :
   var player : PlayerAI = _
@@ -13,7 +14,7 @@ class PlayerAITest :
 
   @Before
   def init(): Unit =
-    player = PlayerAI.default
+    player = PlayerAI.fromDifficulty(Normal)
     worldState = GameFactory.createGame()
   @Test
   def applyEvolveAbilityTest() : Unit =

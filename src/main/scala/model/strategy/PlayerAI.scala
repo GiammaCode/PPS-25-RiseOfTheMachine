@@ -8,6 +8,7 @@ import model.map.WorldMapModule.WorldMap
 import model.strategy.AiAbility.AiAbility
 import model.strategy.ExecuteActionResult.ExecuteActionResult
 import model.strategy.AiAction
+import model.util.GameDifficulty.Difficulty
 
 import util.chaining.scalaUtilChainingOps
 import scala.util.Random
@@ -28,8 +29,27 @@ trait PlayerAI extends PlayerEntity:
   override def toString: String
 
 object PlayerAI:
-  def default: PlayerAI = PlayerAIImpl()
-//add here creation fromDifficulty
+  def fromDifficulty(difficulty: Difficulty): PlayerAI = difficulty match
+    case Difficulty.Easy => easyProfile
+    case Difficulty.Normal => normalProfile
+    case Difficulty.Hard => hardProfile
+
+  private val base: PlayerAIImpl = PlayerAIImpl()
+
+  private def easyProfile = base.copy(
+    infectionChance = 30,
+    sabotagePower = 3
+  )
+
+  private def normalProfile = base.copy(
+    infectionChance = 50,
+    sabotagePower = 5
+  )
+
+  private def hardProfile = base.copy(
+    infectionChance = 70,
+    sabotagePower = 8
+  )
 
 private case class PlayerAIImpl (
                                   unlockedAbilities : Set[AiAbility] = Set.empty,
@@ -90,19 +110,13 @@ private case class PlayerAIImpl (
   /** Conquers the given cities and adds the infect action to history. */
   private def infect(cities: List[String], worldMap: WorldMap): ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = copy(conqueredCities = conqueredCities ++ cities).addAction(Infect(cities))
-    val maybeCity = for {
-      cityName <- cities.headOption
-      city     <- worldMap.getCityByName(cityName)
-    } yield city.infectCity()
+    val maybeCity =  cities.headOption.flatMap(worldMap.getCityByName).map(_.infectCity())
     ExecuteActionResult.apply(updatedPlayer, maybeCity, List(s"Infect, you have infected: $conqueredCities\n"))
 
   /** Sabotages the given cities and adds the sabotage action to history. */
   private def sabotage(cities: List[String], worldMap: WorldMap): ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = copy(sabotagedCities = sabotagedCities ++ cities).addAction(Sabotage(cities))
-    val maybeCity = for {
-      cityName <- cities.headOption
-      city <- worldMap.getCityByName(cityName)
-    } yield city.sabotateCity(sabotagePower)
+    val maybeCity = cities.headOption.flatMap(worldMap.getCityByName).map(_.sabotateCity(sabotagePower))
     ExecuteActionResult.apply(updatedPlayer, maybeCity, List(s"Sabotage, you have sabotaged: $sabotagedCities\n"))
 
   /** Adds an executed action to the history. */
