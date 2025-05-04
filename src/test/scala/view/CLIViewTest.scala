@@ -1,8 +1,9 @@
 package view
 
-import model.map.WorldMapModule.{UndeterministicMapModule,DeterministicMapModule, WorldMap, createWorldMap}
+import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.{PlayerAI, PlayerHuman}
+import model.util.GameDifficulty.Difficulty.Normal
 import org.junit.Assert.assertTrue
 import org.junit.*
 import view.ViewModule.*
@@ -32,7 +33,7 @@ class CLIViewTest:
   @Before
   def init(): Unit =
     human = PlayerHuman.default
-    ai = PlayerAI.default
+    ai = PlayerAI.fromDifficulty(Normal)
     worldMap = createWorldMap(5)(UndeterministicMapModule)
     state = createWorldState(worldMap, ai, human)
 
