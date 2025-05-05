@@ -12,8 +12,8 @@ Italy
 - Lorenzo Leoni - lorenzo.leoni5@studio.unibo.it
 
 ## Indice
-- [Introduzione](report/sections/1_Introduction.md)
-- [Sviluppo](report/sections/2_Development.md)
+- [Introduzione](sections/1_Introduction.md)
+- [Sviluppo](sections/2_Development.md)
 - sections/1_Introduction
 - sections/2_Development
 - sections/3_Requirements
