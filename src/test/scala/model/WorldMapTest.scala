@@ -21,7 +21,7 @@ class WorldMapTest:
 
   @Test
   def changeACityOfTheMap(): Unit =
-    assertEquals(worldMap.getCityByName("m").get.infectCity(),worldMap.changeACityOfTheMap(worldMap.getCityByName("m").get.infectCity()).getCityByName("m"))
+    assertEquals(worldMap.getCityByName("m").get.infectCity(),worldMap.changeACityOfTheMap(worldMap.getCityByName("m").get.infectCity()).getCityByName("m").get)
 
   @Test
   def renderCoordinate(): Unit = println(worldMap.renderList())
