@@ -1,9 +1,11 @@
-# RISE OF THE MACHINE 
+# Paradigmi di Programmazione e Sviluppo
 
-## Paradigmi di Programmazione e Sviluppo
 M.S. Engineering and Computer Science
+
 Alma Mater Studiorum - University of Bologna
+
 Campus of Cesena
+
 Italy
 
 ## Gruppo: 
@@ -12,12 +14,15 @@ Italy
 - Lorenzo Leoni - lorenzo.leoni5@studio.unibo.it
 
 ## Indice
-- [Introduzione](sections/1_Introduction.md)
+- [Introduction](sections/1_Introduction.md)
+- [Develope](sections/2_Development.md)
+- [Requirements](sections/3_Requirements.md)
+- [Architecture](sections/4_Architecture.md)
+- [Design](sections/5_Design.md)
+- [Implementation](sections/6_Implementation.md)
+- [Retrospective](sections/7_Retrospective.md)
 - [Sviluppo](sections/2_Development.md)
-- sections/1_Introduction
-- sections/2_Development
-- sections/3_Requirements
-- sections/4_Architecture
-- sections/5_Design
-- sections/6_Implementation
-- sections/7_Retrospective
+
+## Meeting & Sprint Backlogs
+- [first-meeting](backlog/first-meeting.md)
+- [first-sprint](backlog/first-sprint.md)

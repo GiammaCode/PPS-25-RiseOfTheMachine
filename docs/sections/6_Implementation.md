@@ -1,9 +1,7 @@
-%! Author = giamm
-%! Date = 24/04/2025
+# Implementazione
 
-\newpage
-\section{Implementazione}
+## Gianmaria:
 
-%\input{sections/Gianmaria}
-%\input{sections/Luca}
-%\input{sections/Lorenzo}
+## Luca:
+
+## Lorenzo:

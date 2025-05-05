@@ -1,14 +1,10 @@
-%! Author = giamm
-%! Date = 24/04/2025
+# Design di Dettaglio
 
-\newpage
-\section{Design di Dettaglio}
+## Design del Model
 
-\subsection{Design del Model}
+## Design della View
 
-\subsection{Design della View}
-
-\subsection{Design del Controller}
+## Design del Controller
 
 
 

@@ -1,14 +1,10 @@
-%! Author = giamm
-%! Date = 24/04/2025
+# Retrospettiva
 
-\newpage
-\section{Retrospettiva}
+## Processo di sviluppo
+## Daily Meeting
 
-\subsection{Processo di sviluppo}
-\subsubsection{Daily Meeting}
+## Pull request vs Pair programming
 
-\subsubsection{Pull request vs Pair programming}
+## Tools
 
-\subsubsection{Tools}
-
-\subsection{Commenti finali}
+## Commenti finali

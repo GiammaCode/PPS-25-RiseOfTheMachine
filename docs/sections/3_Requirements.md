@@ -1,16 +1,13 @@
-%! Author = giamm
-%! Date = 24/04/2025
+# Requisiti
 
-\newpage
-\section{Requisiti}
-\subsection{Business}
+## Business
 
-\subsection{Funzionali}
+## Funzionali
 
-\subsubsection{Utente}
+## Utente
 
-\subsubsection{Non Funzionali}
+## Non Funzionali
 
-\subsection{Opzionali}
+## Opzionali
 
-\subsection{Implementativi}
+## Implementativi
