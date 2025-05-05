@@ -23,38 +23,33 @@ case class GameState(worldState: WorldState,
   import model.util.States.State.State
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] =
-    State { gs =>
+    State ( gs =>
       val currentWorldState = gs.worldState
       val result = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
       val updatedAi = result.getPlayer
       val maybeCity = result.getCity
-      (gs.copy(worldState = currentWorldState.updatePlayer(updatedAi).updateMap(maybeCity)), ())
-
-    }
+      (gs.copy(worldState = currentWorldState.updatePlayer(updatedAi).updateMap(maybeCity)), ()))
 
   private def doHumanAction(): State[GameState, Unit] =
-    State {gs =>
-      val currentWorldState = gs.worldState
-      val action = CityDefense(List("i"))
-      val result = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
-      val updatedHuman = result.getPlayer
-      val maybeCity = result.getCity
-      (gs.copy(worldState = currentWorldState.updateHuman(updatedHuman).updateMap(maybeCity)), ())
-    }
+    State(gs =>
+      (gs.copy(
+          worldState = gs.worldState
+            .updateHuman(gs.worldState.playerHuman.executeAction(CityDefense(List("i")), gs.worldState.worldMap).getPlayer)
+            .updateMap(gs.worldState.playerHuman.executeAction(CityDefense(List("i")), gs.worldState.worldMap).getCity)), ()))
 
-  private def renderTurn(): State[GameState, AiAction] = State { gs =>
-    val currentWorldState = gs.worldState
-    val input = view.renderGameTurn(currentWorldState)
-    val result = InputHandler.getAiActionFromChoice(
-      input._1,
-      input._2,
-      currentWorldState.attackableCities.map(_._1),
-      currentWorldState.playerAI.getPossibleAction
-    )
-    result match
-      case Right(action) => (gs, action)
-      case Left(_) => renderTurn().run(gs)
-  }
+  private def renderTurn(): State[GameState, AiAction] =
+    State ( gs =>
+      val currentWorldState = gs.worldState
+      val input = view.renderGameTurn(currentWorldState)
+      val result = InputHandler.getAiActionFromChoice(
+        input._1,
+        input._2,
+        currentWorldState.attackableCities.map(_._1),
+        currentWorldState.playerAI.getPossibleAction
+      )
+      result match
+        case Right(action) => (gs, action)
+        case Left(_) => renderTurn().run(gs))
 
   def gameTurn(): State[GameState, Unit] =
     for
