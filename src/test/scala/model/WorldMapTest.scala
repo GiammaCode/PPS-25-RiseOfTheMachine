@@ -1,5 +1,6 @@
 package model
 
+import model.map.CityModule.CityImpl.createCity
 import model.map.WorldMapModule
 import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
 import org.junit.Assert.{assertEquals, assertFalse, assertNotEquals, assertTrue}
@@ -20,7 +21,7 @@ class WorldMapTest:
 
   @Test
   def changeACityOfTheMap(): Unit =
-    assertEquals(worldMap.getCityByName("m").infectCity(),worldMap.changeACityOfTheMap(worldMap.getCityByName("m").infectCity()).getCityByName("m"))
+    assertEquals(worldMap.getCityByName("m").get.infectCity(),worldMap.changeACityOfTheMap(worldMap.getCityByName("m").get.infectCity()).getCityByName("m"))
 
   @Test
   def renderCoordinate(): Unit = println(worldMap.renderList())
