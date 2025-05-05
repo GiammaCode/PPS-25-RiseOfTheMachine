@@ -88,7 +88,11 @@ object WorldState:
      * @return true if game over, false otherwise
      */
     def isGameOver: Boolean = ws match
-      case State(map, _, _, _) => map.numberOfCityInfected() > 10
+      case State(map, _, human, _) =>
+        val valueToWin : Int = 70
+        val killSwitchCompleted : Int = 100
+        map.numberOfCityInfected().toDouble / map.numberOfCityInfected().toDouble * 100 >= 70 ||
+          human.killSwitch == killSwitchCompleted
 
     /**
      * Returns a set of attackable cities with infection and sabotage success rates.
@@ -135,7 +139,7 @@ object WorldState:
      * @return tuple (infected, max)
      */
     def infectionState: (Int, Int) = ws match
-      case State(map, _, _, _) => (map.numberOfCityInfected(), 15)
+      case State(map, _, _, _) => (map.numberOfCityInfected(), map.numberOfCity())
 
     /**
      * Creates a new WorldState with an updated AI player.
