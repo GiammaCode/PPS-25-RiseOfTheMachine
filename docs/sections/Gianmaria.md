@@ -34,7 +34,7 @@ def createWorldState(worldMap: WorldMap, playerAI: PlayerAI, playerHuman: Player
 
 # `PlayerHuman` – Documentazione
 
-## 📘 Descrizione
+## Descrizione
 
 Il modulo `PlayerHuman` rappresenta il giocatore umano nel gioco.  
 È progettato per essere **immutabile**, **tipato in modo sicuro**, e conforme a una gerarchia funzionale basata sul trait `PlayerEntity`.
