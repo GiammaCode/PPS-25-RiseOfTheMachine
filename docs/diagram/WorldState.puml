@@ -1,0 +1,25 @@
+@startuml
+class WorldState {
+  - WorldStateImpl
+  + createWorldState(map, ai, human): WorldState
+  + turn: Int
+  + worldMap: WorldMap
+  + playerAI: PlayerAI
+  + playerHuman: PlayerHuman
+  + attackableCities(): Set[(String, Int, Int)]
+  + AIConqueredCities(): Set[String]
+  + humanConqueredCities(): Set[String]
+  + AIUnlockedAbilities(): Set[AiAbility]
+  + infectionState(): (Int, Int)
+  + isGameOver(): Boolean
+  + updatePlayer(PlayerAI): WorldState
+  + updateHuman(PlayerHuman): WorldState
+  + updateMap(Option[City]): WorldState
+}
+
+WorldState --> WorldMap
+WorldState --> PlayerAI
+WorldState --> PlayerHuman
+WorldState --> AiAbility
+WorldState --> City
+@enduml

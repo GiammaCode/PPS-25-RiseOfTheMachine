@@ -1,7 +1,7 @@
 # Implementazione
 
-## Gianmaria:
+[Gianmaria](Gianmaria.md)
 
-## Luca:
+[Luca](Luca.md)
 
-## Lorenzo:
+[Lorenzo](Lorenzo.md)
