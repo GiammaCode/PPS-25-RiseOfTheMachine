@@ -134,12 +134,7 @@ object WorldMapModule:
 
   extension (worldMap: WorldMap)
 
-    def changeACityOfTheMap(city: City): WorldMap =
-        worldMap.find(_._1.getName == city.getName)
-        .map ((_, coords) => worldMap.filterNot(_._1.getName == city.getName) + (city -> coords))
-        .getOrElse(worldMap)
-
-    def getSize: Int = worldMap.flatMap(_._2).foldLeft(0)((acc, xy) => math.max(acc, math.max(xy._1, xy._2))) + 1
+    def getSizeOfTheMap: Int = worldMap.flatMap(_._2).foldLeft(0)((acc, xy) => math.max(acc, math.max(xy._1, xy._2))) + 1
 
     def getCityByName(name: String): Option[City] =
       worldMap.find(_._1.getName == name).map(_._1)
@@ -151,9 +146,6 @@ object WorldMapModule:
     def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
       worldMap.find(f.tupled).flatMap((city, coords) => coords.headOption.map(_ => city.getName))
 
-
-    def cities: Set[(City, Set[(Int, Int)])] = worldMap
-
     def AiCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.AI).map(_._1)
 
     def HumanCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
@@ -163,9 +155,13 @@ object WorldMapModule:
       else worldMap.collect:
         case (city, coords)
           if city.getOwner == Owner.HUMAN &&
-            coords.exists(adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI).flatMap(_._2), worldMap.getSize).toSet.contains)
+            coords.exists(adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI).flatMap(_._2), worldMap.getSizeOfTheMap).toSet.contains)
         => city
 
+    def changeACityOfTheMap(city: City): WorldMap =
+      worldMap.find(_._1.getName == city.getName)
+        .map((_, coords) => worldMap.filterNot(_._1.getName == city.getName) + (city -> coords))
+        .getOrElse(worldMap)
 
 
 

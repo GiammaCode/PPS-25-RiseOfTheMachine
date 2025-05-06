@@ -68,6 +68,14 @@ object CityModule:
        */
       def sabotateCity(playerAttack: Int): City
 
+      /**
+       * Defend the city, increasing its defense.
+       *
+       * @return a new City instance with augmented defense
+       */
+
+      def defenseCity(): City
+
 
   /**
    * Implementation of the CityInterface.
