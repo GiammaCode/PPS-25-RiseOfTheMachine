@@ -1,10 +1,10 @@
 package model
 
-import model.map.CityModule.CityImpl.createCity
 import model.map.WorldMapModule
 import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
-import org.junit.Assert.{assertEquals, assertFalse, assertNotEquals, assertTrue}
+import org.junit.Assert.{assertEquals, assertNotEquals}
 import org.junit.Test
+
 
 class WorldMapTest:
 
@@ -24,16 +24,14 @@ class WorldMapTest:
     assertEquals(worldMap.getCityByName("m").get.infectCity(),worldMap.changeACityOfTheMap(worldMap.getCityByName("m").get.infectCity()).getCityByName("m").get)
 
   @Test
-  def renderCoordinate(): Unit = println(worldMap.renderList())
-
-  @Test
   def numberOfCityTest():Unit =
-    assertEquals(10,createWorldMap(10)(DeterministicMapModule).numberOfCity())
+    assertEquals(15,worldMap.numberOfCity())
 
   @Test
   def getAdjacentCities(): Unit =
     assertEquals(worldMap.getAdjacentCities, worldMap.HumanCities)
     val newWorldMAp = worldMap.changeACityOfTheMap(worldMap.getCityByName("m").get.infectCity())
     assertNotEquals(newWorldMAp.getAdjacentCities,newWorldMAp.HumanCities)
+    assertEquals(Set("m"), newWorldMAp.AiCities.map(_.getName))
 
 

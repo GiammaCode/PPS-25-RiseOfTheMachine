@@ -5,6 +5,7 @@ import model.map.CityModule.CityImpl.*
 import model.util.States.State.State
 import model.util.Util.{doesTheActionGoesRight, letterAt}
 
+import scala.annotation.tailrec
 import scala.util.Random
 
 
@@ -14,36 +15,43 @@ object WorldMapModule:
 
   opaque type WorldMap = Set[(City, Set[(Int, Int)])]
 
-  private def validNeighbors(tiles: Iterable[(Int, Int)], size: Int, exclude: Set[(Int, Int)] = Set.empty): List[(Int, Int)] =
-    tiles.toList
-      .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
-      .filter((x, y) =>
-        x >= 0 && y >= 0 && x < size && y < size &&
-          !exclude.contains((x, y))
-      )
-      .distinct
-
-  private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
-    validNeighbors(tiles, size, tiles)
-
   object DeterministicMapModule extends CreateModuleType:
     override def createMap(size: Int): WorldMap =
-      def generateCityTiles(startX: Int, startY: Int, count: Int): Set[(Int, Int)] =
-        (0 until count).map(i => (startX + (i % 2), startY + (i / 2))).toSet
+      def allTiles: Set[(Int, Int)] =
+        (for x <- 0 until size; y <- 0 until size yield (x, y)).toSet
 
-      def positionForCity(index: Int): (Int, Int) =
-        val citiesPerRow = math.max(1, size / 3)
-        val row = index / citiesPerRow
-        val col = index % citiesPerRow
-        val spacing = 3
-        (col * spacing, row * spacing)
+      def adjacentTo(tiles: Set[(Int, Int)]): Set[(Int, Int)] =
+        tiles.flatMap { case (x, y) =>
+          Set((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
+        }.filter { case (x, y) =>
+          x >= 0 && y >= 0 && x < size && y < size
+        }
 
-      (0 until 10).map( i =>
-        val name = letterAt(i,false)
-        val city = createCity(name, size,false)
-        val (startX, startY) = positionForCity(i)
-        val tiles = generateCityTiles(startX, startY, size)
-        city -> tiles).toSet
+      def expandCity(start: (Int, Int), available: Set[(Int, Int)], desiredSize: Int): Set[(Int, Int)] =
+        @tailrec
+        def loop(frontier: List[(Int, Int)], visited: Set[(Int, Int)]): Set[(Int, Int)] =
+          if visited.size >= desiredSize || frontier.isEmpty then visited
+          else
+            val next = frontier.head
+            val newNeighbors = adjacentTo(Set(next)).intersect(available).diff(visited)
+            loop(frontier.tail ++ newNeighbors, visited + next)
+
+        loop(List(start), Set(start)).intersect(available)
+
+      @tailrec
+      def loop(index: Int, available: Set[(Int, Int)], acc: Set[(City, Set[(Int, Int)])]): Set[(City, Set[(Int, Int)])] =
+        if available.isEmpty then acc
+        else
+          val isCapital = index < 5
+          val name = letterAt(index, isCapital)
+          val city = createCity(name, size, isCapital)
+          val start = available.head
+          val maxCitySize = math.min(10, available.size)
+          val tiles = expandCity(start, available, maxCitySize)
+          if tiles.size < 0 then loop(index + 1, available -- tiles, acc) // ignora città troppo piccole
+          else loop(index + 1, available -- tiles, acc + (city -> tiles))
+
+      loop(0, allTiles, Set.empty)
 
   object UndeterministicMapModule extends CreateModuleType:
 
@@ -109,6 +117,17 @@ object WorldMapModule:
         val (finalRng, worldMap) = generateMapState(citySize,citySize/2).run(Random())
         worldMap
 
+  private def validNeighbors(tiles: Iterable[(Int, Int)], size: Int, exclude: Set[(Int, Int)] = Set.empty): List[(Int, Int)] =
+    tiles.toList
+      .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+      .filter((x, y) =>
+        x >= 0 && y >= 0 && x < size && y < size &&
+          !exclude.contains((x, y))
+      )
+      .distinct
+
+  private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
+    validNeighbors(tiles, size, tiles)
 
   def createWorldMap(size: Int)(CreateMapModule: CreateModuleType): WorldMap =
     CreateMapModule.createMap(size)
@@ -131,12 +150,6 @@ object WorldMapModule:
 
     def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
       worldMap.find(f.tupled).flatMap((city, coords) => coords.headOption.map(_ => city.getName))
-
-    def renderList(): Unit =
-      worldMap.foreach { case (city, coords) =>
-        val coordsStr = coords.toList.sortBy(_._1).mkString(", ")
-        println(s"- ${city.getName}: $coordsStr")
-      }
 
 
     def cities: Set[(City, Set[(Int, Int)])] = worldMap
