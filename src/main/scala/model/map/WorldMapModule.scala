@@ -70,12 +70,7 @@ object WorldMapModule:
       def allTiles: Set[(Int, Int)] =
         (for x <- 0 until size; y <- 0 until size yield (x, y)).toSet
 
-      def adjacentTo(tiles: Set[(Int, Int)]): Set[(Int, Int)] =
-        tiles.flatMap { case (x, y) =>
-          Set((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
-        }.filter { case (x, y) =>
-          x >= 0 && y >= 0 && x < size && y < size
-        }
+
 
       def expandCity(start: (Int, Int), available: Set[(Int, Int)], desiredSize: Int): Set[(Int, Int)] =
         @tailrec
@@ -83,7 +78,7 @@ object WorldMapModule:
           if visited.size >= desiredSize || frontier.isEmpty then visited
           else
             val next = frontier.head
-            val newNeighbors = adjacentTo(Set(next)).intersect(available).diff(visited)
+            val newNeighbors = adjacentTo(Set(next),size).toSet.intersect(available).diff(visited)
             loop(frontier.tail ++ newNeighbors, visited + next)
 
         loop(List(start), Set(start)).intersect(available)
