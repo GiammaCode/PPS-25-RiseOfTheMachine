@@ -26,9 +26,7 @@ case class GameState(worldState: WorldState,
     State { gs =>
       val currentWorldState = gs.worldState
       val result = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
-      val updatedAi = result.getPlayer
-      val maybeCity = result.getCity
-      (gs.copy(worldState = currentWorldState.updatePlayer(updatedAi).updateMap(maybeCity)), ())
+      (gs.copy(worldState = currentWorldState.updatePlayer(result.getPlayer).updateMap(result.getCity)), ())
 
     }
 
@@ -37,9 +35,7 @@ case class GameState(worldState: WorldState,
       val currentWorldState = gs.worldState
       val action = CityDefense(List("i"))
       val result = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
-      val updatedHuman = result.getPlayer
-      val maybeCity = result.getCity
-      (gs.copy(worldState = currentWorldState.updateHuman(updatedHuman).updateMap(maybeCity)), ())
+      (gs.copy(worldState = currentWorldState.updateHuman(result.getPlayer).updateMap(result.getCity)), ())
     }
 
   private def renderTurn(): State[GameState, AiAction] = State { gs =>
