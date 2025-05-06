@@ -55,7 +55,7 @@ private case class PlayerAIImpl (
   override def getPossibleAction: List[AiAction] =
     List(Infect(), Sabotage(), Evolve)
 
-  override def getPossibleActionByName: List[String] = List("Sabotage", "Infect", "Evolve") // TODO: change
+  override def getPossibleActionByName: List[String] = List("Infect","Sabotage", "Evolve") // TODO: change
 
   /** String representation of the AI's current status. */
   override def toString: String =
