@@ -8,7 +8,7 @@ import org.junit.Test
 
 class WorldMapTest:
 
-  var worldMap: WorldMap = createWorldMap(10)(UndeterministicMapModule)
+  var worldMap: WorldMap = createWorldMap(10)(DeterministicMapModule)
 
   @Test
   def CreationOfDeterministicMap(): Unit =
@@ -29,5 +29,11 @@ class WorldMapTest:
   @Test
   def numberOfCityTest():Unit =
     assertEquals(10,createWorldMap(10)(DeterministicMapModule).numberOfCity())
+
+  @Test
+  def getAdjacentCities(): Unit =
+    assertEquals(worldMap.getAdjacentCities, worldMap.HumanCities)
+    val newWorldMAp = worldMap.changeACityOfTheMap(worldMap.getCityByName("m").get.infectCity())
+    assertNotEquals(newWorldMAp.getAdjacentCities,newWorldMAp.HumanCities)
 
 

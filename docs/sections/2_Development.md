@@ -78,7 +78,7 @@ l’efficienza e a concentrarsi sullo sviluppo.
 ### Versioning
 Per la gestione del codice sorgente, il team adotta **Git** e il flusso **GitFlow**, con:
 
-- due *stable branch* (`main` e `develope`)
+- due *stable branch* (`main` e `develop`)
 - branch separati per ogni feature
 
 > Al momento **non** viene usato Semantic Versioning,  

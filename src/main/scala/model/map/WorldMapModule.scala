@@ -14,6 +14,18 @@ object WorldMapModule:
 
   opaque type WorldMap = Set[(City, Set[(Int, Int)])]
 
+  private def validNeighbors(tiles: Iterable[(Int, Int)], size: Int, exclude: Set[(Int, Int)] = Set.empty): List[(Int, Int)] =
+    tiles.toList
+      .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+      .filter((x, y) =>
+        x >= 0 && y >= 0 && x < size && y < size &&
+          !exclude.contains((x, y))
+      )
+      .distinct
+
+  private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
+    validNeighbors(tiles, size, tiles)
+
   object DeterministicMapModule extends CreateModuleType:
     override def createMap(size: Int): WorldMap =
       def generateCityTiles(startX: Int, startY: Int, count: Int): Set[(Int, Int)] =
@@ -50,17 +62,7 @@ object WorldMapModule:
         then randomInt(3).map(_ + 7)
         else randomInt(3).map(_ + 3)
 
-      private def validNeighbors(tiles: Iterable[(Int, Int)], size: Int, exclude: Set[(Int, Int)] = Set.empty): List[(Int, Int)] =
-        tiles.toList
-          .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
-          .filter((x, y) =>
-            x >= 0 && y >= 0 && x < size && y < size &&
-              !exclude.contains((x, y))
-          )
-          .distinct
 
-      private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
-        validNeighbors(tiles, size, tiles)
 
       private def generateCityTiles(start: (Int, Int), desiredSize: Int, occupied: Set[(Int, Int)], size: Int): RNGState[Set[(Int, Int)]] =
         def expand(frontier: List[(Int, Int)], current: Set[(Int, Int)]): RNGState[Set[(Int, Int)]] =
@@ -136,11 +138,22 @@ object WorldMapModule:
         println(s"- ${city.getName}: $coordsStr")
       }
 
+
     def cities: Set[(City, Set[(Int, Int)])] = worldMap
 
-    def AiCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
+    def AiCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.AI).map(_._1)
 
-    def HumanCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.AI).map(_._1)
+    def HumanCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
+
+    def getAdjacentCities: Set[City] =
+      if AiCities.isEmpty then HumanCities
+      else worldMap.collect:
+        case (city, coords)
+          if city.getOwner == Owner.HUMAN &&
+            coords.exists(adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI).flatMap(_._2), worldMap.getSize).toSet.contains)
+        => city
+
+
 
 
 

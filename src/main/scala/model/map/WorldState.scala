@@ -99,14 +99,14 @@ object WorldState:
      *
      * @return set of tuples (city name, infection %, sabotage %)
      */
-    def attackableCities: Set[(String, Int, Int)] = ws match
-      case State(map, _, _, _) =>
-        map.cities.map { (city, _) =>
-          val name = city.getName
-          val infectChance = calculatePercentageOfSuccess(city.getDefense, playerAI.infectionChance)
-          val sabotageChance = calculatePercentageOfSuccess(city.getDefense, playerAI.sabotagePower)
-          (name, infectChance, sabotageChance)
-        }
+    def attackableCities: Set[(String, Int, Int)] =
+      worldMap.getAdjacentCities
+        .map(c => (
+          c.getName,
+          calculatePercentageOfSuccess(c.getDefense, playerAI.infectionChance),
+          calculatePercentageOfSuccess(c.getDefense, playerAI.sabotagePower)))
+
+
 
     /**
      * Returns the set of cities conquered by the AI.
