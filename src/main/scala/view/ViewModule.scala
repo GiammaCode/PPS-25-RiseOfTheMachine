@@ -22,8 +22,8 @@ object ViewModule:
       println(s"\n-----RISE OF THE MACHINE - TURN $turn-----\n")
 
     private def renderMap(worldMap: WorldMap): Unit =
-      val mapString = (0 until worldMap.getSize).map { y =>
-        (0 until worldMap.getSize).map { x =>
+      val mapString = (0 until worldMap.getSizeOfTheMap).map { y =>
+        (0 until worldMap.getSizeOfTheMap).map { x =>
           worldMap.findInMap { case (_, coords) => coords.contains((x, y)) }.
             getOrElse("/")
         }.mkString(" ")
