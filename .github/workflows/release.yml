@@ -4,7 +4,8 @@ on:
   push:
     tags:
       - 'v*.*.*'  # Attiva il workflow solo su tag semantici
-
+permissions:
+  contents: write
 jobs:
   release:
     runs-on: ubuntu-latest
