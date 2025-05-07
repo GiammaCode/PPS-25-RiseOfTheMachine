@@ -68,6 +68,14 @@ object CityModule:
        */
       def sabotateCity(playerAttack: Int): City
 
+      /**
+       * Defend the city, increasing its defense.
+       *
+       * @return a new City instance with augmented defense
+       */
+
+      def defenseCity(): City
+
 
   /**
    * Implementation of the CityInterface.
@@ -121,14 +129,16 @@ object CityModule:
        *
        * @return a new city instance with AI ownership
        */
-      def infectCity(): City = city.copy(owner = Owner.AI)
+      def infectCity(): City =
+        city.copy(owner = Owner.AI)
 
       /**
        * Sabotages the city, reducing its defense by 20 points.
        *
        * @return a new city instance with reduced defense
        */
-      def sabotateCity(playerAttack:Int): City = city.copy(defense = city.defense - playerAttack)
+      def sabotateCity(playerAttack:Int): City =
+        city.copy(defense = city.defense - playerAttack)
       
 
       /**
@@ -136,4 +146,5 @@ object CityModule:
        *
        * @return a new city instance with improved defense
        */
-      def defenseCity(): City = city.copy(defense = city.defense + 20)
+      def defenseCity(): City =
+        city.copy(defense = city.defense + 20)

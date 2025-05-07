@@ -19,6 +19,8 @@ trait PlayerAI extends PlayerEntity:
   def sabotagePower: Int
   def conqueredCities: Set[String]
   def sabotagedCities: Set[String]
+  def getPossibleAction: List[AiAction]
+  def getPossibleActionByName: List[String]
   override type ValidAction = AiAction
   override type Self = PlayerAI
 
@@ -50,6 +52,11 @@ private case class PlayerAIImpl (
     case Sabotage(targets) => sabotage(targets, worldMap)
     case Evolve => evolve
 
+  override def getPossibleAction: List[AiAction] =
+    List(Infect(), Sabotage(), Evolve)
+
+  override def getPossibleActionByName: List[String] = List("Infect","Sabotage", "Evolve") // TODO: change
+
   /** String representation of the AI's current status. */
   override def toString: String =
     s"""|--- PlayerAI Status ---
@@ -59,7 +66,7 @@ private case class PlayerAIImpl (
         |Conquered Cities     : ${if (conqueredCities.isEmpty) "None" else conqueredCities.mkString(", ")}
         |Sabotaged Cities     : ${if (sabotagedCities.isEmpty) "None" else sabotagedCities.mkString(", ")}
         |Executed Actions     :
-        |  ${if (executedActions.isEmpty) "None" else executedActions.map(_.execute).mkString("\n  ")}
+        |  ${if (executedActions.isEmpty) "None" else executedActions.mkString("\n  ")}
         |------------------------
      """.stripMargin
 
@@ -79,20 +86,29 @@ private case class PlayerAIImpl (
       .headOption
       .fold(this)(withNewAbility)
       .addAction(Evolve)
+    println(s"Evolve, you have unlocked: $unlockedAbilities\n")
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, None)
 
 
   /** Conquers the given cities and adds the infect action to history. */
   private def infect(cities: List[String], worldMap: WorldMap): ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = copy(conqueredCities = conqueredCities ++ cities).addAction(Infect(cities))
-    val maybeCity = cities.headOption.map(cityName => worldMap.getCityByName(cityName)).map(_.infectCity())
+    val maybeCity = for {
+      cityName <- cities.headOption
+      city     <- worldMap.getCityByName(cityName)
+    } yield city.infectCity()
+    println(s"Infect, you have infected: $conqueredCities\n")
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, maybeCity)
 
 
   /** Sabotages the given cities and adds the sabotage action to history. */
   private def sabotage(cities: List[String], worldMap: WorldMap): ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = copy(sabotagedCities = sabotagedCities ++ cities).addAction(Sabotage(cities))
-    val maybeCity = cities.headOption.map(cityName => worldMap.getCityByName(cityName)).map(_.sabotateCity(10))//TODO: add sabotage power to sabotageCity
+    val maybeCity = for {
+      cityName <- cities.headOption
+      city <- worldMap.getCityByName(cityName)
+    } yield city.sabotateCity(sabotagePower)
+    println(s"Sabotage, you have sabotaged: $sabotagedCities\n")
     ExecuteActionResult.fromPlayerEntity(updatedPlayer, maybeCity)
 
 

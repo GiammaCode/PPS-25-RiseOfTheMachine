@@ -6,24 +6,33 @@ import model.map.CityModule.Owner
 import org.junit.*
 import org.junit.Assert.*
 class CityTest:
-  var city: City = createCity("Milano",3,isCapital = false)
+  val city: City = createCity("Milano",3,isCapital = false)
+  val capital: City = createCity("Monza",8,isCapital = true)
+
   @Test
-  def GetMethodBasicCityTest(): Unit =
+  def getMethodBasicCityTest(): Unit =
     assertEquals( "Milano", city.getName)
     assertEquals(Owner.HUMAN, city.getOwner)
-    assertEquals(false, createCity("Milano",8,isCapital = false).isCapital)
+    assertEquals(false, city.isCapital)
 
   @Test
-  def AIInfectsACityTest(): Unit =
-    city = city.infectCity()
-    assertEquals(city.getOwner, Owner.AI)
+  def aIInfectsACityTest(): Unit =
+    assertEquals(city.infectCity().getOwner, Owner.AI)
 
   @Test
-  def TestCapitalCreation(): Unit =
-    assertNotEquals(createCity("Monza",8,isCapital = true), createCity("Milano",8,isCapital = false))
-    assertEquals(true , createCity("Roma",8,isCapital = true).isCapital)
-    assertEquals(80, createCity("Roma",8,isCapital = true).getDefense)
-    assertEquals(60, createCity("Roma",8,isCapital = true).sabotateCity(20).getDefense)
+  def testDefenceOfCity(): Unit =
+    assertEquals(55, city.getDefense)
+
+  @Test
+  def sabotageCityTest():Unit =
+    assertEquals(35,city.sabotateCity(20).getDefense)
+
+  @Test
+  def testMethodOnCapital(): Unit =
+    assertNotEquals(capital, createCity("Milano",8,isCapital = false))
+    assertEquals(true , capital.isCapital)
+    assertEquals(80, capital.getDefense)
+    assertEquals(60, capital.sabotateCity(20).getDefense)
 
 
 
