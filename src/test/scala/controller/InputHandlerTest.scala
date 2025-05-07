@@ -2,32 +2,35 @@ package controller
 
 import controller.InputHandling.InvalidChoice
 import model.strategy.AiAction
-import model.strategy.playerActions.{EvolveAction, InfectAction, SabotageAction}
+import model.strategy.*
 import org.junit.Assert.*
 import org.junit.{Before, Test}
 
 class InputHandlerTest :
-  val actions : List[AiAction] = List(SabotageAction(), InfectAction(), EvolveAction())
+  val actions : List[AiAction] = List(Sabotage(), Infect(), Evolve)
+  val userChoice = 2
+  val attackableCities = Set("Rome", "Paris", "Berlin")
+  val cityChoice = "Rome"
 
   @Test
   def testGetActionFromChoiceValid(): Unit =
-    val result = InputHandler.getActionFromChoice(2, actions)
+    val result = InputHandler.getAiActionFromChoice(userChoice, cityChoice, attackableCities, actions)
     val action = result.getOrElse(throw new AssertionError("Expected valid action, but got error."))
     action match {
-      case action: InfectAction =>
-        assertEquals("The action should be 'Infect'.", InfectAction(), action)
+      case action: Infect =>
+        assertEquals("The action should be 'Infect'.", Infect(List("Rome")), action)
       case _ =>
         fail("Expected 'InfectAction'.")
     }
   
   @Test
   def testGetActionFromChoiceInvalidChoice(): Unit =
-    val result = InputHandler.getActionFromChoice(5, actions)
+    val result = InputHandler.getAiActionFromChoice(5, cityChoice, attackableCities, actions)
     val error = result.left.getOrElse(throw new AssertionError("Expected an error due to invalid choice."))
     error match {
       case error: InvalidChoice =>
         assertEquals("The invalid choice should be 5.", 5, error.choice)
-        assertEquals("The available range should be 1 to 3.", Range(1, 3), error.availableRange)
+        assertEquals("The available range should be 1 to 3.", Range(1, 4), error.availableRange)
       case _ =>
         fail("Expected InvalidChoice error.")
     }

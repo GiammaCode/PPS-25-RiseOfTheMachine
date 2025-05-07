@@ -1,17 +1,15 @@
 package model
 
+import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.WorldMap
-import model.strategy.HumanActionTypes.CityDefense
-import model.strategy.PlayerAI.PlayerAI
-import model.strategy.humanActions.CityDefenseAction
-import model.strategy.playerActions.EvolveAction
-import model.strategy.{AiAction, HumanAction, PlayerAI, PlayerHuman}
+import model.map.WorldState.*
+import model.strategy.{AiAction, CityDefense, Evolve, HumanAction, PlayerAI, PlayerHuman}
 import org.junit.Assert.assertTrue
 import org.junit.{Before, Test}
 
 
 class GameFactoryTest :
-  var worldState : (PlayerAI, PlayerHuman, WorldMap) = GameFactory.createGame()
+  var worldState: WorldState = GameFactory.createGame()
   var aiAction : AiAction = _
   var humanAction : HumanAction = _
   @Before
@@ -19,12 +17,12 @@ class GameFactoryTest :
     var worldState = GameFactory.createGame()
 
   @Test
-  def applyModelMethod() : Unit =
-    aiAction = EvolveAction()
-    humanAction = CityDefenseAction()
-    val updatedPlayer = worldState._1.executeAction(aiAction)
-    val updateHuman = worldState._2.executeAction(humanAction)
-    assert(worldState._3.numberOfCityInfected() == 0)
-    assert(updatedPlayer.unlockedAbilities.nonEmpty)
-    assertTrue(updateHuman.executedActions.nonEmpty)
+  def applyModelMethodTest() : Unit =
+    aiAction = Evolve
+    humanAction = CityDefense()
+    val updatedPlayer = worldState.playerAI.executeAction(aiAction, worldState.worldMap)
+    //val updateHuman = worldState._2.executeAction(humanAction)
+    assert(worldState.worldMap.numberOfCityInfected() == 0)
+    assert(updatedPlayer.getPlayer.unlockedAbilities.nonEmpty)
+   // assertTrue(updateHuman.getPlayer.executedActions.nonEmpty)
 

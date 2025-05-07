@@ -1,12 +1,11 @@
 package view
 
-import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
-import org.junit.Test
+import model.map.WorldMapModule.{UndeterministicMapModule,DeterministicMapModule, WorldMap, createWorldMap}
+import model.map.WorldState.{WorldState, createWorldState}
+import model.strategy.{PlayerAI, PlayerHuman}
+import org.junit.Assert.assertTrue
 import org.junit.*
-import org.junit.Assert.{assertEquals, assertTrue}
 import view.ViewModule.*
-
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 
 /** Example of layout
  * -----RISE OF THE MACHINE - TURN 5-----
@@ -25,40 +24,21 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
  */
 
 class CLIViewTest:
-  @Test
-  def renderGameTurnTest(): Unit =
-    val turn = 5
-    val options = List("Infect", "Sabotages", "Exit")
-    val abilities = Set("ability1", "ability2")
-    val worldMap: WorldMap = createWorldMap(5)(DeterministicMapModule)
+  var human: PlayerHuman = _
+  var ai: PlayerAI = _
+  var worldMap: WorldMap = _
+  var state: WorldState = _
 
-
-    CLIView.renderGameTurn(turn, worldMap, 5, 15, abilities, options)
-    assertTrue(true)
-
-  /*
-  @Test
-  def renderTurnTest(): Unit =
-    val turn = 5
-    CLIView.renderTurn(turn)
-    assertTrue(true)
+  @Before
+  def init(): Unit =
+    human = PlayerHuman.default
+    ai = PlayerAI.default
+    worldMap = createWorldMap(5)(UndeterministicMapModule)
+    state = createWorldState(worldMap, ai, human)
 
   @Test
-  def renderStatusTest(): Unit =
-    CLIView.renderStatus(3, 15, List("ability1", "ability2"))
+  def testPrintableGameTurn(): Unit =
+    CLIView.renderGameTurn(state)
     assertTrue(true)
-
-  @Test
-  def renderMapTest(): Unit =
-    var worldMap: WorldMap = createWorldMap(5)(DeterministicMapModule)
-    CLIView.renderMap(worldMap)
-    assertTrue(true)
-
-  @Test
-  def renderActionMenuTest(): Unit =
-    val options = List("Infect", "Sabotages", "Exit")
-    CLIView.renderActionMenu(options)
-    assertTrue(true)
-   */
 
 
