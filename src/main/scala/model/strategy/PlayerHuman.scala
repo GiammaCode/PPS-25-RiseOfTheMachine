@@ -39,7 +39,11 @@ private case class PlayerHumanImpl(
   private def doExecuteAction(action: HumanAction,  worldMap: WorldMap): ExecuteActionResult[Self] = action match
     case CityDefense(targets) =>
       val updated = copy(defendedCities = defendedCities ++ targets).addAction(action)
-      val maybeCity = targets.headOption.map(cityName => worldMap.getCityByName(cityName)).map(_.defenseCity())
+//      val maybeCity = targets.headOption.map(cityName => worldMap.getCityByName(cityName)).map(_.defenseCity())
+      val maybeCity = for {
+        cityName <- targets.headOption
+        city <- worldMap.getCityByName(cityName) // ora restituisce Option
+      } yield city.defenseCity()
       ExecuteActionResult.fromPlayerEntity(updated, maybeCity)
 
     case GlobalDefense(targets) =>
@@ -56,7 +60,6 @@ private case class PlayerHumanImpl(
   override def toString: String =
     s"""|--- Human Status ---
         |KillSwitch Progress : $killSwitch
-        |Conquered Cities    : ${if (conqueredCities.isEmpty) "None" else conqueredCities.mkString(", ")}
         |Defended Cities     : ${if (defendedCities.isEmpty) "None" else defendedCities.mkString(", ")}
         |Executed Actions    :
         |  ${if (executedActions.isEmpty) "None" else executedActions.map(_.execute).mkString("\n  ")}

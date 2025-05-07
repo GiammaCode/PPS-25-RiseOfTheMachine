@@ -5,34 +5,100 @@ import model.map.CityModule.CityImpl.*
 import model.util.States.State.State
 import model.util.Util.{doesTheActionGoesRight, letterAt}
 
+import scala.annotation.tailrec
 import scala.util.Random
 
+/**
+ * == WorldMapModule ==
+ *
+ * This module defines the representation and construction logic for the game map.
+ * A world map consists of cities, each associated with a set of coordinate tiles representing its spatial footprint.
+ *
+ * === Opaque Type ===
+ * - [[WorldMap]] is an abstracted representation of a set of cities with their tile coordinates.
+ *
+ *
+ * == Traits ==
+ * === CreateModuleType ===
+ * Abstract interface for any map creation strategy.
+ *
+ * == DeterministicMapModule ==
+ * Creates a reproducible, grid-based map with adjacent tile allocation for each city.
+ *
+ * == UndeterministicMapModule ==
+ * Uses a state monad with a PRNG to construct a randomized map, including random tile distribution and city sizes.
+ *
+ * == Extension Methods ==
+ * Adds useful methods to `WorldMap`:
+ *  - `getSizeOfTheMap`: returns map dimensions
+ *  - `getCityByName(name)`: looks up a city by name
+ *  - `numberOfCityInfected`: counts infected (AI-controlled) cities
+ *  - `getAdjacentCities`: finds human cities adjacent to infected ones
+ *  - `changeACityOfTheMap`: replaces a city with an updated version
+ */
 
 object WorldMapModule:
-  trait CreateModuleType:
-    def createMap(size: Int): WorldMap
+
+  /**
+   * Opaque type representing the entire game map as a set of pairs:
+   * - City data
+   * - Set of coordinates (tiles) associated with the city
+   */
 
   opaque type WorldMap = Set[(City, Set[(Int, Int)])]
 
+  /**
+   * Strategy trait for creating a world map.
+   */
+  trait CreateModuleType:
+
+    /**
+     * Creates a world map of a given size.
+     *
+     * @param size the dimension (width/height) of the map
+     * @return a new WorldMap instance
+     */
+    def createMap(size: Int): WorldMap
+
+  /**
+   * Implementation of [[CreateModuleType]] using deterministic tile allocation.
+   * Cities are created in a grid-like fashion.
+   */
   object DeterministicMapModule extends CreateModuleType:
     override def createMap(size: Int): WorldMap =
-      def generateCityTiles(startX: Int, startY: Int, count: Int): Set[(Int, Int)] =
-        (0 until count).map(i => (startX + (i % 2), startY + (i / 2))).toSet
+      def allTiles: Set[(Int, Int)] =
+        (for x <- 0 until size; y <- 0 until size yield (x, y)).toSet
+      
+      def expandCity(start: (Int, Int), available: Set[(Int, Int)], desiredSize: Int): Set[(Int, Int)] =
+        @tailrec
+        def loop(frontier: List[(Int, Int)], visited: Set[(Int, Int)]): Set[(Int, Int)] =
+          if visited.size >= desiredSize || frontier.isEmpty then visited
+          else
+            val next = frontier.head
+            val newNeighbors = adjacentTo(Set(next),size).toSet.intersect(available).diff(visited)
+            loop(frontier.tail ++ newNeighbors, visited + next)
 
-      def positionForCity(index: Int): (Int, Int) =
-        val citiesPerRow = math.max(1, size / 3)
-        val row = index / citiesPerRow
-        val col = index % citiesPerRow
-        val spacing = 3
-        (col * spacing, row * spacing)
+        loop(List(start), Set(start)).intersect(available)
 
-      (0 until 10).map( i =>
-        val name = letterAt(i,false)
-        val city = createCity(name, size,false)
-        val (startX, startY) = positionForCity(i)
-        val tiles = generateCityTiles(startX, startY, size)
-        city -> tiles).toSet
+      @tailrec
+      def loop(index: Int, available: Set[(Int, Int)], acc: Set[(City, Set[(Int, Int)])]): Set[(City, Set[(Int, Int)])] =
+        if available.isEmpty then acc
+        else
+          val isCapital = index < 5
+          val name = letterAt(index, isCapital)
+          val city = createCity(name, size, isCapital)
+          val start = available.head
+          val maxCitySize = math.min(10, available.size)
+          val tiles = expandCity(start, available, maxCitySize)
+          if tiles.size < 0 then loop(index + 1, available -- tiles, acc) // ignora città troppo piccole
+          else loop(index + 1, available -- tiles, acc + (city -> tiles))
 
+      loop(0, allTiles, Set.empty)
+
+  /**
+   * Implementation of [[CreateModuleType]] using randomized logic and a state monad.
+   * City placement, size, and shape vary on each execution.
+   */
   object UndeterministicMapModule extends CreateModuleType:
 
       opaque type RNGState[A] = State[Random, A]
@@ -50,17 +116,7 @@ object WorldMapModule:
         then randomInt(3).map(_ + 7)
         else randomInt(3).map(_ + 3)
 
-      private def validNeighbors(tiles: Iterable[(Int, Int)], size: Int, exclude: Set[(Int, Int)] = Set.empty): List[(Int, Int)] =
-        tiles.toList
-          .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
-          .filter((x, y) =>
-            x >= 0 && y >= 0 && x < size && y < size &&
-              !exclude.contains((x, y))
-          )
-          .distinct
 
-      private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
-        validNeighbors(tiles, size, tiles)
 
       private def generateCityTiles(start: (Int, Int), desiredSize: Int, occupied: Set[(Int, Int)], size: Int): RNGState[Set[(Int, Int)]] =
         def expand(frontier: List[(Int, Int)], current: Set[(Int, Int)]): RNGState[Set[(Int, Int)]] =
@@ -90,7 +146,7 @@ object WorldMapModule:
       private def generateMapState(mapSize: Int, capitalCount: Int): RNGState[WorldMap] =
         def loop(n: Int, capitalsLeft: Int, acc: WorldMap, occupied: Set[(Int, Int)]): RNGState[WorldMap] =
           val remainingTiles = mapSize * mapSize - occupied.size
-          if remainingTiles <= 1 then State(rng => (rng, acc))
+          if remainingTiles == 0  then State(rng => (rng, acc))
           else
             val isCapital = capitalsLeft > 0 && doesTheActionGoesRight(50)
             for
@@ -102,41 +158,111 @@ object WorldMapModule:
             yield next
         loop(0, capitalCount, Set.empty, Set.empty)
 
-
       def createMap(citySize: Int): WorldMap =
         val (finalRng, worldMap) = generateMapState(citySize,citySize/2).run(Random())
         worldMap
 
+  private def validNeighbors(tiles: Iterable[(Int, Int)], size: Int, exclude: Set[(Int, Int)] = Set.empty): List[(Int, Int)] =
+    tiles.toList
+      .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
+      .filter((x, y) =>
+        x >= 0 && y >= 0 && x < size && y < size &&
+          !exclude.contains((x, y))
+      )
+      .distinct
 
+  private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
+    validNeighbors(tiles, size, tiles)
+
+  /**
+   * Factory method to create a map using a selected module.
+   *
+   * @param size            map size
+   * @param CreateMapModule strategy module
+   * @return a WorldMap instance
+   */
   def createWorldMap(size: Int)(CreateMapModule: CreateModuleType): WorldMap =
     CreateMapModule.createMap(size)
 
   extension (worldMap: WorldMap)
 
-    def changeACityOfTheMap(city: City): WorldMap =
-        worldMap.find(_._1.getName == city.getName)
-        .map ((_, coords) => worldMap.filterNot(_._1.getName == city.getName) + (city -> coords))
-        .getOrElse(worldMap)
+    /**
+     * Calculates the size (dimension) of the map by inspecting tile coordinates.
+     *
+     * @return an integer representing the width/height of the square map
+     */
+    def getSizeOfTheMap: Int = worldMap.flatMap(_._2).foldLeft(0)((acc, xy) => math.max(acc, math.max(xy._1, xy._2))) + 1
 
-    def getSize: Int = worldMap.flatMap(_._2).foldLeft(0)((acc, xy) => math.max(acc, math.max(xy._1, xy._2))) + 1
+    /**
+     * Retrieves a city by its name, if it exists.
+     *
+     * @param name the name of the city
+     * @return Option[City] containing the city if found
+     */
+    def getCityByName(name: String): Option[City] =
+      worldMap.find(_._1.getName == name).map(_._1)
 
-    def getCityByName(name: String): City =
-      worldMap.find(_._1.getName == name).get._1
-
+    /**
+     * Counts the number of cities currently infected (AI-controlled).
+     *
+     * @return the number of infected cities
+     */
     def numberOfCityInfected(): Int = worldMap.count(_._1.getOwner == Owner.AI)
 
+    /**
+     * Counts the number of cities.
+     *
+     * @return the number of cities
+     */
     def numberOfCity(): Int = worldMap.size
 
+    /**
+     * Utility function to apply a generic filter over the map and return the name of the first matching city.
+     *
+     * @param f predicate function for filtering (City, TileSet) pairs
+     * @return Option[String] of the city name if match found
+     */
     def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
       worldMap.find(f.tupled).flatMap((city, coords) => coords.headOption.map(_ => city.getName))
 
-    def renderList(): Unit =
-      worldMap.foreach { case (city, coords) =>
-        val coordsStr = coords.toList.sortBy(_._1).mkString(", ")
-        println(s"- ${city.getName}: $coordsStr")
-      }
+    /**
+     * Returns all cities currently owned by the AI.
+     *
+     * @return a Set of infected cities
+     */
+    def AiCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.AI).map(_._1)
 
-    def cities: Set[(City, Set[(Int, Int)])] = worldMap
+    /**
+     * Returns all cities currently owned by humans.
+     *
+     * @return a Set of human-controlled cities
+     */
+    def HumanCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
+
+    /**
+     * Identifies human cities that are adjacent to any infected (AI) city.
+     *
+     * @return a Set of human cities next to infected cities
+     */
+    def getAdjacentCities: Set[City] =
+      if AiCities.isEmpty then HumanCities
+      else worldMap.collect:
+        case (city, coords)
+          if city.getOwner == Owner.HUMAN &&
+            coords.exists(adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI).flatMap(_._2), worldMap.getSizeOfTheMap).toSet.contains)
+        => city
+
+    /**
+     * Replaces an existing city on the map with a new instance, preserving its tile coordinates.
+     *
+     * @param city the updated city to be inserted
+     * @return a new WorldMap with the updated city
+     */
+    def changeACityOfTheMap(city: City): WorldMap =
+      worldMap.find(_._1.getName == city.getName)
+        .map((_, coords) => worldMap.filterNot(_._1.getName == city.getName) + (city -> coords))
+        .getOrElse(worldMap)
+
 
 
 

@@ -1,12 +1,9 @@
 package controller
 
 import controller.InputHandling.InputHandlingError
-import model.map.WorldMapModule.WorldMap
-import model.map.WorldState.{WorldState, createWorldState}
+import model.map.WorldState.WorldState
 import model.strategy.*
-import model.strategy.PlayerAI
-import model.strategy
-import model.util.States.State.State
+import model.{GameFactory, strategy}
 import view.ViewModule.{CLIView, GameView}
 
 object GameController:
@@ -16,45 +13,50 @@ object GameController:
    * @return Un nuovo GameController
    */
   def apply(): GameState =
-    val worldState = model.GameFactory.createGame()
+    val worldState = GameFactory.createGame()
     val view = CLIView
-    GameState(worldState,view)
+    GameState(worldState, view)
 
 case class GameState(worldState: WorldState,
-                      view: GameView):
-
-
+                     view: GameView):
 
   import model.util.States.State.State
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] =
-    State { gs =>
-      val result = worldState.playerAI.executeAction(action,worldState.worldMap)
+    State ( gs =>
+      val currentWorldState = gs.worldState
+      val result = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
       val updatedAi = result.getPlayer
       val maybeCity = result.getCity
-      (gs.copy(worldState= worldState.updatePlayer(updatedAi)), ())
-   }
+      (gs.copy(worldState = currentWorldState.updatePlayer(updatedAi).updateMap(maybeCity)), ()))
 
-  private def doHumanAction(action: HumanAction): State[GameState, Unit] = ???
-   // State { gs => (gs.copy(human = gs.getCurrentHuman.executeAction(action)),())}
+  private def doHumanAction(): State[GameState, Unit] =
+    State(gs =>
+      (gs.copy(
+          worldState = gs.worldState
+            .updateHuman(gs.worldState.playerHuman.executeAction(CityDefense(List("i")), gs.worldState.worldMap).getPlayer)
+            .updateMap(gs.worldState.playerHuman.executeAction(CityDefense(List("i")), gs.worldState.worldMap).getCity)), ()))
 
-  private def renderTurn(): State[GameState,Unit] =
-    val abilities: Set[String] = Set.empty
-    val options = List("SabotageAction", "InfectAction", "EvolveAction","Exit")
-    State { state => view.renderGameTurn(worldState)
-      (state, ())
-    }
+  private def renderTurn(): State[GameState, AiAction] =
+    State ( gs =>
+      val currentWorldState = gs.worldState
+      val input = view.renderGameTurn(currentWorldState)
+      val result = InputHandler.getAiActionFromChoice(
+        input._1,
+        input._2,
+        currentWorldState.attackableCities.map(_._1),
+        currentWorldState.playerAI.getPossibleAction
+      )
+      result match
+        case Right(action) => (gs, action)
+        case Left(_) => renderTurn().run(gs))
 
-  def gameTurn(aiActionResult: Either[InputHandlingError, AiAction]): State[GameState, Unit] =
-    aiActionResult match {
-      case Right(aiAction) =>
-        for
-          _ <- renderTurn()
-          _ <- doPlayerAction(aiAction)
-        // _ <- doHumanAction(humanAction)
-        yield()
-      case Left(error) => ???
-    }
+  def gameTurn(): State[GameState, Unit] =
+    for
+      action <- renderTurn()
+      _ <- doPlayerAction(action)
+      _ <- doHumanAction()
+    yield ()
 
 
   /*
@@ -71,3 +73,9 @@ case class GameState(worldState: WorldState,
         view.renderActionMenu(List("Sabotage", "Infect", "Evolve"))
     }
   */
+@main def tryController(): Unit =
+  val game = GameController.apply()
+  val (updatedGameState, _) = game.gameTurn().run(game)
+
+
+

@@ -8,7 +8,7 @@ class GameControllerTest :
   @Test
   def testUserInputActionSelection(): Unit =
     val actions = List(Sabotage(), Infect(), Evolve)
-    val userChoice = 2
+    val userChoice = 1
     val attackableCities = Set("Rome", "Paris", "Berlin")
     val result = InputHandler.getAiActionFromChoice(userChoice, "Rome", attackableCities, actions)
     assertTrue("Expected valid action, but got error.", result.isRight)

@@ -7,11 +7,11 @@ import model.strategy.AiAbility.AiAbility
 
 object ViewModule:
   trait GameView:
-    def renderGameTurn(worldState: WorldState): Int
+    def renderGameTurn(worldState: WorldState): (Int, String)
 
   object CLIView extends GameView:
 
-    override def renderGameTurn(worldState: WorldState): Int =
+    override def renderGameTurn(worldState: WorldState): (Int, String) =
       renderTurn(worldState.turn)
       renderMap(worldState.worldMap)
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
@@ -22,10 +22,10 @@ object ViewModule:
       println(s"\n-----RISE OF THE MACHINE - TURN $turn-----\n")
 
     private def renderMap(worldMap: WorldMap): Unit =
-      val mapString = (0 until worldMap.getSize).map { y =>
-        (0 until worldMap.getSize).map { x =>
+      val mapString = (0 until worldMap.getSizeOfTheMap).map { y =>
+        (0 until worldMap.getSizeOfTheMap).map { x =>
           worldMap.findInMap { case (_, coords) => coords.contains((x, y)) }.
-            getOrElse("x")
+            getOrElse("/")
         }.mkString(" ")
       }.mkString("\n")
       println(mapString)
@@ -44,14 +44,27 @@ object ViewModule:
       }.mkString("cities probability:  ", " ", "")
       println(formatted)
 
-    private def renderActionMenu(options: List[String]): Int =
-      println("Select your action:")
-      options.zipWithIndex.foreach { case (option, index) =>
-        println(s"$index. $option")
-      }
-      print("Insert your action > ")
-      scala.io.StdIn.readInt()
+  private def renderActionMenu(options: List[String]): (Int, String) =
+    println("Select your action:")
+    options.zipWithIndex.foreach { case (option, index) =>
+      println(s"$index. $option")
+    }
+    print("Insert your action > ")
 
-    def getInputForAction(options: List[String]): Int =
-      renderActionMenu(options)
+    val input = scala.io.StdIn.readLine().trim.split("\\s+").toList
+
+    input match
+      case actionStr :: cityStr :: _ =>
+        val actionIndex = actionStr.toIntOption.getOrElse(-1)
+        (actionIndex, cityStr)
+
+      case actionStr :: Nil =>
+        val actionIndex = actionStr.toIntOption.getOrElse(-1)
+        (actionIndex, "")
+
+      case _ =>
+        println("Invalid input. Defaulting to (0, \"\")")
+        (0, "")
+
+
 
