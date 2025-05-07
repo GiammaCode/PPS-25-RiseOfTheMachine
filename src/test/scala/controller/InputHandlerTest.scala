@@ -8,7 +8,7 @@ import org.junit.{Before, Test}
 
 class InputHandlerTest :
   val actions : List[AiAction] = List(Sabotage(), Infect(), Evolve)
-  val userChoice = 2
+  val userChoice = 1
   val attackableCities = Set("Rome", "Paris", "Berlin")
   val cityChoice = "Rome"
 
@@ -30,7 +30,7 @@ class InputHandlerTest :
     error match {
       case error: InvalidChoice =>
         assertEquals("The invalid choice should be 5.", 5, error.choice)
-        assertEquals("The available range should be 1 to 3.", Range(1, 4), error.availableRange)
+        assertEquals("The available range should be 0 to 2.", Range(0, 3), error.availableRange)
       case _ =>
         fail("Expected InvalidChoice error.")
     }
