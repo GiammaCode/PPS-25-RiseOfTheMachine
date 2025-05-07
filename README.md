@@ -1,36 +1,23 @@
 # PPS project 24/25 -- Rise of the Machine
 
+Rise of the Machine è un videogioco dove l'utente si metterà nei panni di un intelligenza artificiale senziente 
+e cercherà di conquistare il mondo.
+
+L'applicativo è catalogabile come gioco di strategia dove l'utente entro
+un numero prefissato di turni dovrà riuscire a infettare almeno il 70%
+delle città oppure tutte le capitali per vincere la partita.
+
+Dall'altra parte ogni turno del utente seguira un turno di un NPC che
+rappresenta l'umanità che cercherà di difendere le varie città e completare
+una cura per salvarsi.
+
+## Report
+You can download the updated report [here](https://giammacode.github.io/PPS-25-RiseOfTheMachine/).
+
+
 ## Group's components
-- Gianmaria Casamenti
-- Luca Pasini
-- Lorenzo Leoni
+- Gianmaria Casamenti ([GiammaCode](https://github.com/GiammaCode))
+- Luca Pasini([Paso.Luca](https://github.com/Paso.Luca))
+- Lorenzo Leoni([LoryBug](https://github.com/LoryBug))
 
 
-First Realese:
-
-Strutture: 
-    WorldState,
-        turn
-        world map
-        IA action
-        Human Action
-
-
-Stampare 
-Test unitari di 
-
-una città è un insieme di caselle che può essere attaccata, sabotata(abbassata la difesa)
-una città può essere anche una capitale quindi più grande e più difficile da sabotare e attaccare
-le città possono essere sabotate, attaccate difese singolarmente e difese collettivamente
-
-
-
-Interazioni:
-    Creo due variabili sia l'IA che l'umanità dove ad ogni turno dopo la scelta dell'utente/i 
-    chiamo il metodo execute action che mi restituisce la variabile aggiornata da cui aggiorno la mappa
-
-
-- loro mi restituiscono delle azioni da applicare alle città
-- come facciamo con le evoluzioni?
-- nella cli per ogni azione dobbiamo restituire le possibilità di successo per permettere 
-  all'utente di decidere in maniera sensata all'azione da fare
