@@ -18,6 +18,10 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+      - name: Install sbt
+        uses: coursier/setup-action@v1
+        with:
+          apps: sbt
 
       - name: Cache sbt
         uses: actions/cache@v3

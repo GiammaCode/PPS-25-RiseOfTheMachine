@@ -17,4 +17,10 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - run: sbt test
+      - name: Install sbt
+        uses: coursier/setup-action@v1
+        with:
+          apps: sbt
+
+      - name: Run sbt test
+        run: sbt test
