@@ -130,7 +130,6 @@ object CityModule:
        * @return a new city instance with AI ownership
        */
       def infectCity(): City =
-        println("infecttt")
         city.copy(owner = Owner.AI)
 
       /**
@@ -139,7 +138,6 @@ object CityModule:
        * @return a new city instance with reduced defense
        */
       def sabotateCity(playerAttack:Int): City =
-        println("sabotageeee")
         city.copy(defense = city.defense - playerAttack)
       
 
@@ -149,5 +147,4 @@ object CityModule:
        * @return a new city instance with improved defense
        */
       def defenseCity(): City =
-        println("Città difesaaaa")
         city.copy(defense = city.defense + 20)

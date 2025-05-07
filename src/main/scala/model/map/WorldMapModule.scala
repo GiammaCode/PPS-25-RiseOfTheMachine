@@ -60,7 +60,6 @@ object WorldMapModule:
      */
     def createMap(size: Int): WorldMap
 
-
   /**
    * Implementation of [[CreateModuleType]] using deterministic tile allocation.
    * Cities are created in a grid-like fashion.
@@ -69,9 +68,7 @@ object WorldMapModule:
     override def createMap(size: Int): WorldMap =
       def allTiles: Set[(Int, Int)] =
         (for x <- 0 until size; y <- 0 until size yield (x, y)).toSet
-
-
-
+      
       def expandCity(start: (Int, Int), available: Set[(Int, Int)], desiredSize: Int): Set[(Int, Int)] =
         @tailrec
         def loop(frontier: List[(Int, Int)], visited: Set[(Int, Int)]): Set[(Int, Int)] =

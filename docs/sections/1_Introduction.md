@@ -1,7 +1,6 @@
 # Introduzione
  Il gruppo si è posto come obiettivo la realizzazione di un videogioco
- ispirato al celebre gioco Plague Inc. ma con la differenza che in questo
- l'utente si metterà nei panni di un intelligenza artificiale senziente e
+ dove l'utente si metterà nei panni di un intelligenza artificiale senziente e
  cercherà di conquistare il mondo.
  
  L'applicativo è catalogabile come gioco di stategia dove l'utente entro
