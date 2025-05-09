@@ -1,5 +1,6 @@
 package controller
 
+import controller.InputHandler.CityContext
 import controller.InputHandling.InputHandlingError
 import model.map.WorldState.WorldState
 import model.strategy.*
@@ -41,10 +42,9 @@ case class GameState(worldState: WorldState,
   private def renderTurn(): State[GameState, AiAction] = State { gs =>
     val currentWorldState = gs.worldState
     val input = view.renderGameTurn(currentWorldState)
-    val result = InputHandler.getAiActionFromChoice(
+    val result = InputHandler.getActionFromChoice[AiAction](
       input._1,
-      input._2,
-      currentWorldState.attackableCities.map(_._1),
+      CityContext(input._2,  currentWorldState.attackableCities.map(_._1)),
       currentWorldState.playerAI.getPossibleAction
     )
     result match
