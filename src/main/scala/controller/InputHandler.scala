@@ -23,8 +23,7 @@ object InputHandler:
 
   /** Context used for action resolution */
   sealed trait ActionContext
-  case class CityContext(cityName: String, attackableCities: Set[String]) extends ActionContext
-  case class TargetContext(targets: List[ActionTarget]) extends ActionContext
+  case class CityContext(cityName: String, applicableCities: Set[String]) extends ActionContext
   case object NoContext extends ActionContext
 
   /** Typeclass for resolving a base action using context into a fully initialized one */
@@ -47,11 +46,11 @@ object InputHandler:
   given aiActionResolver: ActionResolver[AiAction] with
     def resolve(action: AiAction, ctx: ActionContext): Either[InputHandlingError, AiAction] =
       ctx match
-        case CityContext(cityName, attackableCities) =>
+        case CityContext(cityName, applicableCities) =>
           action match
             case _: Sabotage | _: Infect =>
               Either.cond(
-                attackableCities.contains(cityName),
+                applicableCities.contains(cityName),
                 action match
                   case _: Sabotage => Sabotage(List(cityName))
                   case _: Infect   => Infect(List(cityName))
@@ -66,16 +65,20 @@ object InputHandler:
   given humanActionResolver: ActionResolver[HumanAction] with
     def resolve(action: HumanAction, ctx: ActionContext): Either[InputHandlingError, HumanAction] =
       ctx match
-        case TargetContext(targets) =>
+        case CityContext(_, ownedCities) =>
+          val targets = ownedCities.toList
           action match
-            case _: CityDefense | _: GlobalDefense =>
+            case _: CityDefense =>
               Either.cond(
                 targets.nonEmpty,
-                action match
-                  case _: CityDefense   => CityDefense(targets)
-                  case _: GlobalDefense => GlobalDefense(targets)
-                  case _ => action,
-                InputParsingError("Targets", "No targets were specified for the selected action.")
+                CityDefense(targets),
+                InputParsingError("Targets", "Some targets are not your cities.")
+              )
+            case _: GlobalDefense =>
+              Either.cond(
+                targets.nonEmpty,
+                GlobalDefense(targets),
+                InputParsingError("Targets", "Some targets are not your cities.")
               )
             case DevelopKillSwitch => Right(DevelopKillSwitch)
         case _ =>

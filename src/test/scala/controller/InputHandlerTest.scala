@@ -11,14 +11,12 @@ import org.junit.Test
 class InputHandlerTest:
 
   val aiActions: List[AiAction] = List(Sabotage(), Infect(), Evolve)
-  val humanActions: List[HumanAction] = List(CityDefense(Nil), GlobalDefense(Nil), DevelopKillSwitch)
+  val humanActions: List[HumanAction] = List(CityDefense(), GlobalDefense(), DevelopKillSwitch)
 
-  val attackableCities = Set("Rome", "Paris", "Berlin")
+  val validCities = Set("Rome", "Paris", "Berlin")
   val cityChoice = "Rome"
-  val aiContext = CityContext(cityChoice, attackableCities)
-
-  val targets = List(("Rome"),("Paris"))
-  val targetContext = TargetContext(targets)
+  val aiContext = CityContext(cityChoice, validCities)
+  val humanContext = CityContext(cityChoice, validCities)
 
   /** --- AI ACTION TESTS --- */
 
@@ -45,7 +43,7 @@ class InputHandlerTest:
 
   @Test
   def testGetAiActionFromChoiceInvalidCity(): Unit =
-    val invalidContext = CityContext("Madrid", attackableCities) // Madrid is not attackable
+    val invalidContext = CityContext("Madrid", validCities)
     val result = InputHandler.getActionFromChoice(0, invalidContext, aiActions)
 
     val error = result.left.getOrElse(fail("Expected InputParsingError."))
@@ -59,25 +57,23 @@ class InputHandlerTest:
 
   @Test
   def testGetHumanActionFromChoiceValid(): Unit =
-    given ActionResolver[HumanAction] = humanActionResolver
 
-    val result = InputHandler.getActionFromChoice(1, targetContext, humanActions)
+    val result = InputHandler.getActionFromChoice(1, humanContext, humanActions)
     val action = result.getOrElse(fail("Expected valid human action."))
 
     action match
-      case GlobalDefense(t) => assertEquals(targets, t)
+      case GlobalDefense(t) => assertEquals(validCities, t.toSet)
       case _ => fail("Expected GlobalDefense.")
 
   @Test
   def testGetHumanActionFromChoiceNoTargets(): Unit =
-    given ActionResolver[HumanAction] = humanActionResolver
 
-    val emptyContext = TargetContext(Nil)
+    val emptyContext = CityContext("Rome", Set.empty)
     val result = InputHandler.getActionFromChoice(0, emptyContext, humanActions)
 
     val error = result.left.getOrElse(fail("Expected InputParsingError for empty targets."))
     error match
       case InputParsingError(input, msg) =>
         assertEquals("Targets", input)
-        assertTrue(msg.contains("No targets"))
+        assertTrue(msg.contains("not your cities"))
       case _ => fail("Expected InputParsingError.")
