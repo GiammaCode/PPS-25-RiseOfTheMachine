@@ -1,30 +1,36 @@
 package model
 
-import model.strategy.{CityDefense, DevelopKillSwitch, GlobalDefense, TurnAction}
-import org.junit.Test
+import model.strategy.HumanAction.*
+import model.strategy.*
 import org.junit.*
-import org.junit.Assert.{assertEquals, assertTrue}
+import org.junit.Assert.*
 
-class HumanActiontest:
-  var action: TurnAction = _
-  val singleTarget: List[String] = List("Milan")
-  val targets: List[String] = List("Milan", "Rome")
+class HumanActionTest:
 
-  @Test
-  def singleCityDefenseTest(): Unit =
-    action = CityDefense(singleTarget)
-    val result = action.targets
-    assertTrue(true)
+  val targets = List("CityA", "CityB")
 
   @Test
-  def allCityDefenseTest(): Unit =
-    action = GlobalDefense(targets)
-    val result = action.execute
-    assertTrue(true)
+  def cityDefenseShouldStoreTargets(): Unit =
+    val action = CityDefense(targets)
+    assertEquals(targets, action.targets)
+    assertEquals("CityDefense", action.name)
 
   @Test
-  def developKillSwitchTest(): Unit =
-    action = DevelopKillSwitch
-    val result = action.execute
-    assertTrue(true)
+  def globalDefenseShouldStoreTargets(): Unit =
+    val action = GlobalDefense(targets)
+    assertEquals(targets, action.targets)
+    assertEquals("GlobalDefense", action.name)
 
+  @Test
+  def developKillSwitchShouldHaveNoTargets(): Unit =
+    val action = DevelopKillSwitch
+    assertTrue(action.targets.isEmpty)
+    assertEquals("DevelopKillSwitch", action.name)
+
+  @Test
+  def allActionsShouldContainAllThree(): Unit =
+    val names = allActions.map(_.name)
+    assertTrue(names.contains("CityDefense"))
+    assertTrue(names.contains("GlobalDefense"))
+    assertTrue(names.contains("DevelopKillSwitch"))
+    assertEquals(3, allActions.size)

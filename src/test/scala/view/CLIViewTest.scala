@@ -4,7 +4,7 @@ import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModul
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.{PlayerAI, PlayerHuman}
 import model.util.GameDifficulty.Difficulty.Normal
-import org.junit.Assert.assertTrue
+import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.*
 import view.ViewModule.*
 
@@ -32,14 +32,28 @@ class CLIViewTest:
 
   @Before
   def init(): Unit =
-    human = PlayerHuman.default
+    human = PlayerHuman.fromDifficulty(Normal)
     ai = PlayerAI.fromDifficulty(Normal)
     worldMap = createWorldMap(5)(UndeterministicMapModule)
     state = createWorldState(worldMap, ai, human)
 
   @Test
-  def testPrintableGameTurn(): Unit =
-    CLIView.renderGameTurn(state)
-    assertTrue(true)
+  def testRenderGameTurnWithSimulatedInput(): Unit =
+    val simulatedInput = new java.io.ByteArrayInputStream("1 A\n".getBytes)
+    val outputBuffer = new java.io.ByteArrayOutputStream()
+
+    val result = Console.withIn(simulatedInput) {
+      Console.withOut(outputBuffer) {
+        CLIView.renderGameTurn(state)
+      }
+    }
+
+    val printedOutput = outputBuffer.toString
+
+    assertTrue(printedOutput.contains("RISE OF THE MACHINE - TURN"))
+    assertTrue(printedOutput.contains("Infected city:"))
+    assertTrue(printedOutput.contains("Insert your action"))
+    assertEquals((1, "A"), result)
+
 
 

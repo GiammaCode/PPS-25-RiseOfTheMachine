@@ -1,55 +1,52 @@
 package model
 
 import model.map.WorldState.*
-import model.strategy.{CityDefense, DevelopKillSwitch, GlobalDefense, HumanAction, PlayerHuman}
-import org.junit.*
-import org.junit.Assert.{assertEquals, assertTrue}
 import model.strategy.*
-import model.strategy.ExecuteActionResult.*
 import model.strategy.HumanAction.*
+import model.util.GameDifficulty
+import model.util.GameDifficulty.Difficulty.{Easy, Normal, Hard}
 import org.junit.*
 import org.junit.Assert.*
 
 class PlayerHumanTest:
 
   var player: PlayerHuman = _
-  var worldState : WorldState = _
+  var worldState: WorldState = _
+  val cities: List[String] = List("A", "B")
 
   @Before
   def init(): Unit =
-    player = PlayerHuman.default
+    player = PlayerHuman.fromDifficulty(Normal)
     worldState = GameFactory.createGame()
 
   @Test
-  def testInitialState(): Unit =
-    assertEquals(0, player.killSwitch)
-    assertTrue(player.defendedCities.isEmpty)
-    assertTrue(player.executedActions.isEmpty)
-    assertTrue(player.conqueredCities.isEmpty)
+  def developKillSwitchIncreasesProgress(): Unit =
+    val updatedPlayer = player.executeAction(DevelopKillSwitch, worldState.worldMap).getPlayer
+    //killswitch with normal difficulty starts to 30 (+10)
+    assertEquals(40, updatedPlayer.killSwitch)
+    assertEquals(1, updatedPlayer.executedActions.size)
 
   @Test
-  def testCityDefenseAction(): Unit =
-    val targets = List("A")
-    val result = player.executeAction(CityDefense(targets), worldState.worldMap)
-    val updatedPlayer = result.getPlayer
-
+  def applyCityDefenseAction(): Unit =
+    val updatedPlayer = player.executeAction(CityDefense(cities), worldState.worldMap).getPlayer
     assertTrue(updatedPlayer.defendedCities.contains("A"))
-    assertTrue(updatedPlayer.executedActions.exists(_.isInstanceOf[CityDefense]))
+    assertTrue(updatedPlayer.defendedCities.contains("B"))
+    assertEquals(2, updatedPlayer.defendedCities.size)
+    assertEquals(1, updatedPlayer.executedActions.size)
 
   @Test
-  def testGlobalDefenseAction(): Unit =
-    val targets = List("A", "b")
-    val result = player.executeAction(GlobalDefense(targets), worldState.worldMap)
-    val updatedPlayer = result.getPlayer
-
-    assertTrue(updatedPlayer.defendedCities.contains("A"))
-    assertTrue(updatedPlayer.defendedCities.contains("b"))
-    assertTrue(updatedPlayer.executedActions.exists(_.isInstanceOf[GlobalDefense]))
+  def normalDifficultyStatsTest(): Unit =
+    val expected = GameDifficulty.humanStatsFor(Normal)
+    assertEquals(expected.killSwitch, player.killSwitch)
 
   @Test
-  def testKillSwitchAction(): Unit =
-    val result = player.executeAction(DevelopKillSwitch, worldState.worldMap)
-    val updatedPlayer = result.getPlayer
+  def easyDifficultyStatsTest(): Unit =
+    val easyPlayer = PlayerHuman.fromDifficulty(Easy)
+    val expected = GameDifficulty.humanStatsFor(Easy)
+    assertEquals(expected.killSwitch, easyPlayer.killSwitch)
 
-    assertEquals(1, updatedPlayer.killSwitch)
-    assertTrue(updatedPlayer.executedActions.contains(DevelopKillSwitch))
+  @Test
+  def hardDifficultyStatsTest(): Unit =
+    val hardPlayer = PlayerHuman.fromDifficulty(Hard)
+    val expected = GameDifficulty.humanStatsFor(Hard)
+    assertEquals(expected.killSwitch, hardPlayer.killSwitch)
