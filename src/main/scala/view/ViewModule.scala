@@ -3,6 +3,7 @@ package view
 import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.WorldState
 import model.strategy.AiAbility.AiAbility
+import model.strategy.{PlayerAI, PlayerHuman}
 
 
 object ViewModule:
@@ -15,6 +16,7 @@ object ViewModule:
       renderTurn(worldState.turn)
       renderMap(worldState.worldMap)
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
+      renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
       renderProbability(worldState.attackableCities)
       renderActionMenu(worldState.options)
 
@@ -65,6 +67,11 @@ object ViewModule:
       case _ =>
         println("Invalid input. Defaulting to (0, \"\")")
         (0, "")
+
+  private def renderComplessiveAction(human: PlayerHuman, ai: PlayerAI) : Unit =
+    println(s"Player Human action executed: ${human.executedActions.mkString(", ")}")
+    println(s"Player AI action executed: ${ai.executedActions.mkString(", ")}")
+
 
 
 

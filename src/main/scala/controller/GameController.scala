@@ -16,10 +16,12 @@ object GameController:
   def apply(): GameState =
     val worldState = GameFactory.createGame()
     val view = CLIView
-    GameState(worldState, view)
+    val strategy = SmartHumanStrategy
+    GameState(worldState, view,  strategy)
 
 case class GameState(worldState: WorldState,
-                     view: GameView):
+                     view: GameView,
+                     humanStrategy: PlayerStrategy[HumanAction]):
 
   import model.util.States.State.State
 
@@ -34,9 +36,13 @@ case class GameState(worldState: WorldState,
   private def doHumanAction(): State[GameState, Unit] =
     State {gs =>
       val currentWorldState = gs.worldState
-      val action = CityDefense(List("i"))
+      val action = gs.humanStrategy.decideAction(currentWorldState)
       val result = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
-      (gs.copy(worldState = currentWorldState.updateHuman(result.getPlayer).updateMap(result.getCity)), ())
+
+      val updatedState = gs.worldState
+        .updateHuman(result.getPlayer)
+        .updateMap(result.getCity)
+      (gs.copy(worldState = updatedState), ())
     }
 
   private def renderTurn(): State[GameState, AiAction] = State { gs =>
