@@ -66,9 +66,10 @@ object WorldMapModule:
    */
   object DeterministicMapModule extends CreateModuleType:
     override def createMap(size: Int): WorldMap =
+
       def allTiles: Set[(Int, Int)] =
         (for x <- 0 until size; y <- 0 until size yield (x, y)).toSet
-      
+
       def expandCity(start: (Int, Int), available: Set[(Int, Int)], desiredSize: Int): Set[(Int, Int)] =
         @tailrec
         def loop(frontier: List[(Int, Int)], visited: Set[(Int, Int)]): Set[(Int, Int)] =
@@ -258,7 +259,7 @@ object WorldMapModule:
      * @param city the updated city to be inserted
      * @return a new WorldMap with the updated city
      */
-    def changeACityOfTheMap(city: City): WorldMap =
+    def changeCity(city: City): WorldMap =
       worldMap.find(_._1.getName == city.getName)
         .map((_, coords) => worldMap.filterNot(_._1.getName == city.getName) + (city -> coords))
         .getOrElse(worldMap)

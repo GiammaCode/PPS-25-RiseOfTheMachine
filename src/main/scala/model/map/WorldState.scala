@@ -1,10 +1,9 @@
 package model.map
 
+import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.*
 import model.strategy.AiAbility.AiAbility
-import model.strategy.{AiAction, Infect, PlayerAI, PlayerHuman, Sabotage}
-import model.util.Util.*
-import model.map.CityModule.CityImpl.City
+import model.strategy.{PlayerAI, PlayerHuman}
 /**
  * The `WorldState` module represents the full game state at a given turn.
  * It includes information about the world map, both players, and the current turn.
@@ -168,7 +167,7 @@ object WorldState:
      */
     def updateMap(newCity: Option[City]): WorldState = ws match
       case State(map, ai, human, t) =>
-        val updatedMap = newCity.map(map.changeACityOfTheMap).getOrElse(map)
+        val updatedMap = newCity.map(map.changeCity).getOrElse(map)
         State(updatedMap, ai, human, t)
     /**
      * Private method to calculate a percentage of success
