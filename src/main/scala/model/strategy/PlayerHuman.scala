@@ -3,7 +3,6 @@ package model.strategy
 import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.WorldMap
 import model.strategy.ExecuteActionResult.ExecuteActionResult
-import model.strategy.HumanAction
 
 trait PlayerHuman extends PlayerEntity:
   def killSwitch: Int
@@ -64,3 +63,6 @@ private case class PlayerHumanImpl(
         |Executed Actions    :
         |  ${if (executedActions.isEmpty) "None" else executedActions.map(_.execute).mkString("\n  ")}
         |------------------------""".stripMargin
+
+
+

@@ -17,3 +17,12 @@ object GameDifficulty:
 
   def aiStatsFor(difficulty: Difficulty): AIStats =
     aiConfigs.getOrElse(difficulty, aiConfigs(Difficulty.Normal))
+
+
+  final case class HumanStats(killSwitch: Int)
+
+  private val humanConfigs: Map[Difficulty, HumanStats] = Map(
+    Difficulty.Easy -> HumanStats(killSwitch = 0),
+    Difficulty.Normal -> HumanStats(killSwitch = 30),
+    Difficulty.Hard -> HumanStats(killSwitch = 50)
+  )
