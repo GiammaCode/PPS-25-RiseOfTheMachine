@@ -3,6 +3,14 @@ package model.strategy
 /** Represents actions specifically for human players */
 sealed trait HumanAction extends TurnAction:
   def targets: List[ActionTarget]
+/*
+  def name: String = this match
+    case CityDefense(_) => "CityDefense"
+    case GlobalDefense(_) => "GlobalDefense"
+    case DevelopKillSwitch(_) => "DevelopKillSwitch"
+
+*/
+/*
   def execute: Unit
 
 object HumanAction:
@@ -26,3 +34,4 @@ case class GlobalDefense(targets: List[ActionTarget]= List.empty) extends HumanA
 case object DevelopKillSwitch extends HumanAction:
   override def targets: List[ActionTarget] = List.empty
   override def execute: Unit = println("Kill Switch developed successfully")
+*/
