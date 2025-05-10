@@ -1,8 +1,9 @@
 import controller.GameController
+import controller.GameController.initialGameState
 import model.util.States.State
 
 @main def GameLoop(): Unit =
-  var gameState = GameController()
+  var gameState = initialGameState
   val maxTurns = 5
 
   for turn <- 1 to maxTurns do

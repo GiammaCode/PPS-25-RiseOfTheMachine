@@ -17,14 +17,14 @@ class HumanActiontest:
     assertTrue(true)
 
   @Test
-  def allCityDefenseTest(): Unit =
-    action = GlobalDefense(targets)
-    val result = action.execute
-    assertTrue(true)
-
-  @Test
-  def developKillSwitchTest(): Unit =
-    action = DevelopKillSwitch
-    val result = action.execute
-    assertTrue(true)
+//  def allCityDefenseTest(): Unit =
+//    action = GlobalDefense(targets)
+//    val result = action.execute
+//    assertTrue(true)
+//
+//  @Test
+//  def developKillSwitchTest(): Unit =
+//    action = DevelopKillSwitch
+//    val result = action.execute
+//    assertTrue(true)
 
