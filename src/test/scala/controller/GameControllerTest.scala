@@ -1,6 +1,6 @@
 package controller
 
-import model.strategy.{Evolve, Infect, Sabotage}
+import model.strategy.{AiAction, Evolve, Infect, Sabotage}
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -10,7 +10,7 @@ class GameControllerTest :
     val actions = List(Sabotage(), Infect(), Evolve)
     val userChoice = 1
     val attackableCities = Set("Rome", "Paris", "Berlin")
-    val result = InputHandler.getAiActionFromChoice(userChoice, "Rome", attackableCities, actions)
+    val result = InputHandler.getActionFromChoice(userChoice,InputHandler.CityContext("Rome", attackableCities), actions)
     assertTrue("Expected valid action, but got error.", result.isRight)
     result.getOrElse(throw new AssertionError("Expected an action, but got error.")) match {
       case action: Infect =>

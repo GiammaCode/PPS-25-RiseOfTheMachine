@@ -47,7 +47,7 @@ object WorldState:
      *
      * @return list of option strings
      */
-    def options: List[String] = playerAI.getPossibleActionByName //TODO: fix and exit
+    def options: List[String] = playerAI.getPossibleAction.map(_.name) //TODO: fix and exit
 
     /**
      * The current turn number.

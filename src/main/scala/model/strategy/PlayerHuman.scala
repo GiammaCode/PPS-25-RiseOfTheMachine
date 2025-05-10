@@ -44,15 +44,15 @@ private case class PlayerHumanImpl(
         cityName <- targets.headOption
         city <- worldMap.getCityByName(cityName) // ora restituisce Option
       } yield city.defenseCity()
-      ExecuteActionResult.fromPlayerEntity(updated, maybeCity)
+      ExecuteActionResult.apply(updated, maybeCity, List("Defence"))
 
     case GlobalDefense(targets) =>
       val updated = copy(defendedCities = defendedCities ++ targets).addAction(action)
-      ExecuteActionResult.fromPlayerEntity(updated, None)
+      ExecuteActionResult.apply(updated, None, List("Global defence"))
 
     case DevelopKillSwitch =>
       val updated = copy(killSwitch = killSwitch + 1).addAction(action)
-      ExecuteActionResult.fromPlayerEntity(updated, None)
+      ExecuteActionResult.apply(updated, None, List("Develop kill switch"))
 
   private def addAction(action: HumanAction): PlayerHumanImpl =
     copy(executedActions = action :: executedActions)

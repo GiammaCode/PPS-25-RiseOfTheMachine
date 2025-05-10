@@ -3,7 +3,7 @@ import model.util.States.State
 
 @main def GameLoop(): Unit =
   var gameState = GameController()
-  val maxTurns = 3
+  val maxTurns = 5
 
   for turn <- 1 to maxTurns do
     println(s"\n--- Turno $turn ---")
@@ -11,5 +11,5 @@ import model.util.States.State
     gameState = newState
 
   println("\n--- Fine partita (raggiunto limite massimo di turni) ---")
-  println(gameState.worldState.playerAI) //TODO: not working 
+  println(gameState.worldState.playerAI)
 

@@ -1,51 +1,85 @@
 package controller
 
 import InputHandling.{InputHandlingError, InputParsingError, InvalidChoice}
-import model.map.WorldMapModule
-import model.strategy
-import model.strategy.{AiAction, Evolve, Infect, Sabotage}
+import model.strategy.*
+import model.strategy.{AiAction, HumanAction}
 
+/** Handles errors during user input parsing or validation. */
 object InputHandling:
 
-  /** Error types that may occur during the interpretation or parsing of user input. */
   sealed trait InputHandlingError
-  /** Numeric choice out of the available options range. */
   case class InvalidChoice(choice: Int, availableRange: Range) extends InputHandlingError
-  /** Error in converting raw input (e.g., non-numeric string) - handled by the View. */
   case class InputParsingError(input: String, message: String) extends InputHandlingError
 
-  /** Helper methods for input errors */
   object InputHandlingError:
     extension (e: InputHandlingError)
-      /** Generates a user-friendly message based on the error type. */
       def userMessage: String = e match
         case InvalidChoice(choice, range) =>
           s"Invalid choice: $choice. Please enter a number between ${range.min} and ${range.max}."
-        case InputParsingError(input, msg) => s"Input format error: $input. You must enter a valid number."
-
+        case InputParsingError(input, msg) =>
+          s"Input format error: $input. $msg"
 
 object InputHandler:
 
-  /** A pure object responsible for mapping the user's numeric input to a valid game action. */
-  def getAiActionFromChoice(
-                           choice: Int,
-                           cityName: String,
-                           attackableCities : Set[String],
-                           availableActions: List[AiAction]
-                         ): Either[InputHandlingError, AiAction] =
+  /** Context used for action resolution */
+  sealed trait ActionContext
+  case class CityContext(cityName: String, applicableCities: Set[String]) extends ActionContext
+  case object NoContext extends ActionContext
+
+  /** Typeclass for resolving a base action using context into a fully initialized one */
+  trait ActionResolver[A <: TurnAction]:
+    def resolve(base: A, context: ActionContext): Either[InputHandlingError, A]
+
+  /** Generic handler to convert a choice into a validated action */
+  def getActionFromChoice[A <: TurnAction](
+                                            choice: Int,
+                                            context: ActionContext,
+                                            availableActions: List[A]
+                                          )(using resolver: ActionResolver[A]): Either[InputHandlingError, A] =
     for {
       action <- availableActions.lift(choice)
         .toRight(InvalidChoice(choice, 0 to availableActions.size - 1))
+      resolved <- resolver.resolve(action, context)
+    } yield resolved
 
-      result <- action match
-        case _: Sabotage | _: Infect =>
-          Either.cond(
-            attackableCities.contains(cityName),
-            action match
-              case _: Sabotage => Sabotage(List(cityName))
-              case _: Infect   => Infect(List(cityName))
-              case _ => action, // fallback, should not be hit
-            InputParsingError(cityName, s"The city '$cityName' is not attackable.")
-          )
-        case Evolve => Right(Evolve)
-    } yield result
+  /** Resolver for AiActions */
+  given aiActionResolver: ActionResolver[AiAction] with
+    def resolve(action: AiAction, ctx: ActionContext): Either[InputHandlingError, AiAction] =
+      ctx match
+        case CityContext(cityName, applicableCities) =>
+          action match
+            case _: Sabotage | _: Infect =>
+              Either.cond(
+                applicableCities.contains(cityName),
+                action match
+                  case _: Sabotage => Sabotage(List(cityName))
+                  case _: Infect   => Infect(List(cityName))
+                  case _ => action,
+                InputParsingError(cityName, s"The city '$cityName' is not attackable.")
+              )
+            case Evolve => Right(Evolve)
+        case _ =>
+          Left(InputParsingError("Context", "Invalid context provided for AiAction."))
+
+  /** Resolver for HumanActions */
+  given humanActionResolver: ActionResolver[HumanAction] with
+    def resolve(action: HumanAction, ctx: ActionContext): Either[InputHandlingError, HumanAction] =
+      ctx match
+        case CityContext(_, ownedCities) =>
+          val targets = ownedCities.toList
+          action match
+            case _: CityDefense =>
+              Either.cond(
+                targets.nonEmpty,
+                CityDefense(targets),
+                InputParsingError("Targets", "Some targets are not your cities.")
+              )
+            case _: GlobalDefense =>
+              Either.cond(
+                targets.nonEmpty,
+                GlobalDefense(targets),
+                InputParsingError("Targets", "Some targets are not your cities.")
+              )
+            case DevelopKillSwitch => Right(DevelopKillSwitch)
+        case _ =>
+          Left(InputParsingError("Context", "Invalid context provided for HumanAction."))
