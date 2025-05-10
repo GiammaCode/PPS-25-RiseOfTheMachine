@@ -8,18 +8,22 @@ import model.strategy.HumanAction
 
 trait PlayerHuman extends PlayerEntity:
   def killSwitch: Int
+
   def defendedCities: Set[String]
-  def executedActions: List[HumanAction]
+
   def conqueredCities: Set[String]
+
+  def executedActions: List[HumanAction]
 
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
 
   override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self]
+
   override def toString: String
 
 object PlayerHuman:
-  def fromDifficulty(difficulty: Difficulty) : PlayerHuman =
+  def fromDifficulty(difficulty: Difficulty): PlayerHuman =
     val stats = humanStatsFor(difficulty)
     PlayerHumanImpl(killSwitch = stats.killSwitch)
 
@@ -34,36 +38,41 @@ private case class PlayerHumanImpl(
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
 
-  override def executeAction(action: ValidAction,  worldMap: WorldMap): ExecuteActionResult[Self] =
-    doExecuteAction(action, worldMap)
-
-  private def doExecuteAction(action: HumanAction,  worldMap: WorldMap): ExecuteActionResult[Self] = action match
+  override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] = action match
     case CityDefense(targets) =>
-      val updated = copy(defendedCities = defendedCities ++ targets).addAction(action)
-      val maybeCity = for {
-        cityName <- targets.headOption
-        city <- worldMap.getCityByName(cityName) // ora restituisce Option
-      } yield city.defenseCity()
-      ExecuteActionResult.apply(updated, maybeCity, List("Defence"))
+      val updated = withDefendedCities(targets.toSet).addAction(action)
+      val maybeCity = targets.headOption.flatMap(worldMap.getCityByName).map(_.defenseCity())
+      result(updated, maybeCity, s"CityDefense on: ${targets.mkString(", ")}")
 
     case GlobalDefense(targets) =>
-      val updated = copy(defendedCities = defendedCities ++ targets).addAction(action)
-      ExecuteActionResult.apply(updated, None, List("Global defence"))
+      val updated = withDefendedCities(defendedCities).addAction(action)
+      result(updated, None, "GlobalDefense executed")
 
     case DevelopKillSwitch =>
-      val updated = copy(killSwitch = killSwitch + 1).addAction(action)
-      ExecuteActionResult.apply(updated, None, List("Develop kill switch"))
+      val updated = copy(killSwitch = killSwitch + 10).addAction(action)
+      result(updated, None, "KillSwitch progress increased")
+
+  private def result(player: PlayerHumanImpl, city: Option[City], message: String): ExecuteActionResult[Self] =
+    ExecuteActionResult(player, city, List(message))
+
+  private def withDefendedCities(cities: Set[String]): PlayerHumanImpl =
+    copy(defendedCities = defendedCities ++ cities)
 
   private def addAction(action: HumanAction): PlayerHumanImpl =
     copy(executedActions = action :: executedActions)
 
   override def toString: String =
+    def formatSet(label: String, set: Set[String]): String =
+      s"$label : ${if set.isEmpty then "None" else set.mkString(", ")}"
+
+    def formatList(label: String, list: List[HumanAction]): String =
+      s"$label :\n  ${if list.isEmpty then "None" else list.reverse.mkString("\n  ")}"
+
     s"""|--- PlayerHuman Status ---
         |KillSwitch Progress : $killSwitch
-        |Defended Cities     : ${if defendedCities.isEmpty then "None" else defendedCities.mkString(", ")}
-        |Conquered Cities    : ${if conqueredCities.isEmpty then "None" else conqueredCities.mkString(", ")}
-        |Executed Actions    :
-        |  ${if executedActions.isEmpty then "None" else executedActions.reverse.mkString("\n  ")}
+        |${formatSet("Defended Cities", defendedCities)}
+        |${formatSet("Conquered Cities", conqueredCities)}
+        |${formatList("Executed Actions", executedActions)}
         |------------------------""".stripMargin
 
 
