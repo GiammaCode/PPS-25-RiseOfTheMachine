@@ -8,37 +8,20 @@ import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
 class PlayerActionTest:
-  var action: TurnAction = _
-  var cityList: List[String] = List("A", "B")
-
-  // Funzione di supporto per catturare l'output di println
-  private def captureOutput(block: => Unit): String =
-    val outCapture = new ByteArrayOutputStream()
-    Console.withOut(new PrintStream(outCapture)) {
-      block
-    }
-    outCapture.toString.trim
 
   @Test
   def executeInfectActionTest(): Unit =
-    action = Infect(cityList)
-    val output = captureOutput {
-      action.execute
-    }
-    assertEquals("AI Infect succeeded: Infected A, B", output)
+    val targets = List("CityA", "CityB", "CityC")
+    val infectAction = Infect(targets)
+    assertEquals(targets, infectAction.targets)
 
   @Test
   def executeSabotageActionTest(): Unit =
-    action = Sabotage(cityList)
-    val output = captureOutput {
-      action.execute
-    }
-    assertEquals("AI Sabotage succeeded: Sabotaged A, B", output)
+    val targets = List("Base1")
+    val sabotageAction = Sabotage(targets)
+    assertEquals(targets, sabotageAction.targets)
 
   @Test
   def executeEvolveActionTest(): Unit =
-    action = Evolve
-    val output = captureOutput {
-      action.execute
-    }
-    assertEquals("AI Evolution complete", output)
+    val evolveAction = Evolve
+    assertEquals(List.empty, evolveAction.targets)

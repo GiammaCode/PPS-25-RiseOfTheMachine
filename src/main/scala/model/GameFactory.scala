@@ -1,10 +1,10 @@
 package model
 
-import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, createWorldMap, given}
+import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
 import model.map.WorldState.*
 import model.strategy.{PlayerAI, PlayerHuman}
+import model.util.GameDifficulty.Difficulty
 
-
-object GameFactory :
-  def createGame() :  WorldState =
-    createWorldState(createWorldMap(10)(DeterministicMapModule), PlayerAI.default,  PlayerHuman.default)
+object GameFactory : 
+  def createGame(difficulty: Difficulty = Difficulty.Normal) :  WorldState =
+    createWorldState(createWorldMap(10)(DeterministicMapModule), PlayerAI.fromDifficulty(difficulty),  PlayerHuman.default)

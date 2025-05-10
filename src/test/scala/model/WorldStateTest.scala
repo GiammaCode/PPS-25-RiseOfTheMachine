@@ -3,6 +3,7 @@ package model
 import model.map.WorldMapModule.{UndeterministicMapModule, WorldMap, createWorldMap}
 import model.map.WorldState.*
 import model.strategy.{PlayerAI, PlayerHuman}
+import model.util.GameDifficulty.Difficulty.Normal
 import org.junit.*
 import org.junit.Assert.*
 
@@ -15,7 +16,7 @@ class WorldStateTest:
   @Before
   def init(): Unit =
     human = PlayerHuman.default
-    ai = PlayerAI.default
+    ai = PlayerAI.fromDifficulty(Normal)
     worldMap = createWorldMap(5)(UndeterministicMapModule)
 
   @Test
