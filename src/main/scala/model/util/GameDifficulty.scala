@@ -26,3 +26,6 @@ object GameDifficulty:
     Difficulty.Normal -> HumanStats(killSwitch = 30),
     Difficulty.Hard -> HumanStats(killSwitch = 50)
   )
+
+  def humanStatsFor(difficulty: Difficulty): HumanStats =
+    humanConfigs.getOrElse(difficulty, humanConfigs(Difficulty.Normal))

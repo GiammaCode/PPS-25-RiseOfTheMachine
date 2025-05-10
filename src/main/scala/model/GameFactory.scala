@@ -7,4 +7,4 @@ import model.util.GameDifficulty.Difficulty
 
 object GameFactory : 
   def createGame(difficulty: Difficulty = Difficulty.Normal) :  WorldState =
-    createWorldState(createWorldMap(10)(DeterministicMapModule), PlayerAI.fromDifficulty(difficulty),  PlayerHuman.default)
+    createWorldState(createWorldMap(10)(DeterministicMapModule), PlayerAI.fromDifficulty(difficulty),  PlayerHuman.fromDifficulty(difficulty))
