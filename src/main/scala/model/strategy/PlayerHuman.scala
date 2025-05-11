@@ -3,7 +3,7 @@ package model.strategy
 import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.WorldMap
 import model.strategy.ExecuteActionResult.ExecuteActionResult
-import model.util.GameDifficulty.{Difficulty, humanStatsFor}
+import model.util.GameDifficulty.{Difficulty, HumanStats, humanStatsFor}
 import model.strategy.HumanAction
 
 trait PlayerHuman extends PlayerEntity:
@@ -25,6 +25,9 @@ trait PlayerHuman extends PlayerEntity:
 object PlayerHuman:
   def fromDifficulty(difficulty: Difficulty): PlayerHuman =
     val stats = humanStatsFor(difficulty)
+    PlayerHumanImpl(killSwitch = stats.killSwitch)
+    
+  def fromStats(using stats: HumanStats): PlayerHuman =
     PlayerHumanImpl(killSwitch = stats.killSwitch)
 
 

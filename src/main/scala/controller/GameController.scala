@@ -2,9 +2,11 @@ package controller
 
 import controller.InputHandler.CityContext
 import controller.InputHandling.InputHandlingError
-import model.map.WorldState.WorldState
+import model.map.WorldMapModule.{DeterministicMapModule, createWorldMap}
+import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.*
-import model.{GameFactory, strategy}
+import model.util.GameDifficulty.{AIStats, Difficulty, HumanStats, aiStats}
+import model.strategy
 import view.ViewModule.{CLIView, GameView}
 
 object GameController:
@@ -13,8 +15,10 @@ object GameController:
    *
    * @return Un nuovo GameController
    */
-  def apply(): GameState =
-    val worldState = GameFactory.createGame()
+  def apply(using Difficulty): GameState =
+    import model.util.GameDifficulty.given
+
+    val worldState = createWorldState(createWorldMap(10)(DeterministicMapModule), PlayerAI.fromStats, PlayerHuman.fromStats )
     val view = CLIView
     val strategy = SmartHumanStrategy
     GameState(worldState, view,  strategy)
@@ -80,9 +84,9 @@ case class GameState(worldState: WorldState,
         view.renderActionMenu(List("Sabotage", "Infect", "Evolve"))
     }
   */
-@main def tryController(): Unit =
+/*@main def tryController(): Unit =
   val game = GameController.apply()
   val (updatedGameState, _) = game.gameTurn().run(game)
-
+*/
 
 

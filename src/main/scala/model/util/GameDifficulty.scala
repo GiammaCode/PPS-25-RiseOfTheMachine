@@ -18,6 +18,7 @@ object GameDifficulty:
   def aiStatsFor(difficulty: Difficulty): AIStats =
     aiConfigs.getOrElse(difficulty, aiConfigs(Difficulty.Normal))
 
+  
 
   final case class HumanStats(killSwitch: Int)
 
@@ -29,3 +30,7 @@ object GameDifficulty:
 
   def humanStatsFor(difficulty: Difficulty): HumanStats =
     humanConfigs.getOrElse(difficulty, humanConfigs(Difficulty.Normal))
+
+  /**Given section*/
+  given aiStats(using d: Difficulty): AIStats = aiStatsFor(d)
+  given humanStats(using d: Difficulty) : HumanStats = humanStatsFor(d)
