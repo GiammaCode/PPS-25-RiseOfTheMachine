@@ -6,5 +6,7 @@ lazy val root = project
     name := "PPS-25-RiseOfTheMachine",
     version := "0.1.0-SNAPSHOT",
     scalaVersion := scala3Version,
-    libraryDependencies += "com.github.sbt" % "junit-interface" % "0.13.2" % Test
-  )
+    libraryDependencies += "com.github.sbt" % "junit-interface" % "0.13.2" % Test,
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test
+
+)
