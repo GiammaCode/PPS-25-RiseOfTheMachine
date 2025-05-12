@@ -6,8 +6,9 @@ import model.map.WorldMapModule.{DeterministicMapModule, createWorldMap}
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy
 import model.strategy.*
-import model.util.GameDifficulty.{Difficulty, aiStats}
-import view.ViewModule.{CLIView, GameView}
+import model.util.GameDifficulty.Difficulty
+import view.ViewModule.CLIView
+import view.ViewModule.CLIView.renderGameTurn
 
 object GameController:
   /**
@@ -15,22 +16,21 @@ object GameController:
    *
    * @return Un nuovo GameController
    */
+  case class GameStateImpl(worldState: WorldState,
+                       humanStrategy: PlayerStrategy[HumanAction])
 
   import model.util.GameDifficulty.given
 
+  opaque type GameState = GameStateImpl
+
+
   def buildGameState(using Difficulty): GameState =
-    GameState(
-      createWorldState(
-        createWorldMap(10)(DeterministicMapModule),
-        PlayerAI.fromStats,
-        PlayerHuman.fromStats),
-      CLIView,
+    GameStateImpl(
+      createWorldState( createWorldMap(10)(DeterministicMapModule), PlayerAI.fromStats, PlayerHuman.fromStats),
       SmartHumanStrategy
     )
 
-case class GameState(worldState: WorldState,
-                     view: GameView,
-                     humanStrategy: PlayerStrategy[HumanAction]):
+
 
   import model.util.States.State.State
 
@@ -53,7 +53,7 @@ case class GameState(worldState: WorldState,
 
   private def renderTurn(): State[GameState, AiAction] = State ( gs =>
     val currentWorldState = gs.worldState
-    val input = view.renderGameTurn(currentWorldState)
+    val input = renderGameTurn(currentWorldState)
     val result = InputHandler.getActionFromChoice(
       input._1,
       CityContext(input._2,  currentWorldState.attackableCities.map(_._1)),
