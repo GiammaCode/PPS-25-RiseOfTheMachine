@@ -7,8 +7,6 @@ import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy
 import model.strategy.*
 import model.util.GameDifficulty.Difficulty
-import view.ViewModule.CLIView
-import view.ViewModule.CLIView.renderGameTurn
 
 object GameController:
   /**
@@ -52,15 +50,16 @@ object GameController:
       (gs.copy(worldState = updatedState), ())
   )
 
+
   private def renderTurn(): State[GameState, AiAction] = State ( gs =>
     val currentWorldState = gs.worldState
-    val input = renderGameTurn(currentWorldState)
-    val result = InputHandler.getActionFromChoice(
+    import view.ViewModule.CLIView
+    val input = CLIView.renderGameTurn(currentWorldState)
+    InputHandler.getActionFromChoice(
       input._1,
       CityContext(input._2,  currentWorldState.attackableCities.map(_._1)),
       currentWorldState.playerAI.getPossibleAction
-    )
-    result match
+    ) match
       case Right(action) => (gs, action)
       case Left(_) => renderTurn().run(gs)
   )
