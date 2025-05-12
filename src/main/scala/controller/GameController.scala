@@ -20,13 +20,14 @@ object GameController:
                        humanStrategy: PlayerStrategy[HumanAction])
 
   import model.util.GameDifficulty.given
+  import model.map.WorldMapModule.given
 
   opaque type GameState = GameStateImpl
 
 
   def buildGameState(using Difficulty): GameState =
     GameStateImpl(
-      createWorldState( createWorldMap(10)(DeterministicMapModule), PlayerAI.fromStats, PlayerHuman.fromStats),
+      createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
       SmartHumanStrategy
     )
 

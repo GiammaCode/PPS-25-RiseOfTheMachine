@@ -174,6 +174,9 @@ object WorldMapModule:
   private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
     validNeighbors(tiles, size, tiles)
 
+
+  given undeterministicMap: CreateModuleType = UndeterministicMapModule
+
   /**
    * Factory method to create a map using a selected module.
    *
@@ -181,7 +184,8 @@ object WorldMapModule:
    * @param CreateMapModule strategy module
    * @return a WorldMap instance
    */
-  def createWorldMap(size: Int)(CreateMapModule: CreateModuleType): WorldMap =
+
+  def createWorldMap(size: Int)(using CreateMapModule: CreateModuleType): WorldMap =
     CreateMapModule.createMap(size)
 
   extension (worldMap: WorldMap)

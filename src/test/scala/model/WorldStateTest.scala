@@ -17,7 +17,7 @@ class WorldStateTest:
   def init(): Unit =
     human = PlayerHuman.fromDifficulty(Normal)
     ai = PlayerAI.fromDifficulty(Normal)
-    worldMap = createWorldMap(5)(UndeterministicMapModule)
+    worldMap = createWorldMap(5)
 
   @Test
   def testWorldStateCreation(): Unit =

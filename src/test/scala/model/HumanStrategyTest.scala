@@ -16,7 +16,7 @@ class SmartHumanStrategyTest:
   def init(): Unit =
     val player = PlayerHuman.fromDifficulty(Normal)
     val ai = PlayerAI.fromDifficulty(Normal)
-    val map = createWorldMap(5)(UndeterministicMapModule)
+    val map = createWorldMap(5)
     state = createWorldState(map, ai, player)
 
   @Test
