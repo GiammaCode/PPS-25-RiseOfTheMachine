@@ -34,7 +34,7 @@ class CLIViewTest:
   def init(): Unit =
     human = PlayerHuman.fromDifficulty(Normal)
     ai = PlayerAI.fromDifficulty(Normal)
-    worldMap = createWorldMap(5)(UndeterministicMapModule)
+    worldMap = createWorldMap(5)
     state = createWorldState(worldMap, ai, human)
 
   @Test

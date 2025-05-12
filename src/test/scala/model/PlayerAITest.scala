@@ -1,22 +1,27 @@
 package model
 
-import model.strategy.{AiAbility, AiAction, Evolve, Infect, PlayerAI, Sabotage, TurnAction}
+import controller.GameController.buildGameState
+import model.map.WorldMapModule.createWorldMap
+import model.strategy.{AiAbility, AiAction, Evolve, Infect, PlayerAI, PlayerHuman, Sabotage, TurnAction}
 import org.junit.*
 import org.junit.Assert.assertEquals
 import model.map.WorldState.*
 import model.util.GameDifficulty
+import model.util.GameDifficulty.Difficulty
 import model.util.GameDifficulty.Difficulty.{Easy, Hard, Normal}
 
 class PlayerAITest :
   var player : PlayerAI = _
   var cities: List[String] = List("A", "B")
   var worldState : WorldState = _
-  
+  given Difficulty = Difficulty.Easy // TODO: get from CLI
+
 
   @Before
   def init(): Unit =
     player = PlayerAI.fromDifficulty(Normal)
-    worldState = GameFactory.createGame()
+    worldState = createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats)
+
   @Test
   def applyEvolveAbilityTest() : Unit =
     val updatedPlayer = player.executeAction(Evolve, worldState.worldMap).getPlayer

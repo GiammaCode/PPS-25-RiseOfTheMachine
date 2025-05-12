@@ -2,7 +2,7 @@ package controller
 
 import controller.InputHandler.CityContext
 import controller.InputHandling.InputHandlingError
-import model.map.WorldMapModule.{DeterministicMapModule, createWorldMap}
+import model.map.WorldMapModule.createWorldMap
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy
 import model.strategy.*
@@ -19,8 +19,8 @@ object GameController:
   case class GameStateImpl(worldState: WorldState,
                        humanStrategy: PlayerStrategy[HumanAction])
 
-  import model.util.GameDifficulty.given
   import model.map.WorldMapModule.given
+  import model.util.GameDifficulty.given
 
   opaque type GameState = GameStateImpl
 
