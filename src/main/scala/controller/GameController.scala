@@ -25,7 +25,7 @@ object GameController:
 
   def buildGameState(using Difficulty): GameState =
     GameStateImpl(
-      createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
+      createWorldState(createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
       SmartHumanStrategy
     )
 
@@ -43,7 +43,6 @@ object GameController:
       val currentWorldState = gs.worldState
       val action = gs.humanStrategy.decideAction(currentWorldState)
       val result = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
-
       val updatedState = gs.worldState
         .updateHuman(result.getPlayer)
         .updateMap(result.getCity)
