@@ -9,6 +9,9 @@ import model.strategy.{PlayerAI, PlayerHuman}
 object ViewModule:
   trait GameView:
     def renderGameTurn(worldState: WorldState): (Int, String)
+    def renderAiPlayerTurn(worldState: WorldState): (Int, String)
+    def renderHumanPlayerTurn(worldState: WorldState): (Int, String)
+    def renderGameModeMenu(): Int
 
   object CLIView extends GameView:
 
@@ -18,7 +21,35 @@ object ViewModule:
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
       renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
       renderProbability(worldState.attackableCities)
-      renderActionMenu(worldState.options)
+      renderActionMenu(worldState.AiOptions)
+
+    override def renderGameModeMenu() : Int =
+      println("Welcome to Rise of the Machine")
+      println("Select game mode:")
+      println("1. Single Player")
+      println("2. Multiplayer")
+      print("Insert your choice > ")
+
+      scala.io.StdIn.readLine().trim match
+        case "1" => 1
+        case "2" => 2
+        case _ =>
+          println("Invalid input. Defaulting to Single Player (1).")
+          1
+
+    override def renderAiPlayerTurn(worldState: WorldState): (Int, String) =
+      println("\n--- PLAYER AI TURN ---")
+      renderMap(worldState.worldMap)
+      renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
+      renderProbability(worldState.attackableCities)
+      renderActionMenu(worldState.AiOptions)
+
+    override def renderHumanPlayerTurn(worldState: WorldState): (Int, String) =
+      println("\n--- PLAYER HUMAN TURN ---")
+      renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
+      renderActionMenu(worldState.HumanOptions)
+
+
 
     private def renderTurn(turn: Int): Unit =
       println(s"\n-----RISE OF THE MACHINE - TURN $turn-----\n")
@@ -46,7 +77,7 @@ object ViewModule:
       }.mkString("cities probability:  ", " ", "")
       println(formatted)
 
-  private def renderActionMenu(options: List[String]): (Int, String) =
+  def renderActionMenu(options: List[String]): (Int, String) =
     println("Select your action:")
     options.zipWithIndex.foreach { case (option, index) =>
       println(s"$index. $option")
@@ -71,6 +102,8 @@ object ViewModule:
   private def renderComplessiveAction(human: PlayerHuman, ai: PlayerAI) : Unit =
     println(s"Player Human action executed: ${human.executedActions.mkString(", ")}")
     println(s"Player AI action executed: ${ai.executedActions.mkString(", ")}")
+
+
 
 
 
