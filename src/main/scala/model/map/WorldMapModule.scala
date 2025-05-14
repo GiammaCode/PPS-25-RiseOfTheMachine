@@ -71,17 +71,17 @@ object WorldMapModule:
       
       def expandCity(start: (Int, Int), available: Set[(Int, Int)], desiredSize: Int): Set[(Int, Int)] =
         @tailrec
-        def loop(frontier: List[(Int, Int)], visited: Set[(Int, Int)]): Set[(Int, Int)] =
+        def expandLoop(frontier: List[(Int, Int)], visited: Set[(Int, Int)]): Set[(Int, Int)] =
           if visited.size >= desiredSize || frontier.isEmpty then visited
           else
             val next = frontier.head
             val newNeighbors = adjacentTo(Set(next),size).toSet.intersect(available).diff(visited)
-            loop(frontier.tail ++ newNeighbors, visited + next)
+            expandLoop(frontier.tail ++ newNeighbors, visited + next)
 
-        loop(List(start), Set(start)).intersect(available)
+        expandLoop(List(start), Set(start)).intersect(available)
 
       @tailrec
-      def loop(index: Int, available: Set[(Int, Int)], acc: Set[(City, Set[(Int, Int)])]): Set[(City, Set[(Int, Int)])] =
+      def createMapLoop(index: Int, available: Set[(Int, Int)], acc: Set[(City, Set[(Int, Int)])]): Set[(City, Set[(Int, Int)])] =
         if available.isEmpty then acc
         else
           val isCapital = index < 5
@@ -90,10 +90,10 @@ object WorldMapModule:
           val start = available.head
           val maxCitySize = math.min(10, available.size)
           val tiles = expandCity(start, available, maxCitySize)
-          if tiles.size < 0 then loop(index + 1, available -- tiles, acc) // ignora città troppo piccole
-          else loop(index + 1, available -- tiles, acc + (city -> tiles))
+          if tiles.size < 0 then createMapLoop(index + 1, available -- tiles, acc)
+          else createMapLoop(index + 1, available -- tiles, acc + (city -> tiles))
 
-      loop(0, allTiles, Set.empty)
+      createMapLoop(0, allTiles, Set.empty)
 
   /**
    * Implementation of [[CreateModuleType]] using randomized logic and a state monad.
@@ -174,6 +174,9 @@ object WorldMapModule:
   private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
     validNeighbors(tiles, size, tiles)
 
+
+  given undeterministicMap: CreateModuleType = UndeterministicMapModule
+
   /**
    * Factory method to create a map using a selected module.
    *
@@ -181,7 +184,8 @@ object WorldMapModule:
    * @param CreateMapModule strategy module
    * @return a WorldMap instance
    */
-  def createWorldMap(size: Int)(CreateMapModule: CreateModuleType): WorldMap =
+
+  def createWorldMap(size: Int)(using CreateMapModule: CreateModuleType): WorldMap =
     CreateMapModule.createMap(size)
 
   extension (worldMap: WorldMap)

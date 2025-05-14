@@ -3,6 +3,7 @@ package view
 import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.{PlayerAI, PlayerHuman}
+import model.util.GameDifficulty.Difficulty
 import model.util.GameDifficulty.Difficulty.Normal
 import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.*
@@ -30,11 +31,14 @@ class CLIViewTest:
   var worldMap: WorldMap = _
   var state: WorldState = _
 
+  given Difficulty = Difficulty.Easy // TODO: get from CLI
+
+
   @Before
   def init(): Unit =
     human = PlayerHuman.fromDifficulty(Normal)
     ai = PlayerAI.fromDifficulty(Normal)
-    worldMap = createWorldMap(5)(UndeterministicMapModule)
+    worldMap = createWorldMap(5)
     state = createWorldState(worldMap, ai, human)
 
   @Test

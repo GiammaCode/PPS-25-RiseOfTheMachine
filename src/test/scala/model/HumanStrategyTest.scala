@@ -3,7 +3,8 @@ package model
 import model.strategy.*
 import model.strategy.HumanAction.*
 import model.map.WorldState.*
-import model.map.WorldMapModule.{createWorldMap, UndeterministicMapModule}
+import model.map.WorldMapModule.{UndeterministicMapModule, createWorldMap}
+import model.util.GameDifficulty.Difficulty
 import model.util.GameDifficulty.Difficulty.Normal
 import org.junit.*
 import org.junit.Assert.*
@@ -12,11 +13,13 @@ class SmartHumanStrategyTest:
 
   var state: WorldState = _
 
+  given Difficulty = Difficulty.Easy
+
   @Before
   def init(): Unit =
     val player = PlayerHuman.fromDifficulty(Normal)
     val ai = PlayerAI.fromDifficulty(Normal)
-    val map = createWorldMap(5)(UndeterministicMapModule)
+    val map = createWorldMap(5)
     state = createWorldState(map, ai, player)
 
   @Test

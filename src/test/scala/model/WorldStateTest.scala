@@ -1,8 +1,9 @@
 package model
 
-import model.map.WorldMapModule.{UndeterministicMapModule, WorldMap, createWorldMap}
+import model.map.WorldMapModule.{WorldMap, createWorldMap}
 import model.map.WorldState.*
 import model.strategy.{PlayerAI, PlayerHuman}
+import model.util.GameDifficulty.Difficulty
 import model.util.GameDifficulty.Difficulty.Normal
 import org.junit.*
 import org.junit.Assert.*
@@ -13,11 +14,13 @@ class WorldStateTest:
   var ai: PlayerAI = _
   var worldMap: WorldMap = _
 
+  given Difficulty = Difficulty.Easy // TODO: get from CLI
+
   @Before
   def init(): Unit =
     human = PlayerHuman.fromDifficulty(Normal)
     ai = PlayerAI.fromDifficulty(Normal)
-    worldMap = createWorldMap(5)(UndeterministicMapModule)
+    worldMap = createWorldMap(5)
 
   @Test
   def testWorldStateCreation(): Unit =

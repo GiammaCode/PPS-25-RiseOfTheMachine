@@ -1,14 +1,19 @@
 package model
 
+import controller.GameController.buildGameState
+import model.map.WorldMapModule.createWorldMap
 import model.map.WorldState.*
 import model.strategy.*
 import model.strategy.HumanAction.*
 import model.util.GameDifficulty
-import model.util.GameDifficulty.Difficulty.{Easy, Normal, Hard}
+import model.util.GameDifficulty.Difficulty
+import model.util.GameDifficulty.Difficulty.{Easy, Hard, Normal}
 import org.junit.*
 import org.junit.Assert.*
 
 class PlayerHumanTest:
+
+  given Difficulty = Difficulty.Easy // TODO: get from CLI
 
   var player: PlayerHuman = _
   var worldState: WorldState = _
@@ -17,7 +22,7 @@ class PlayerHumanTest:
   @Before
   def init(): Unit =
     player = PlayerHuman.fromDifficulty(Normal)
-    worldState = GameFactory.createGame()
+    worldState = createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats)
 
   @Test
   def developKillSwitchIncreasesProgress(): Unit =
