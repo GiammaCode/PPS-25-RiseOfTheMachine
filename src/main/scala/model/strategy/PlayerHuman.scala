@@ -12,6 +12,8 @@ trait PlayerHuman extends PlayerEntity:
   def defendedCities: Set[String]
 
   def conqueredCities: Set[String]
+  
+  def getPossibleAction: List[HumanAction]
 
   def executedActions: List[HumanAction]
 
@@ -40,6 +42,8 @@ private case class PlayerHumanImpl(
 
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
+
+  override def getPossibleAction: List[HumanAction] = HumanAction.allActions
 
   override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] = action match
     case CityDefense(targets) =>

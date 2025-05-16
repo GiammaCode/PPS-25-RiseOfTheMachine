@@ -1,14 +1,15 @@
 import controller.GameController
 import controller.GameController.{GameState, buildGameState, gameTurn}
 import model.util.GameDifficulty.Difficulty
+import view.ViewModule.CLIView
 
 import scala.annotation.tailrec
-given Difficulty = Difficulty.Easy // TODO: get from CLI
 
 @main def GameLoop(): Unit =
+  given Difficulty = Difficulty.Easy // TODO: get from CLI
+  val gameMode = CLIView.renderGameModeMenu()
 
-
-  val initialState = buildGameState
+  val initialState = buildGameState(gameMode)
   val maxTurns = 2
 
   @tailrec
@@ -20,6 +21,5 @@ given Difficulty = Difficulty.Easy // TODO: get from CLI
       loop(turn + 1, newState)
 
   val finalState = loop(1, initialState)
-
   println("\n--- Fine partita (raggiunto limite massimo di turni) ---")
 

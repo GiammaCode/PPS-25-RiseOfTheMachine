@@ -65,8 +65,8 @@ object InputHandler:
   given humanActionResolver: ActionResolver[HumanAction] with
     def resolve(action: HumanAction, ctx: ActionContext): Either[InputHandlingError, HumanAction] =
       ctx match
-        case CityContext(_, ownedCities) =>
-          val targets = ownedCities.toList
+        case CityContext(cityName, ownedCities) =>
+          val targets = List(cityName) // TODO: owned cities become the target !!!!!!!!!!!!!!!!!!
           action match
             case _: CityDefense =>
               Either.cond(
