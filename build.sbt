@@ -1,10 +1,14 @@
+import sbt.Keys.libraryDependencies
+
 val scala3Version = "3.3.1"
 
 lazy val root = project
   .in(file("."))
   .settings(
-    name := "PPS-25-RiseOfTheMachine",
+    name := "PPS-24-RiseOfTheMachine",
     version := "0.1.0-SNAPSHOT",
     scalaVersion := scala3Version,
-    libraryDependencies += "com.github.sbt" % "junit-interface" % "0.13.2" % Test
+    libraryDependencies += "com.github.sbt" % "junit-interface" % "0.13.2" % Test,
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test,
+    mainClass := Some("GameLoop")
   )
