@@ -38,7 +38,7 @@ object InputHandler:
                                           )(using resolver: ActionResolver[A]): Either[InputHandlingError, A] =
     for {
       action <- availableActions.lift(choice)
-        .toRight(InvalidChoice(choice, 0 to availableActions.size - 1))
+        .toRight(InvalidChoice(choice, availableActions.indices))
       resolved <- resolver.resolve(action, context)
     } yield resolved
 
@@ -66,7 +66,7 @@ object InputHandler:
     def resolve(action: HumanAction, ctx: ActionContext): Either[InputHandlingError, HumanAction] =
       ctx match
         case CityContext(cityName, ownedCities) =>
-          val targets = List(cityName) // TODO: owned cities become the target !!!!!!!!!!!!!!!!!!
+          val targets = List(cityName)
           action match
             case _: CityDefense =>
               Either.cond(
