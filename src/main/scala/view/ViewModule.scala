@@ -4,6 +4,7 @@ import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.WorldState
 import model.strategy.AiAbility.AiAbility
 import model.strategy.{PlayerAI, PlayerHuman}
+import model.util.GameMode.GameMode
 
 
 object ViewModule:
@@ -11,7 +12,7 @@ object ViewModule:
     def renderGameTurn(worldState: WorldState): (Int, String)
     def renderAiPlayerTurn(worldState: WorldState): (Int, String)
     def renderHumanPlayerTurn(worldState: WorldState): (Int, String)
-    def renderGameModeMenu(): Int
+    def renderGameModeMenu(): GameMode
 
   object CLIView extends GameView:
 
@@ -23,7 +24,7 @@ object ViewModule:
       renderProbability(worldState.attackableCities)
       renderActionMenu(worldState.AiOptions)
 
-    override def renderGameModeMenu() : Int =
+    override def renderGameModeMenu() : GameMode =
       println("Welcome to Rise of the Machine")
       println("Select game mode:")
       println("1. Single Player")
@@ -31,11 +32,11 @@ object ViewModule:
       print("Insert your choice > ")
 
       scala.io.StdIn.readLine().trim match
-        case "1" => 1
-        case "2" => 2
+        case "1" => GameMode.Singleplayer
+        case "2" => GameMode.Multiplayer
         case _ =>
           println("Invalid input. Defaulting to Single Player (1).")
-          1
+          GameMode.Singleplayer
 
     override def renderAiPlayerTurn(worldState: WorldState): (Int, String) =
       println("\n--- PLAYER AI TURN ---")

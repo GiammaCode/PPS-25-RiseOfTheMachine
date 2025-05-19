@@ -7,6 +7,8 @@ import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy
 import model.strategy.*
 import model.util.GameDifficulty.Difficulty
+import model.util.GameMode.GameMode
+import model.util.GameMode.GameMode.{Multiplayer, Singleplayer}
 import view.ViewModule.CLIView
 
 object GameController:
@@ -16,7 +18,7 @@ object GameController:
    * @return Un nuovo GameController
    */
   case class GameStateImpl(worldState: WorldState,
-                           humanStrategy: PlayerStrategy[HumanAction], gameMode : Int)
+                           humanStrategy: PlayerStrategy[HumanAction], gameMode : GameMode)
 
   import model.map.WorldMapModule.given
   import model.util.GameDifficulty.given
@@ -24,7 +26,7 @@ object GameController:
   opaque type GameState = GameStateImpl
 
 
-  def buildGameState(gameMode: Int)(using Difficulty): GameState =
+  def buildGameState(gameMode: GameMode)(using Difficulty): GameState =
     GameStateImpl(
       createWorldState(createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
       SmartHumanStrategy,gameMode
@@ -64,44 +66,52 @@ object GameController:
       case Right(action) => (gs, action)
       case Left(_) => renderTurn().run(gs)
   )
+
   def gameTurn(): State[GameState, Unit] =
-    for
-    gs <- getGameState
-    _ <- gs.gameMode match
-      case 1 =>
         for
           action <- renderTurn()
           _ <- doPlayerAction(action)
           _ <- doHumanAction()
         yield ()
 
-      case 2 =>
-        val aiInput = CLIView.renderAiPlayerTurn(gs.worldState)
-        val aiResult = InputHandler.getActionFromChoice(
-          aiInput._1,
-          CityContext(aiInput._2, gs.worldState.attackableCities.map(_._1)),
-          gs.worldState.playerAI.getPossibleAction
-        )
 
-        aiResult match
-          case Right(aiAction) =>
-            for
-              _ <- doPlayerAction(aiAction)
-              updatedGs <- getGameState
-              humanInput = CLIView.renderHumanPlayerTurn(updatedGs.worldState)
-              humanResult = InputHandler.getActionFromChoice(
-                humanInput._1,
-                CityContext(humanInput._2, updatedGs.worldState.attackableCities.map(_._1)),
-                updatedGs.worldState.playerHuman.getPossibleAction
-              )
-              _ <- humanResult match
-                case Right(humanAction) => doHumanAction(Some(humanAction))
-                case Left(_) =>
-                  println("Invalid Human input. Retrying...")
-                  gameTurn()
-            yield ()
-          case Left(_) =>
-            println("Invalid AI input. Retrying...")
-            gameTurn()
-  yield ()
+//  def gameTurn(): State[GameState, Unit] =
+//    for
+//    gs <- getGameState
+//    _ <- gs.gameMode match
+//      case Singleplayer =>
+//        for
+//          action <- renderTurn()
+//          _ <- doPlayerAction(action)
+//          _ <- doHumanAction()
+//        yield ()
+//
+//      case Multiplayer =>
+//        val aiInput = CLIView.renderAiPlayerTurn(gs.worldState)
+//        val aiResult = InputHandler.getActionFromChoice(
+//          aiInput._1,
+//          CityContext(aiInput._2, gs.worldState.attackableCities.map(_._1)),
+//          gs.worldState.playerAI.getPossibleAction
+//        )
+//        aiResult match
+//          case Right(aiAction) =>
+//            for
+//              _ <- doPlayerAction(aiAction)
+//              updatedGs <- getGameState
+//              humanInput = CLIView.renderHumanPlayerTurn(updatedGs.worldState)
+//              humanResult = InputHandler.getActionFromChoice(
+//                humanInput._1,
+//                CityContext(humanInput._2, updatedGs.worldState.attackableCities.map(_._1)),
+//                updatedGs.worldState.playerHuman.getPossibleAction
+//              )
+//              _ <- humanResult match
+//                case Right(humanAction) => doHumanAction(Some(humanAction))
+//                case Left(_) =>
+//                  println("Invalid Human input. Retrying...")
+//                  gameTurn()
+//            yield ()
+//          case Left(_) =>
+//            println("Invalid AI input. Retrying...")
+//            gameTurn()
+//  yield ()
 
