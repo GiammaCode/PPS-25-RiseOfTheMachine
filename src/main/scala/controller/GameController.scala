@@ -43,7 +43,7 @@ object GameController:
     (gs.copy(worldState = currentWorldState.updatePlayer(result.getPlayer).updateMap(result.getCity)), ())
   )
 
-  private def doHumanAction(maybeAction: Option[HumanAction] = None): State[GameState, Unit] = State (gs =>
+  private def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] = State (gs =>
     val currentWorldState = gs.worldState
     val action = maybeAction.getOrElse(gs.humanStrategy.decideAction(currentWorldState))
     val result = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
@@ -57,7 +57,7 @@ object GameController:
   private def renderTurn(): State[GameState, (AiAction, HumanAction)] = State ( gs =>
     val currentWorldState = gs.worldState
 
-    val input = CLIView.renderGameTurn(currentWorldState)
+    val input = CLIView.renderGameTurn(currentWorldState)(GameMode.Multiplayer)
 
     val playerResult = InputHandler.getActionFromChoice(
       input._1._1,
@@ -66,8 +66,8 @@ object GameController:
     )
 
     val humanResult = InputHandler.getActionFromChoice(
-      input._2._1,
-      CityContext(input._2._2, currentWorldState.attackableCities.map(_._1)),
+      input._2.get._1,
+      CityContext(input._2.get._2, currentWorldState.attackableCities.map(_._1)),
       currentWorldState.playerHuman.getPossibleAction
     )
 
@@ -82,47 +82,7 @@ object GameController:
         for
           (playerAction,humanAction) <- renderTurn()
           _ <- doPlayerAction(playerAction)
-          _ <- doHumanAction(humanAction)
+          _ <- doHumanAction(Option(humanAction))
         yield ()
 
-
-//  def gameTurn(): State[GameState, Unit] =
-//    for
-//    gs <- getGameState
-//    _ <- gs.gameMode match
-//      case Singleplayer =>
-//        for
-//          action <- renderTurn()
-//          _ <- doPlayerAction(action)
-//          _ <- doHumanAction()
-//        yield ()
-//
-//      case Multiplayer =>
-//        val aiInput = CLIView.renderAiPlayerTurn(gs.worldState)
-//        val aiResult = InputHandler.getActionFromChoice(
-//          aiInput._1,
-//          CityContext(aiInput._2, gs.worldState.attackableCities.map(_._1)),
-//          gs.worldState.playerAI.getPossibleAction
-//        )
-//        aiResult match
-//          case Right(aiAction) =>
-//            for
-//              _ <- doPlayerAction(aiAction)
-//              updatedGs <- getGameState
-//              humanInput = CLIView.renderHumanPlayerTurn(updatedGs.worldState)
-//              humanResult = InputHandler.getActionFromChoice(
-//                humanInput._1,
-//                CityContext(humanInput._2, updatedGs.worldState.attackableCities.map(_._1)),
-//                updatedGs.worldState.playerHuman.getPossibleAction
-//              )
-//              _ <- humanResult match
-//                case Right(humanAction) => doHumanAction(Some(humanAction))
-//                case Left(_) =>
-//                  println("Invalid Human input. Retrying...")
-//                  gameTurn()
-//            yield ()
-//          case Left(_) =>
-//            println("Invalid AI input. Retrying...")
-//            gameTurn()
-//  yield ()
 

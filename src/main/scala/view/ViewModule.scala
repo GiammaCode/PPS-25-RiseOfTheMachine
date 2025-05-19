@@ -13,7 +13,7 @@ object ViewModule:
   trait GameView:
     def renderGameModeMenu(): GameMode
 
-    def renderGameTurn(worldState: WorldState)(using gameMode:GameMode): ((Int, String), Option[(Int, String)])
+    def renderGameTurn(worldState: WorldState)(gameMode:GameMode): ((Int, String), Option[(Int, String)])
   //def renderAiPlayerTurn(worldState: WorldState): (Int, String)
   //def renderHumanPlayerTurn(worldState: WorldState): (Int, String)
 
@@ -37,7 +37,7 @@ object ViewModule:
         GameMode.Singleplayer
       }
 
-    override def renderGameTurn(worldState: WorldState)(using gameMode:GameMode): ((Int, String), Option[(Int, String)]) =
+    override def renderGameTurn(worldState: WorldState)(gameMode:GameMode): ((Int, String), Option[(Int, String)]) =
       renderTurn(worldState.turn)
       renderMap(worldState.worldMap)
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
