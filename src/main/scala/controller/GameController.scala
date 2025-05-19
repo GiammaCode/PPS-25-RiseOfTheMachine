@@ -18,25 +18,25 @@ object GameController:
    * @return Un nuovo GameController
    */
   case class GameStateImpl(worldState: WorldState,
-                           humanStrategy: PlayerStrategy[HumanAction], gameMode : GameMode)
+                           humanStrategy: PlayerStrategy[HumanAction])
 
   import model.map.WorldMapModule.given
   import model.util.GameDifficulty.given
+  import model.util.GameMode.given
 
   opaque type GameState = GameStateImpl
 
-
-  def buildGameState(gameMode: GameMode)(using Difficulty): GameState =
+  def buildGameState(using Difficulty ,GameMode): GameState =
     GameStateImpl(
       createWorldState(createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
-      SmartHumanStrategy,gameMode
+      SmartHumanStrategy
     )
-
-
 
   import model.util.States.State.State
   private def getGameState: State[GameState, GameState] =
     State(gs => (gs, gs))
+
+
   private def doPlayerAction(action: AiAction): State[GameState, Unit] = State ( gs =>
     val currentWorldState = gs.worldState
     val result = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
@@ -54,24 +54,35 @@ object GameController:
   )
 
 
-  private def renderTurn(): State[GameState, AiAction] = State ( gs =>
+  private def renderTurn(): State[GameState, (AiAction, HumanAction)] = State ( gs =>
     val currentWorldState = gs.worldState
-    import view.ViewModule.CLIView
+
     val input = CLIView.renderGameTurn(currentWorldState)
-    InputHandler.getActionFromChoice(
-      input._1,
-      CityContext(input._2,  currentWorldState.attackableCities.map(_._1)),
+
+    val playerResult = InputHandler.getActionFromChoice(
+      input._1._1,
+      CityContext(input._1._2, currentWorldState.attackableCities.map(_._1)),
       currentWorldState.playerAI.getPossibleAction
-    ) match
-      case Right(action) => (gs, action)
-      case Left(_) => renderTurn().run(gs)
-  )
+    )
+
+    val humanResult = InputHandler.getActionFromChoice(
+      input._2._1,
+      CityContext(input._2._2, currentWorldState.attackableCities.map(_._1)),
+      currentWorldState.playerHuman.getPossibleAction
+    )
+
+    (playerResult, humanResult) match
+      case (Right(playerAction), Right(humanAction)) =>
+        (gs, (playerAction, humanAction))
+
+      case _ => renderTurn().run(gs))
+
 
   def gameTurn(): State[GameState, Unit] =
         for
-          action <- renderTurn()
-          _ <- doPlayerAction(action)
-          _ <- doHumanAction()
+          (playerAction,humanAction) <- renderTurn()
+          _ <- doPlayerAction(playerAction)
+          _ <- doHumanAction(humanAction)
         yield ()
 
 
