@@ -6,50 +6,52 @@ import model.strategy.AiAbility.AiAbility
 import model.strategy.{PlayerAI, PlayerHuman}
 import model.util.GameMode.GameMode
 
+import scala.io.StdIn
+
 
 object ViewModule:
   trait GameView:
-    def renderGameTurn(worldState: WorldState): (Int, String)
-    def renderAiPlayerTurn(worldState: WorldState): (Int, String)
-    def renderHumanPlayerTurn(worldState: WorldState): (Int, String)
     def renderGameModeMenu(): GameMode
 
-  object CLIView extends GameView:
+    def renderGameTurn(worldState: WorldState)(using gameMode:GameMode): ((Int, String), Option[(Int, String)])
+  //def renderAiPlayerTurn(worldState: WorldState): (Int, String)
+  //def renderHumanPlayerTurn(worldState: WorldState): (Int, String)
 
-    override def renderGameTurn(worldState: WorldState): (Int, String) =
+  object CLIView extends GameView:
+    override def renderGameModeMenu(): GameMode =
+      println(
+        """|Welcome to Rise of the Machine
+           |Select game mode:
+           |1. Single Player
+           |2. Multiplayer
+           |Insert your choice >""".stripMargin
+      )
+      val input = StdIn.readLine().trim
+
+      Option(input).flatMap {
+        case "1" => Some(GameMode.Singleplayer)
+        case "2" => Some(GameMode.Multiplayer)
+        case _ => None
+      }.getOrElse {
+        println("Invalid input. Defaulting to Single Player (1).")
+        GameMode.Singleplayer
+      }
+
+    override def renderGameTurn(worldState: WorldState)(using gameMode:GameMode): ((Int, String), Option[(Int, String)]) =
       renderTurn(worldState.turn)
       renderMap(worldState.worldMap)
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
       renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
       renderProbability(worldState.attackableCities)
-      renderActionMenu(worldState.AiOptions)
+      gameMode match
+        case GameMode.Singleplayer =>
+          val aiMove = renderActionMenu(worldState.AiOptions)
+          ((aiMove), None)
 
-    override def renderGameModeMenu() : GameMode =
-      println("Welcome to Rise of the Machine")
-      println("Select game mode:")
-      println("1. Single Player")
-      println("2. Multiplayer")
-      print("Insert your choice > ")
-
-      scala.io.StdIn.readLine().trim match
-        case "1" => GameMode.Singleplayer
-        case "2" => GameMode.Multiplayer
-        case _ =>
-          println("Invalid input. Defaulting to Single Player (1).")
-          GameMode.Singleplayer
-
-    override def renderAiPlayerTurn(worldState: WorldState): (Int, String) =
-      println("\n--- PLAYER AI TURN ---")
-      renderMap(worldState.worldMap)
-      renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
-      renderProbability(worldState.attackableCities)
-      renderActionMenu(worldState.AiOptions)
-
-    override def renderHumanPlayerTurn(worldState: WorldState): (Int, String) =
-      println("\n--- PLAYER HUMAN TURN ---")
-      renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
-      renderActionMenu(worldState.HumanOptions)
-
+        case GameMode.Multiplayer =>
+          val aiMove = renderActionMenu(worldState.AiOptions)
+          val humanMove = renderActionMenu(worldState.HumanOptions)
+          ((aiMove), Some(humanMove))
 
 
     private def renderTurn(turn: Int): Unit =
@@ -85,7 +87,7 @@ object ViewModule:
     }
     print("Insert your action > ")
 
-    val input = scala.io.StdIn.readLine().trim.split("\\s+").toList
+    val input = StdIn.readLine().trim.split("\\s+").toList
 
     input match
       case actionStr :: cityStr :: _ =>
@@ -100,7 +102,7 @@ object ViewModule:
         println("Invalid input. Defaulting to (0, \"\")")
         (0, "")
 
-  private def renderComplessiveAction(human: PlayerHuman, ai: PlayerAI) : Unit =
+  private def renderComplessiveAction(human: PlayerHuman, ai: PlayerAI): Unit =
     println(s"Player Human action executed: ${human.executedActions.mkString(", ")}")
     println(s"Player AI action executed: ${ai.executedActions.mkString(", ")}")
 
