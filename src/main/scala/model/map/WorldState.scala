@@ -5,7 +5,7 @@ import model.strategy.AiAbility.AiAbility
 import model.strategy.{AiAction, Infect, PlayerAI, PlayerHuman, Sabotage}
 import model.util.Util.*
 import model.map.CityModule.CityImpl.City
-import model.util.GameDifficulty.Difficulty
+import model.util.GameSettings.{Difficulty, GameSettings}
 /**
  * The `WorldState` module represents the full game state at a given turn.
  * It includes information about the world map, both players, and the current turn.
@@ -35,8 +35,8 @@ object WorldState:
    * @param playerHuman the human player
    * @return a new WorldState instance
    */
-  def createWorldState(worldMap: WorldMap, playerAI: PlayerAI, playerHuman: PlayerHuman)(using difficulty: Difficulty): WorldState =
-    State(worldMap, playerAI, playerHuman, difficulty)
+  def createWorldState(worldMap: WorldMap, playerAI: PlayerAI, playerHuman: PlayerHuman)(using settings: GameSettings): WorldState =
+    State(worldMap, playerAI, playerHuman, settings.difficulty)
 
   /**
    * Extension methods available on WorldState instances.

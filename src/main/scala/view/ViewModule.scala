@@ -4,7 +4,7 @@ import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.WorldState
 import model.strategy.AiAbility.AiAbility
 import model.strategy.{PlayerAI, PlayerHuman}
-import model.util.GameMode.GameMode
+import model.util.GameSettings.{GameMode, GameSettings}
 
 import scala.io.StdIn
 
@@ -37,7 +37,7 @@ object ViewModule:
         GameMode.Singleplayer
       }
 
-    override def renderGameTurn(worldState: WorldState)(gameMode:GameMode): ((Int, String), Option[(Int, String)]) =
+    override def renderGameTurn(worldState: WorldState)(gameMode: GameMode): ((Int, String), Option[(Int, String)]) =
       renderTurn(worldState.turn)
       renderMap(worldState.worldMap)
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)

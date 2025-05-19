@@ -6,9 +6,7 @@ import model.map.WorldMapModule.createWorldMap
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy
 import model.strategy.*
-import model.util.GameDifficulty.Difficulty
-import model.util.GameMode.GameMode
-import model.util.GameMode.GameMode.{Multiplayer, Singleplayer}
+import model.util.GameSettings.{GameMode, GameSettings}
 import view.ViewModule.CLIView
 
 object GameController:
@@ -22,11 +20,11 @@ object GameController:
 
   import model.map.WorldMapModule.given
   import model.util.GameDifficulty.given
-  import model.util.GameMode.given
 
   opaque type GameState = GameStateImpl
 
-  def buildGameState(using Difficulty ,GameMode): GameState =
+  def buildGameState(using GameSettings): GameState =
+    import model.util.GameSettings.given
     GameStateImpl(
       createWorldState(createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
       SmartHumanStrategy

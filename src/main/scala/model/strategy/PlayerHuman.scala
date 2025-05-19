@@ -3,8 +3,8 @@ package model.strategy
 import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.WorldMap
 import model.strategy.ExecuteActionResult.ExecuteActionResult
-import model.util.GameDifficulty.{Difficulty, HumanStats, humanStatsFor}
 import model.strategy.HumanAction
+import model.util.GameSettings.{GameSettings, HumanStats}
 
 trait PlayerHuman extends PlayerEntity:
   def killSwitch: Int
@@ -25,12 +25,12 @@ trait PlayerHuman extends PlayerEntity:
   override def toString: String
 
 object PlayerHuman:
-  def fromDifficulty(difficulty: Difficulty): PlayerHuman =
-    val stats = humanStatsFor(difficulty)
-    PlayerHumanImpl(killSwitch = stats.killSwitch)
-    
+
   def fromStats(using stats: HumanStats): PlayerHuman =
     PlayerHumanImpl(killSwitch = stats.killSwitch)
+
+  def fromSettings(using settings: GameSettings): PlayerHuman =
+    PlayerHumanImpl(killSwitch = settings.human.killSwitch)
 
 
 private case class PlayerHumanImpl(

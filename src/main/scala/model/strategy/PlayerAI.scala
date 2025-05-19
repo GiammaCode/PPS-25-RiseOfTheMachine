@@ -8,7 +8,8 @@ import model.map.WorldMapModule.WorldMap
 import model.strategy.AiAbility.AiAbility
 import model.strategy.ExecuteActionResult.ExecuteActionResult
 import model.strategy.AiAction
-import model.util.GameDifficulty.{AIStats, Difficulty, aiStatsFor}
+import model.util.GameSettings
+import model.util.GameSettings.{AIStats, Difficulty, GameSettings, given}
 
 import util.chaining.scalaUtilChainingOps
 import scala.util.Random
@@ -29,13 +30,14 @@ trait PlayerAI extends PlayerEntity:
   override def toString: String
 
 object PlayerAI:
-  def fromDifficulty(difficulty: Difficulty): PlayerAI =
-    val stats = aiStatsFor(difficulty)
-      PlayerAIImpl(infectionChance = stats.infectionChance, sabotagePower = stats.sabotagePower)
-
   def fromStats(using stats: AIStats): PlayerAI =
     PlayerAIImpl(infectionChance = stats.infectionChance, sabotagePower = stats.sabotagePower)
 
+  def fromSettings(using settings: GameSettings): PlayerAI =
+    PlayerAIImpl(
+      infectionChance = settings.ai.infectionChance,
+      sabotagePower = settings.ai.sabotagePower
+    )
 
 private case class PlayerAIImpl (
                                   unlockedAbilities : Set[AiAbility] = Set.empty,
