@@ -13,6 +13,9 @@ object RiseOfTheMachine extends App {
       |\_| \_|_|___/\___|  \___/|_|    \__|_| |_|\___| \_|  |_/\__,_|\___|_| |_|_|_| |_|\___|
       |
       |
+      |☠
+      |👾
+      |🛸
       |""".stripMargin
 
   def typewriterEffectMultiline(text: String, delay: Int): Unit = {
