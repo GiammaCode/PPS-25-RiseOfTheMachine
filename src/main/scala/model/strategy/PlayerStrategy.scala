@@ -12,24 +12,14 @@ trait PlayerStrategy[A <: TurnAction]:
 object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
 
   override def decideAction(state: WorldState): HumanAction =
-    state.difficulty match
-      case Difficulty.Easy => decideEasy
-      case Difficulty.Normal => decideNormal
-      case Difficulty.Hard => decideHard
+    val possibleTargets = state.attackableCities.map(_._1).toList
+    val cityToDefend = possibleTargets
+      .filterNot(state.playerHuman.defendedCities.contains)
+      .take(1)
 
-    //nested method aiutano la helper logic
-    def decideEasy: HumanAction =
-      val possibleTargets = state.attackableCities.map(_._1).toList
-      val cityToDefend = possibleTargets.
-        filterNot(state.playerHuman.defendedCities.contains).
-        take(1)
-      val possibleActions: List[HumanAction] =
-        List(
-          Option.when(cityToDefend.nonEmpty)(CityDefense(cityToDefend)),
-          Option.when(state.playerHuman.killSwitch < 50)(DevelopKillSwitch),
-          Some(GlobalDefense())
-        ).flatten
-      Random.shuffle(possibleActions).head
+    val actions = List(
+      Option.when(cityToDefend.nonEmpty)(CityDefense(cityToDefend)),
+      Some(GlobalDefense())
+    ).flatten
 
-    def decideNormal: HumanAction = ???
-    def decideHard: HumanAction = ???
+    Random.shuffle(actions).head
