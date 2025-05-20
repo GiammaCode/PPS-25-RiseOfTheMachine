@@ -20,13 +20,18 @@ object GameController:
   case class GameStateImpl(worldState: WorldState,
                            humanStrategy: PlayerStrategy[HumanAction])
 
+  private case class TurnResult(
+                         playerAction: AiAction,
+                         playerProb: Int,
+                         humanAction: Option[HumanAction],
+                       )
+
   opaque type GameState = GameStateImpl
 
   import model.map.WorldMapModule.given
 
   val (mode, diff) = CLIView.renderGameModeMenu()
   given GameMode = mode
-
   given Difficulty = diff
 
   def buildGameState(): GameState =
@@ -54,7 +59,7 @@ object GameController:
   )
 
 
-  private def renderTurn(): State[GameState, (AiAction,Int, Option[HumanAction])] = State { gs =>
+  private def renderTurn(): State[GameState, TurnResult] = State { gs =>
     val currentWorldState = gs.worldState
     val input = CLIView.renderGameTurn(currentWorldState)
 
@@ -73,22 +78,19 @@ object GameController:
     }
     (playerResult, humanResultOpt) match
       case (Right(playerAction), Some(Right(humanAction))) =>
-        (gs, (playerAction, 100,Some(humanAction)))
+        (gs, TurnResult(playerAction, 0, Some(humanAction)))
       case (Right(playerAction), None) =>
-        (gs, (playerAction,100, None))
-      case _ =>
-        renderTurn().run(gs)
+        (gs, TurnResult(playerAction, currentWorldState.probabilityByCityandAction(input._1._2,playerAction), None))
+      case _ => renderTurn().run(gs)
   }
 
   def gameTurn(): State[GameState, Unit] =
         for
-          (aiAction,playerProb,humanAction) <- renderTurn()
-          if doesTheActionGoesRight(playerProb)
-            _ <- doPlayerAction(aiAction)
-            _ <- doHumanAction(humanAction)
+          turn <- renderTurn()
+          if doesTheActionGoesRight(turn._2)
+          _ <- doPlayerAction(turn._1)
+          _ <- doHumanAction(turn._3)
         yield ()
-
-
 
   extension(gs: GameState)
     def worldState: WorldState = gs.worldState

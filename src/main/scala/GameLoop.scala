@@ -10,7 +10,7 @@ import scala.annotation.tailrec
   given Difficulty = Difficulty.Easy // TODO: get from CLI
 
   val initialState = buildGameState()
-  val maxTurns = 2
+  val maxTurns = 5
 
 
   @tailrec
