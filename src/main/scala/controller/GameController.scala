@@ -22,7 +22,8 @@ object GameController:
   opaque type GameState = GameStateImpl
 
   import model.map.WorldMapModule.given
-  given (GameMode,Difficulty) = CLIView.renderGameModeMenu()
+  given Difficulty = Difficulty.Easy
+  given GameMode = CLIView.renderGameModeMenu()._1
 
   def buildGameState(): GameState =
   GameStateImpl(
@@ -32,7 +33,6 @@ object GameController:
   import model.util.States.State.State
   private def getGameState: State[GameState, GameState] =
     State(gs => (gs, gs))
-
 
   private def doPlayerAction(action: AiAction): State[GameState, Unit] = State ( gs =>
     val currentWorldState = gs.worldState
