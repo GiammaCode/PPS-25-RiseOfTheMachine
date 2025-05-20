@@ -22,8 +22,11 @@ object GameController:
   opaque type GameState = GameStateImpl
 
   import model.map.WorldMapModule.given
-  given Difficulty = Difficulty.Easy
-  given GameMode = CLIView.renderGameModeMenu()._1
+
+  val (mode, diff) = CLIView.renderGameModeMenu()
+  given GameMode = mode
+
+  given Difficulty = diff
 
   def buildGameState(): GameState =
   GameStateImpl(
