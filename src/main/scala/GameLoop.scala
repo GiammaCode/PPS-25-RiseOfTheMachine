@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 @main def GameLoop(): Unit =
   given Difficulty = Difficulty.Easy // TODO: get from CLI
 
-  val initialState = buildGameState
+  val initialState = buildGameState()
   val maxTurns = 2
 
   @tailrec

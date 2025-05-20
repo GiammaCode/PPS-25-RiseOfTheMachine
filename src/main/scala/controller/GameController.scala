@@ -8,8 +8,6 @@ import model.strategy
 import model.strategy.*
 import model.util.GameDifficulty.Difficulty
 import model.util.GameMode.GameMode
-import model.util.GameMode.GameMode.Multiplayer
-import model.util.States.State.State
 import view.ViewModule.CLIView
 
 object GameController:
@@ -25,14 +23,15 @@ object GameController:
 
   import model.map.WorldMapModule.given
   import model.util.GameDifficulty.given
+
+  //given (GameMode, Difficulty) = CLIView.renderGameModeMenu()
+  given Difficulty = Difficulty.Hard
   given GameMode = CLIView.renderGameModeMenu()
 
-
-  def buildGameState(using Difficulty): GameState =
+  def buildGameState(): GameState =
   GameStateImpl(
       createWorldState(createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
-      SmartHumanStrategy
-    )
+      SmartHumanStrategy)
 
   import model.util.States.State.State
   private def getGameState: State[GameState, GameState] =

@@ -1,26 +1,24 @@
 package controller
 
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.matchers.should.Matchers
 import controller.GameController.*
 import model.util.GameDifficulty.Difficulty
 import model.util.GameMode.GameMode
-import model.map.WorldState.WorldState
-import model.strategy.AiAction
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
 class GameControllerScalaTests extends AnyFunSuite with Matchers {
   given Difficulty = Difficulty.Easy
   given GameMode = GameMode.Singleplayer
+  val gameState: GameState = buildGameState()
+
 
   test("buildGameState should initialize a valid GameState") {
-    val gameState = buildGameState
     gameState.worldState.playerAI should not be null
     gameState.worldState.playerHuman should not be null
     gameState.worldState.worldMap.numberOfCity() should be > 0
   }
 
   test("doPlayerAction should update the world state") {
-    val gameState = buildGameState
     val initialState = gameState.worldState
 
     // Choose a city to infect
