@@ -8,6 +8,7 @@ import model.strategy
 import model.strategy.*
 import model.util.GameDifficulty.Difficulty
 import model.util.GameMode.GameMode
+import model.util.Util.doesTheActionGoesRight
 import view.ViewModule.CLIView
 
 object GameController:
@@ -46,13 +47,14 @@ object GameController:
   private def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] = State (gs =>
     val currentWorldState = gs.worldState
     val action = maybeAction.getOrElse(gs.humanStrategy.decideAction(currentWorldState))
+
     val result = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
     val updatedState = gs.worldState.updateHuman(result.getPlayer).updateMap(result.getCity)
     (gs.copy(worldState = updatedState), ())
   )
 
 
-  private def renderTurn(): State[GameState, (AiAction, Option[HumanAction])] = State { gs =>
+  private def renderTurn(): State[GameState, (AiAction,Int, Option[HumanAction])] = State { gs =>
     val currentWorldState = gs.worldState
     val input = CLIView.renderGameTurn(currentWorldState)
 
@@ -71,19 +73,22 @@ object GameController:
     }
     (playerResult, humanResultOpt) match
       case (Right(playerAction), Some(Right(humanAction))) =>
-        (gs, (playerAction, Some(humanAction)))
+        (gs, (playerAction, 100,Some(humanAction)))
       case (Right(playerAction), None) =>
-        (gs, (playerAction, None))
+        (gs, (playerAction,100, None))
       case _ =>
         renderTurn().run(gs)
   }
 
   def gameTurn(): State[GameState, Unit] =
         for
-          (playerAction,humanAction) <- renderTurn()
-          _ <- doPlayerAction(playerAction)
-          _ <- doHumanAction(humanAction)
+          (aiAction,playerProb,humanAction) <- renderTurn()
+          if doesTheActionGoesRight(playerProb)
+            _ <- doPlayerAction(aiAction)
+            _ <- doHumanAction(humanAction)
         yield ()
+
+
 
   extension(gs: GameState)
     def worldState: WorldState = gs.worldState
