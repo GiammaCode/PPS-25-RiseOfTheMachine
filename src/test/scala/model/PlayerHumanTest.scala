@@ -1,10 +1,8 @@
 package model
 
-import controller.GameController.buildGameState
 import model.map.WorldMapModule.createWorldMap
 import model.map.WorldState.*
 import model.strategy.*
-import model.strategy.HumanAction.*
 import model.util.GameDifficulty
 import model.util.GameDifficulty.Difficulty
 import model.util.GameDifficulty.Difficulty.{Easy, Hard, Normal}

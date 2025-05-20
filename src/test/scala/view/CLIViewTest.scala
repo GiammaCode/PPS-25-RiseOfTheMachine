@@ -5,25 +5,10 @@ import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.{PlayerAI, PlayerHuman}
 import model.util.GameDifficulty.Difficulty
 import model.util.GameDifficulty.Difficulty.Normal
+import model.util.GameMode.GameMode
 import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.*
 import view.ViewModule.*
-
-/** Example of layout
- * -----RISE OF THE MACHINE - TURN 5-----
- *
- * Infected city: 3/15 --> 20.0%
- * Abilities unlocked: ab1,ab2
- *
- * A A B
- * B B B
- * C C C
- * Select your action:
- * 1. Infect
- * 2. Sabotages
- * 3. Exit
- * Insert your action >
- */
 
 class CLIViewTest:
   var human: PlayerHuman = _
@@ -32,7 +17,7 @@ class CLIViewTest:
   var state: WorldState = _
 
   given Difficulty = Difficulty.Easy // TODO: get from CLI
-
+  given GameMode = GameMode.Singleplayer
 
   @Before
   def init(): Unit =
@@ -40,6 +25,50 @@ class CLIViewTest:
     ai = PlayerAI.fromDifficulty(Normal)
     worldMap = createWorldMap(5)
     state = createWorldState(worldMap, ai, human)
+
+  @Test
+  def testRenderGameModeMenu_SinglePlayer_Easy(): Unit =
+    val input = new java.io.ByteArrayInputStream("1\n1\n".getBytes) // 1 → Singleplayer, 1 → Easy
+    val outputBuffer = new java.io.ByteArrayOutputStream()
+
+    val (mode, difficulty) = Console.withIn(input) {
+      Console.withOut(outputBuffer) {
+        CLIView.renderGameModeMenu()
+      }
+    }
+
+    assertEquals(GameMode.Singleplayer, mode)
+    assertEquals(Difficulty.Easy, difficulty)
+
+  @Test
+  def testRenderGameModeMenu_InvalidDefaults(): Unit =
+    val input = new java.io.ByteArrayInputStream("wrong\nx\n".getBytes)
+    val outputBuffer = new java.io.ByteArrayOutputStream()
+
+    val (mode, difficulty) = Console.withIn(input) {
+      Console.withOut(outputBuffer) {
+        CLIView.renderGameModeMenu()
+      }
+    }
+
+    assertEquals(GameMode.Singleplayer, mode)
+    assertEquals(Difficulty.Normal, difficulty)
+
+
+  @Test
+  def testRenderGameModeMenu_Multiplayer_DefaultsToNormal(): Unit =
+    val input = new java.io.ByteArrayInputStream("2\n".getBytes) // 2 → Multiplayer
+    val outputBuffer = new java.io.ByteArrayOutputStream()
+
+    val (mode, difficulty) = Console.withIn(input) {
+      Console.withOut(outputBuffer) {
+        CLIView.renderGameModeMenu()
+      }
+    }
+
+    assertEquals(GameMode.Multiplayer, mode)
+    assertEquals(Difficulty.Normal, difficulty)
+
 
   @Test
   def testRenderGameTurnWithSimulatedInput(): Unit =
@@ -57,7 +86,7 @@ class CLIViewTest:
     assertTrue(printedOutput.contains("RISE OF THE MACHINE - TURN"))
     assertTrue(printedOutput.contains("Infected city:"))
     assertTrue(printedOutput.contains("Insert your action"))
-    assertEquals((1, "A"), result)
+    assertEquals(((1, "A"), None), result)
 
 
 
