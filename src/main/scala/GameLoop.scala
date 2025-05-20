@@ -8,12 +8,7 @@ import scala.annotation.tailrec
 @main def GameLoop(): Unit =
   given Difficulty = Difficulty.Easy //TODO: take from cli
 
-  given GameMode = CLIView.renderGameModeMenu()
-
-  val settings: GameSettings = forSettings(summon, summon) // explicitly call factory
-
-  given GameSettings = settings
-
+  given GameSettings = CLIView.renderGameModeMenu()
   val initialState = buildGameState
   val maxTurns = 2
 
@@ -22,7 +17,7 @@ import scala.annotation.tailrec
     if turn > maxTurns then state
     else
       println(s"\n--- Turno $turn ---")
-      val (newState, _) = gameTurn().run(state)
+      val (newState, _) = gameTurn.run(state)
       loop(turn + 1, newState)
 
   val finalState = loop(1, initialState)

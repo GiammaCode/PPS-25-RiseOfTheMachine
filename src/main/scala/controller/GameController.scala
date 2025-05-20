@@ -49,7 +49,7 @@ object GameController:
   )
 
 
-  private def renderTurn(): State[GameState, (AiAction, Option[HumanAction])] = State { gs =>
+  private def renderTurn(using GameSettings): State[GameState, (AiAction, Option[HumanAction])] = State { gs =>
     val currentWorldState = gs.worldState
     val input = CLIView.renderGameTurn(currentWorldState)
 
@@ -72,12 +72,12 @@ object GameController:
       case (Right(playerAction), None) =>
         (gs, (playerAction, None))
       case _ =>
-        renderTurn().run(gs)
+        renderTurn.run(gs)
   }
 
-  def gameTurn(): State[GameState, Unit] =
+  def gameTurn(using GameSettings): State[GameState, Unit] =
         for
-          (playerAction,humanAction) <- renderTurn()
+          (playerAction,humanAction) <- renderTurn
           _ <- doPlayerAction(playerAction)
           _ <- doHumanAction(humanAction)
         yield ()
