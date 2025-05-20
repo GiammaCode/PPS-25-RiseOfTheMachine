@@ -12,10 +12,7 @@ import scala.io.StdIn
 object ViewModule:
   trait GameView:
     def renderGameModeMenu(): GameMode
-
-    def renderGameTurn(worldState: WorldState)(gameMode:GameMode): ((Int, String), Option[(Int, String)])
-  //def renderAiPlayerTurn(worldState: WorldState): (Int, String)
-  //def renderHumanPlayerTurn(worldState: WorldState): (Int, String)
+    def renderGameTurn(worldState: WorldState)(using GameMode): ((Int, String), Option[(Int, String)])
 
   object CLIView extends GameView:
     override def renderGameModeMenu(): GameMode =
@@ -37,25 +34,28 @@ object ViewModule:
         GameMode.Singleplayer
       }
 
-    override def renderGameTurn(worldState: WorldState)(gameMode:GameMode): ((Int, String), Option[(Int, String)]) =
+    override def renderGameTurn(worldState: WorldState)(using gameMode: GameMode): ((Int, String), Option[(Int, String)]) =
       renderTurn(worldState.turn)
       renderMap(worldState.worldMap)
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
-      renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
       renderProbability(worldState.attackableCities)
+      renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
       gameMode match
         case GameMode.Singleplayer =>
+          println("\n AI PLAYER TURN")
           val aiMove = renderActionMenu(worldState.AiOptions)
           ((aiMove), None)
 
         case GameMode.Multiplayer =>
+          println("\n AI PLAYER TURN")
           val aiMove = renderActionMenu(worldState.AiOptions)
+          println("\n HUMAN PLAYER TURN")
           val humanMove = renderActionMenu(worldState.HumanOptions)
           ((aiMove), Some(humanMove))
 
 
     private def renderTurn(turn: Int): Unit =
-      println(s"\n-----RISE OF THE MACHINE - TURN $turn-----\n")
+      println(s"\n🌍 ----- RISE OF THE MACHINE - TURN $turn -----\n")
 
     private def renderMap(worldMap: WorldMap): Unit =
       val mapString = (0 until worldMap.getSizeOfTheMap).map { y =>
@@ -81,10 +81,12 @@ object ViewModule:
       println(formatted)
 
   def renderActionMenu(options: List[String]): (Int, String) =
-    println("Select your action:")
+    println("╭──────────────────────────────╮")
+    println("│       Select your action     │")
     options.zipWithIndex.foreach { case (option, index) =>
-      println(s"$index. $option")
+      println(f"│ $index%2d. $option%-20s     │")
     }
+    println("╰──────────────────────────────╯")
     print("Insert your action > ")
 
     val input = StdIn.readLine().trim.split("\\s+").toList
@@ -103,8 +105,9 @@ object ViewModule:
         (0, "")
 
   private def renderComplessiveAction(human: PlayerHuman, ai: PlayerAI): Unit =
-    println(s"Player Human action executed: ${human.executedActions.mkString(", ")}")
-    println(s"Player AI action executed: ${ai.executedActions.mkString(", ")}")
+    println("\n🧾 Action Summary")
+    println(s"🧍 Human: ${human.executedActions.mkString(" || ")}")
+    println(s"🤖 AI   : ${ai.executedActions.lastOption.mkString(" || ")}")
 
 
 
