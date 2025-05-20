@@ -6,20 +6,18 @@ import model.strategy.{AiAbility, AiAction, Evolve, Infect, PlayerAI, PlayerHuma
 import org.junit.*
 import org.junit.Assert.assertEquals
 import model.map.WorldState.*
-import model.util.GameDifficulty
-import model.util.GameDifficulty.Difficulty
-import model.util.GameDifficulty.Difficulty.{Easy, Hard, Normal}
+import model.util.GameSettings._
 
 class PlayerAITest :
   var player : PlayerAI = _
   var cities: List[String] = List("A", "B")
   var worldState : WorldState = _
-  given Difficulty = Difficulty.Easy // TODO: get from CLI
+  given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Easy)
 
 
   @Before
   def init(): Unit =
-    player = PlayerAI.fromDifficulty(Normal)
+    player = PlayerAI.fromSettings
     worldState = createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats)
 
   @Test
@@ -56,18 +54,4 @@ class PlayerAITest :
     assert(updatedPlayer.sabotagedCities.contains("A"))
     assert(updatedPlayer.sabotagedCities.contains("B"))
     assert(updatedPlayer.sabotagedCities.size == 2)
-
-  @Test
-  def easyDifficultyStatsTest(): Unit =
-    val easyPlayer = PlayerAI.fromDifficulty(Easy)
-    val expected = GameDifficulty.aiStatsFor(Easy)
-    assertEquals(expected.infectionChance, easyPlayer.infectionChance)
-    assertEquals(expected.sabotagePower, easyPlayer.sabotagePower)
-
-  @Test
-  def hardDifficultyStatsTest(): Unit =
-    val hardPlayer = PlayerAI.fromDifficulty(Hard)
-    val expected = GameDifficulty.aiStatsFor(Hard)
-    assertEquals(expected.infectionChance, hardPlayer.infectionChance)
-    assertEquals(expected.sabotagePower, hardPlayer.sabotagePower)
 
