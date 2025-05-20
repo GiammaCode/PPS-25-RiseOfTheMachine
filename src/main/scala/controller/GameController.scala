@@ -25,7 +25,7 @@ object GameController:
 
   import model.map.WorldMapModule.given
   import model.util.GameDifficulty.given
-  given GameMode = CLIView.renderGameModeMenu()
+  given GameMode = CLIView.renderGameModeMenu()._1
 
 
   def buildGameState(using Difficulty): GameState =

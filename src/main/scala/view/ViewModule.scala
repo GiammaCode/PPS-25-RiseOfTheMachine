@@ -5,34 +5,56 @@ import model.map.WorldState.WorldState
 import model.strategy.AiAbility.AiAbility
 import model.strategy.{PlayerAI, PlayerHuman}
 import model.util.GameMode.GameMode
+import model.util.GameDifficulty.Difficulty
 
 import scala.io.StdIn
 
 
 object ViewModule:
   trait GameView:
-    def renderGameModeMenu(): GameMode
+    def renderGameModeMenu(): (GameMode, Difficulty)
     def renderGameTurn(worldState: WorldState)(using GameMode): ((Int, String), Option[(Int, String)])
 
   object CLIView extends GameView:
-    override def renderGameModeMenu(): GameMode =
+    override def renderGameModeMenu(): (GameMode, Difficulty) =
       println(
-        """|Welcome to Rise of the Machine
-           |Select game mode:
-           |1. Single Player
-           |2. Multiplayer
+        """|🎮 Welcome to Rise of the Machine
+           |──────────────────────────────────────────
+           |  💥 Select game mode:
+           |  1. Single Player
+           |  2. Multiplayer
+           |──────────────────────────────────────────
            |Insert your choice >""".stripMargin
       )
-      val input = StdIn.readLine().trim
+      val selectedMode: GameMode = StdIn.readLine().trim match
+        case "1" => GameMode.Singleplayer
+        case "2" => GameMode.Multiplayer
+        case _ =>
+          println("Invalid input. Defaulting to Single Player (1).")
+          GameMode.Singleplayer
 
-      Option(input).flatMap {
-        case "1" => Some(GameMode.Singleplayer)
-        case "2" => Some(GameMode.Multiplayer)
-        case _ => None
-      }.getOrElse {
-        println("Invalid input. Defaulting to Single Player (1).")
-        GameMode.Singleplayer
-      }
+      val selectedDifficulty: Difficulty = selectedMode match
+        case GameMode.Singleplayer =>
+          println(
+            """|──────────────────────────────────────────
+               |  📊 Select Difficulty Level
+               |  1. Easy
+               |  2. Normal
+               |  3. Hard
+               |──────────────────────────────────────────
+               |Insert your choice >""".stripMargin
+          )
+          StdIn.readLine().trim match
+            case "1" => Difficulty.Easy
+            case "2" => Difficulty.Normal
+            case "3" => Difficulty.Hard
+            case _ =>
+              println("Invalid input.Defaulting to Normal difficulty")
+              Difficulty.Normal
+
+        case GameMode.Multiplayer => Difficulty.Normal
+
+      (selectedMode, selectedDifficulty)
 
     override def renderGameTurn(worldState: WorldState)(using gameMode: GameMode): ((Int, String), Option[(Int, String)]) =
       renderTurn(worldState.turn)
