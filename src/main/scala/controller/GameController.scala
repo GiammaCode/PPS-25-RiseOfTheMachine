@@ -9,6 +9,7 @@ import model.strategy.*
 import model.util.GameDifficulty.Difficulty
 import model.util.GameMode.GameMode
 import model.util.GameMode.GameMode.Multiplayer
+import model.util.States.State.State
 import view.ViewModule.CLIView
 
 object GameController:
@@ -20,13 +21,15 @@ object GameController:
   case class GameStateImpl(worldState: WorldState,
                            humanStrategy: PlayerStrategy[HumanAction])
 
-  import model.map.WorldMapModule.given
-  import model.util.GameDifficulty.given
-
   opaque type GameState = GameStateImpl
 
-  def buildGameState(using Difficulty ,GameMode): GameState =
-    GameStateImpl(
+  import model.map.WorldMapModule.given
+  import model.util.GameDifficulty.given
+  given GameMode = CLIView.renderGameModeMenu()
+
+
+  def buildGameState(using Difficulty): GameState =
+  GameStateImpl(
       createWorldState(createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
       SmartHumanStrategy
     )
@@ -53,7 +56,7 @@ object GameController:
 
   private def renderTurn(): State[GameState, (AiAction, Option[HumanAction])] = State { gs =>
     val currentWorldState = gs.worldState
-    val input = CLIView.renderGameTurn(currentWorldState)(GameMode.Singleplayer)
+    val input = CLIView.renderGameTurn(currentWorldState)
 
     val playerResult = InputHandler.getActionFromChoice(
       input._1._1,
@@ -83,5 +86,10 @@ object GameController:
           _ <- doPlayerAction(playerAction)
           _ <- doHumanAction(humanAction)
         yield ()
+
+  extension(gs: GameState)
+    def worldState: WorldState = gs.worldState
+
+
 
 

@@ -5,6 +5,7 @@ import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.{PlayerAI, PlayerHuman}
 import model.util.GameDifficulty.Difficulty
 import model.util.GameDifficulty.Difficulty.Normal
+import model.util.GameMode.GameMode
 import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.*
 import view.ViewModule.*
@@ -32,7 +33,7 @@ class CLIViewTest:
   var state: WorldState = _
 
   given Difficulty = Difficulty.Easy // TODO: get from CLI
-
+  given GameMode = GameMode.Singleplayer
 
   @Before
   def init(): Unit =
