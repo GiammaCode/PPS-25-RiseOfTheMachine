@@ -4,8 +4,7 @@ import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.WorldState
 import model.strategy.AiAbility.AiAbility
 import model.strategy.{PlayerAI, PlayerHuman}
-import model.util.GameMode.GameMode
-import model.util.GameDifficulty.Difficulty
+import model.util.GameSettings._
 
 import scala.io.StdIn
 
@@ -26,7 +25,7 @@ object ViewModule:
      *
      * @return a tuple containing the selected GameMode and Difficulty.
      */
-    def renderGameModeMenu(): (GameMode, Difficulty)
+    def renderGameModeMenu(): GameSettings
 
     /**
      * Renders the current turn, showing the map, infection state, unlocked abilities,
@@ -36,7 +35,7 @@ object ViewModule:
      * @param gameMode   the game mode (Singleplayer or Multiplayer), passed implicitly.
      * @return a tuple containing the AI player's action and optionally the human player's action.
      */
-    def renderGameTurn(worldState: WorldState)(using GameMode): ((Int, String), Option[(Int, String)])
+    def renderGameTurn(worldState: WorldState)(using GameSettings): ((Int, String), Option[(Int, String)])
 
   /**
    * CLIView is the command-line implementation of GameView.
@@ -50,7 +49,7 @@ object ViewModule:
      *
      * @return a tuple containing the chosen GameMode and Difficulty
      */
-    override def renderGameModeMenu(): (GameMode, Difficulty) =
+    override def renderGameModeMenu(): GameSettings =
       println(
         """|🎮 Welcome to Rise of the Machine
            |──────────────────────────────────────────
@@ -88,7 +87,7 @@ object ViewModule:
 
         case GameMode.Multiplayer => Difficulty.Normal
 
-      (selectedMode, selectedDifficulty)
+      forSettings(selectedMode, selectedDifficulty)
 
     /**
      * Renders the current game turn, including map, infection status,
@@ -100,13 +99,13 @@ object ViewModule:
      * @param gameMode   the selected game mode (implicit)
      * @return a tuple: (AIPlayer input, Optional HumanPlayer input)
      */
-    override def renderGameTurn(worldState: WorldState)(using gameMode: GameMode): ((Int, String), Option[(Int, String)]) =
+    override def renderGameTurn(worldState: WorldState)(using gameSettings: GameSettings): ((Int, String), Option[(Int, String)]) =
       renderTurn(worldState.turn)
       renderMap(worldState.worldMap)
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
       renderProbability(worldState.attackableCities)
       renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
-      gameMode match
+      gameSettings.gameMode match
         case GameMode.Singleplayer =>
           println("\n AI PLAYER TURN")
           val aiMove = renderActionMenu(worldState.AiOptions)

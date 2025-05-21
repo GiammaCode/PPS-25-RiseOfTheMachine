@@ -1,14 +1,10 @@
 package controller
 
 import controller.GameController.*
-import model.util.GameDifficulty.Difficulty
-import model.util.GameMode.GameMode
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 class GameControllerScalaTests extends AnyFunSuite with Matchers {
-  given Difficulty = Difficulty.Easy
-  given GameMode = GameMode.Singleplayer
   val gameState: GameState = buildGameState()
 
 

@@ -1,6 +1,7 @@
 # First Sprint Planning – 16/04/2025
 
-Il team si è incontrato via **Microsoft Teams** per rivedere le specifiche del progetto e definire i task del **primo sprint**.  
+Il team si è incontrato in loco per rivedere le specifiche del progetto e 
+definire i task del **primo sprint**.  
 **Durata:** 2 ore
 
 ---
@@ -31,7 +32,7 @@ Il team si è incontrato via **Microsoft Teams** per rivedere le specifiche del 
 - Collaborazione diretta su codice e decisioni progettuali
 - Comunicazione continua e confronto immediato
 
-**Deadline sprint:** 30 aprile 2025
+**Deadline sprint:** 30/04/2025
 
 ---
 

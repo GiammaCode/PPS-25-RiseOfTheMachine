@@ -4,8 +4,7 @@ import model.strategy.*
 import model.strategy.HumanAction.*
 import model.map.WorldState.*
 import model.map.WorldMapModule.{UndeterministicMapModule, createWorldMap}
-import model.util.GameDifficulty.Difficulty
-import model.util.GameDifficulty.Difficulty.Normal
+import model.util.GameSettings.{Difficulty, GameMode, GameSettings, forSettings}
 import org.junit.*
 import org.junit.Assert.*
 
@@ -13,14 +12,14 @@ class SmartHumanStrategyTest:
 
   var state: WorldState = _
 
-  given Difficulty = Difficulty.Easy
+  given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Normal)
 
   @Before
   def init(): Unit =
-    val player = PlayerHuman.fromDifficulty(Normal)
-    val ai = PlayerAI.fromDifficulty(Normal)
+    val human = PlayerHuman.fromSettings
+    val ai = PlayerAI.fromSettings
     val map = createWorldMap(5)
-    state = createWorldState(map, ai, player)
+    state = createWorldState(map, ai, human)
 
   @Test
   def testDecideActionReturnsValidAction(): Unit =

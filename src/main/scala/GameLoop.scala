@@ -1,17 +1,13 @@
 import controller.GameController
 import controller.GameController.{GameState, buildGameState, gameTurn}
-import model.util.GameDifficulty.Difficulty
-import model.util.GameMode.GameMode
+import model.util.GameSettings.*
 import view.ViewModule.CLIView
 
 import scala.annotation.tailrec
 
 @main def GameLoop(): Unit =
-  given Difficulty = Difficulty.Easy // TODO: get from CLI
-
   val initialState = buildGameState()
-  val maxTurns = 5
-
+  val maxTurns = 2
 
   @tailrec
   def loop(turn: Int, state: GameState): GameState =
