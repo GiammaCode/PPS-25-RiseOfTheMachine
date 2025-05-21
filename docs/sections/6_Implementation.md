@@ -1,7 +1,7 @@
 # Implementazione
 
-[Gianmaria](Gianmaria.md)
+- [Gianmaria](Gianmaria.md)
 
-[Luca](Luca.md)
-
-[Lorenzo](Lorenzo.md)
+- [Luca](Luca.md)
+ 
+- [Lorenzo](Lorenzo.md)

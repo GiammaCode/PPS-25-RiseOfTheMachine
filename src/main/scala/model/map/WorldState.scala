@@ -2,7 +2,7 @@ package model.map
 
 import model.map.WorldMapModule.*
 import model.strategy.AiAbility.AiAbility
-import model.strategy.{AiAction, Infect, PlayerAI, PlayerHuman, Sabotage}
+import model.strategy.{AiAction, Evolve, Infect, PlayerAI, PlayerHuman, Sabotage}
 import model.util.Util.*
 import model.map.CityModule.CityImpl.City
 import model.util.GameSettings.{Difficulty, GameSettings}
@@ -173,6 +173,21 @@ object WorldState:
       case State(map, ai, human, t, _) =>
         val updatedMap = newCity.map(map.changeACityOfTheMap).getOrElse(map)
         State(updatedMap, ai, human, t)
+
+    /**
+     * Returns the success percentage for a given city and action type.
+     *
+     * @param cityName   the name of the target city
+     * @param action the action type: "infect" or "sabotage" or "evolve"
+     * @return the success percentage wrapped in Option, or None if invalid
+     */
+    def probabilityByCityandAction(cityName: String, action: AiAction): Int =
+      attackableCities.find(_._1 == cityName).map{
+        case(_,infect, sabotage) => action match
+          case Infect(_) => infect
+          case Sabotage(_) => sabotage
+          case Evolve => 100
+      }.getOrElse(0)
 
     /**
      * Private method to calculate a percentage of success

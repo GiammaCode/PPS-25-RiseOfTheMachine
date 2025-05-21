@@ -161,7 +161,7 @@ object ViewModule:
      */
     private def renderProbability(cities: Set[(String, Int, Int)]): Unit =
       val formatted = cities.map {
-        case (name, infect, sabotage) => s"[$name --> $infect%, $sabotage%]"
+        case (name, infect, sabotage) => s"[$name --> I:$infect%, S:$sabotage%]"
       }.mkString("cities probability:  ", " ", "")
       println(formatted)
 
