@@ -3,8 +3,8 @@ package view
 import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.WorldState
 import model.strategy.AiAbility.AiAbility
-import model.strategy.{PlayerAI, PlayerHuman}
-import model.util.GameSettings._
+import model.strategy.{ActionTarget, AiAction, CityDefense, DevelopKillSwitch, Evolve, GlobalDefense, Infect, PlayerAI, PlayerHuman, Sabotage, TurnAction}
+import model.util.GameSettings.*
 
 import scala.io.StdIn
 
@@ -50,15 +50,13 @@ object ViewModule:
      * @return a tuple containing the chosen GameMode and Difficulty
      */
     override def renderGameModeMenu(): GameSettings =
-      println(
-        """|🎮 Welcome to Rise of the Machine
-           |──────────────────────────────────────────
-           |  💥 Select game mode:
-           |  1. Single Player
-           |  2. Multiplayer
-           |──────────────────────────────────────────
-           |Insert your choice >""".stripMargin
-      )
+      println("╭──────────────────────────────╮")
+      println("│  🎮 Welcome to RotMa         │")
+      println("│  📊 Select Difficulty Level  │")
+      println("│  1. Single Player            │")
+      println("│  2. Multiplayer              │")
+      println("╰──────────────────────────────╯")
+      print("Insert your choice > ")
       val selectedMode: GameMode = StdIn.readLine().trim match
         case "1" => GameMode.Singleplayer
         case "2" => GameMode.Multiplayer
@@ -68,15 +66,13 @@ object ViewModule:
 
       val selectedDifficulty: Difficulty = selectedMode match
         case GameMode.Singleplayer =>
-          println(
-            """|──────────────────────────────────────────
-               |  📊 Select Difficulty Level
-               |  1. Easy
-               |  2. Normal
-               |  3. Hard
-               |──────────────────────────────────────────
-               |Insert your choice >""".stripMargin
-          )
+          println("╭──────────────────────────────╮")
+          println("│  📊 Select Difficulty Level  │")
+          println("│  1. Easy                     │")
+          println("│  2. Normal                   │")
+          println("│  3. Hard                     │")
+          println("╰──────────────────────────────╯")
+          print("Insert your choice > ")
           StdIn.readLine().trim match
             case "1" => Difficulty.Easy
             case "2" => Difficulty.Normal
@@ -93,7 +89,7 @@ object ViewModule:
      * Renders the current game turn, including map, infection status,
      * unlocked AI abilities, and the list of previous actions.
      *
-     * Then prompts the player (AI and optionally Human) to choose an action.
+     * Then prompts the player (AI and optionally Human) to choose an action. -
      *
      * @param worldState the current world state
      * @param gameMode   the selected game mode (implicit)
@@ -132,6 +128,7 @@ object ViewModule:
      * @param worldMap the current WorldMap
      */
     private def renderMap(worldMap: WorldMap): Unit =
+      println("       \uD83D\uDDFA\uFE0F  World Map")
       val mapString = (0 until worldMap.getSizeOfTheMap).map { y =>
         (0 until worldMap.getSizeOfTheMap).map { x =>
           worldMap.findInMap { case (_, coords) => coords.contains((x, y)) }.
@@ -160,10 +157,36 @@ object ViewModule:
      * @param cities a set of tuples (cityName, infectionChance, sabotageChance)
      */
     private def renderProbability(cities: Set[(String, Int, Int)]): Unit =
-      val formatted = cities.map {
-        case (name, infect, sabotage) => s"[$name --> I:$infect%, S:$sabotage%]"
-      }.mkString("cities probability:  ", " ", "")
-      println(formatted)
+      if cities.nonEmpty then
+        val formatted = cities.toSeq
+          .sortBy(_._1) // opzionale: ordina alfabeticamente per leggibilità
+          .map { case (name, infect, sabotage) =>
+            f"- 📍 $name%-3s | 🦠Infect: $infect%3d%% | 🧨Sabotage: $sabotage%3d%%"
+          }
+          .mkString("\n")
+        println("Cities probability:\n" + formatted)
+      else
+        println("No attackable cities.")
+
+    /**
+     * Displays the executed actions of both Human and AI players.
+     *
+     * @param human the human player
+     * @param ai    the AI player
+     */
+    private def renderComplessiveAction(human: PlayerHuman, ai: PlayerAI): Unit =
+      def formatAction(action: TurnAction): String = action match
+        case Infect(targets) => s"Infect(${targets.mkString(", ")})"
+        case Sabotage(targets) => s"Sabotage(${targets.mkString(", ")})"
+        case Evolve => "Evolve"
+        case DevelopKillSwitch => "DevelopKillSwitch"
+        case CityDefense(targets) => s"CityDefense(${targets.mkString(", ")})"
+        case GlobalDefense(targets) => s"GlobalDefense"
+
+      println("\n🧾 Action Summary")
+      println(s"🧍 Human: ${human.executedActions.map(formatAction).mkString(" || ")}")
+      println(s"🤖 AI   : ${ai.executedActions.map(formatAction).mkString(" || ")}")
+
 
     /**
      * Renders a stylized menu of available actions to the terminal.
@@ -174,7 +197,7 @@ object ViewModule:
      */
     private def renderActionMenu(options: List[String]): (Int, String) =
       println("╭──────────────────────────────╮")
-      println("│       Select your action     │")
+      println("│Select your action            │")
       options.zipWithIndex.foreach { case (option, index) =>
         println(f"│ $index%2d. $option%-20s     │")
       }
@@ -195,14 +218,3 @@ object ViewModule:
         case _ =>
           println("Invalid input. Defaulting to (0, \"\")")
           (0, "")
-
-    /**
-     * Displays the executed actions of both Human and AI players.
-     *
-     * @param human the human player
-     * @param ai    the AI player
-     */
-    private def renderComplessiveAction(human: PlayerHuman, ai: PlayerAI): Unit =
-      println("\n🧾 Action Summary")
-      println(s"🧍 Human: ${human.executedActions.mkString(" || ")}")
-      println(s"🤖 AI   : ${ai.executedActions.mkString(" || ")}")

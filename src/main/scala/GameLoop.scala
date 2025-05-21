@@ -7,13 +7,13 @@ import scala.annotation.tailrec
 
 @main def GameLoop(): Unit =
   val initialState = buildGameState()
-  val maxTurns = 2
+  val maxTurns = 12
 
   @tailrec
   def loop(turn: Int, state: GameState): GameState =
     if turn > maxTurns then state
     else
-      println(s"\n--- Turno $turn ---")
+      //println(s"\n--- Turno $turn ---")
       val (newState, _) = gameTurn().run(state)
       loop(turn + 1, newState)
 
