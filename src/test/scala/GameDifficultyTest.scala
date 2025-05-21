@@ -12,8 +12,8 @@ class GameDifficultyTest extends AnyFunSuite with Matchers {
     val normalSettings = forSettings(Singleplayer, Normal)
     val hardSettings = forSettings(Singleplayer, Hard)
 
-    easySettings.ai shouldBe AIStats(infectionPower = 10, sabotagePower = 70)
-    normalSettings.ai shouldBe AIStats(infectionPower = 6, sabotagePower = 50)
+    easySettings.ai shouldBe AIStats(infectionPower = 10, sabotagePower = 50)
+    normalSettings.ai shouldBe AIStats(infectionPower = 6, sabotagePower = 40)
     hardSettings.ai shouldBe AIStats(infectionPower = 3, sabotagePower = 30)
   }
 
@@ -30,7 +30,7 @@ class GameDifficultyTest extends AnyFunSuite with Matchers {
   test("Default AIStats fallback is Normal") {
     val fakeDifficulty = null.asInstanceOf[Difficulty]
     val fallbackSettings = forSettings(Singleplayer, fakeDifficulty)
-    fallbackSettings.ai shouldBe AIStats(infectionPower = 50, sabotagePower = 5)
+    fallbackSettings.ai shouldBe AIStats(infectionPower = 6, sabotagePower = 40)
   }
 
   test("Default HumanStats fallback is Normal") {
