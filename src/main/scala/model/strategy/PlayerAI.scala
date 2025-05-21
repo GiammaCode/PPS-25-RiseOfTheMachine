@@ -30,7 +30,7 @@ trait PlayerAI extends PlayerEntity:
   /**
    * The current chance (percentage) of successfully infecting a city.
    */
-  def infectionChance: Int
+  def infectionPower: Int
 
   /**
    * The current power level of sabotage actions.
@@ -78,7 +78,7 @@ object PlayerAI:
    * @return A new PlayerAI instance.
    */
   def fromStats(using stats: AIStats): PlayerAI =
-    PlayerAIImpl(infectionChance = stats.infectionChance, sabotagePower = stats.sabotagePower)
+    PlayerAIImpl(infectionPower = stats.infectionChance, sabotagePower = stats.sabotagePower)
 
   /**
    * Constructs a PlayerAI instance using a complete GameSettings context.
@@ -88,7 +88,7 @@ object PlayerAI:
    */
   def fromSettings(using settings: GameSettings): PlayerAI =
     PlayerAIImpl(
-      infectionChance = settings.ai.infectionChance,
+      infectionPower = settings.ai.infectionChance,
       sabotagePower = settings.ai.sabotagePower
     )
 
@@ -97,7 +97,7 @@ object PlayerAI:
  *
  * @param unlockedAbilities The set of AI abilities unlocked so far.
  * @param executedActions   The list of actions the AI has taken.
- * @param infectionChance   Probability to infect a city.
+ * @param infectionPower   Probability to infect a city.
  * @param sabotagePower     Power level for sabotaging cities.
  * @param conqueredCities   Set of names of conquered cities.
  * @param sabotagedCities   Set of names of sabotaged cities.
@@ -105,8 +105,8 @@ object PlayerAI:
 private case class PlayerAIImpl (
                                   unlockedAbilities : Set[AiAbility] = Set.empty,
                                   executedActions: List[AiAction] = List.empty,
-                                  infectionChance: Int = 50,
-                                  sabotagePower: Int = 5,
+                                  infectionPower: Int,
+                                  sabotagePower: Int,
                                   conqueredCities: Set[String] = Set.empty,
                                   sabotagedCities: Set[String] = Set.empty
                                 ) extends PlayerAI:
@@ -136,7 +136,7 @@ private case class PlayerAIImpl (
   override def toString: String =
     s"""|--- PlayerAI Status ---
         |Unlocked Abilities   : ${if (unlockedAbilities.isEmpty) "None" else unlockedAbilities.mkString(", ")}
-        |Infection Chance     : $infectionChance%
+        |Infection Chance     : $infectionPower%
         |Sabotage Power       : $sabotagePower
         |Conquered Cities     : ${if (conqueredCities.isEmpty) "None" else conqueredCities.mkString(", ")}
         |Sabotaged Cities     : ${if (sabotagedCities.isEmpty) "None" else sabotagedCities.mkString(", ")}
@@ -153,7 +153,7 @@ private case class PlayerAIImpl (
    */
   private def withNewAbility(ability: AiAbility): PlayerAIImpl = copy(
     unlockedAbilities = unlockedAbilities + ability,
-    infectionChance = infectionChance + ability.infectionBonus,
+    infectionPower = infectionPower + ability.infectionBonus,
     sabotagePower = sabotagePower + ability.sabotageBonus
   )
 

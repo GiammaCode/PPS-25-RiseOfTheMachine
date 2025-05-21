@@ -5,14 +5,14 @@ object GameDifficulty:
     case Easy, Normal, Hard
 
   final case class AIStats(
-                            infectionChance: Int,
+                            infectionPower: Int,
                             sabotagePower: Int
                           )
 
   private val aiConfigs: Map[Difficulty, AIStats] = Map(
-    Difficulty.Easy -> AIStats(infectionChance = 70, sabotagePower = 10),
-    Difficulty.Normal -> AIStats(infectionChance = 50, sabotagePower = 5),
-    Difficulty.Hard -> AIStats(infectionChance = 30, sabotagePower = 3)
+    Difficulty.Easy -> AIStats(infectionPower = 10, sabotagePower = 50),
+    Difficulty.Normal -> AIStats(infectionPower = 5, sabotagePower = 40),
+    Difficulty.Hard -> AIStats(infectionPower = 3, sabotagePower = 30)
   )
 
   def aiStatsFor(difficulty: Difficulty): AIStats =

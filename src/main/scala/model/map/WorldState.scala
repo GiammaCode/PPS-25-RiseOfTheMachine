@@ -108,7 +108,7 @@ object WorldState:
       worldMap.getAdjacentCities
         .map(c => (
           c.getName,
-          calculatePercentageOfSuccess(c.getDefense, playerAI.infectionChance, ws.difficulty),
+          calculatePercentageOfSuccess(c.getDefense, playerAI.infectionPower, ws.difficulty),
           calculatePercentageOfSuccess(c.getDefense, playerAI.sabotagePower, ws.difficulty)))
 
     /**
