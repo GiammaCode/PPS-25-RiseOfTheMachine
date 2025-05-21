@@ -57,7 +57,7 @@ object GameController:
   )
 
 
-  private def renderTurn(): State[GameState, TurnResult] = State { gs =>
+  private def renderTurn(): State[GameState, TurnResult] = State ( gs =>
     val currentWorldState = gs.worldState
     val ((aiChoiceIndex, aiTargetCity), humanInputOpt) = CLIView.renderGameTurn(currentWorldState)
 
@@ -85,7 +85,8 @@ object GameController:
       case _ =>
         println("Invalid input. Retrying turn.")
         renderTurn().run(gs)
-  }
+  )
+
 
 
   def gameTurn(): State[GameState, Unit] =
@@ -96,7 +97,7 @@ object GameController:
     yield ()
 
   extension(gs: GameState)
-    def worldState: WorldState = gs.worldState
+      def worldState: WorldState = gs.worldState
 
 
 
