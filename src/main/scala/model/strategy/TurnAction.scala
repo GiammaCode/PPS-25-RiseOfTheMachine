@@ -1,7 +1,5 @@
 package model.strategy
 
-import model.map.CityModule.CityImpl.City
-
 /** Represents a target for an action */
 type ActionTarget = String // In un sistema più robusto, questo potrebbe essere un tipo più specifico
 

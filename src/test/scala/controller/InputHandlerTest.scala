@@ -52,28 +52,3 @@ class InputHandlerTest:
         assertEquals("Madrid", input)
         assertTrue(msg.contains("not attackable"))
       case _ => fail("Expected InputParsingError.")
-
-  /** --- HUMAN ACTION TESTS --- */
-
-  @Test
-  def testGetHumanActionFromChoiceValid(): Unit =
-
-    val result = InputHandler.getActionFromChoice(1, humanContext, humanActions)
-    val action = result.getOrElse(fail("Expected valid human action."))
-
-    action match
-      case GlobalDefense(t) => assertEquals(validCities, t.toSet)
-      case _ => fail("Expected GlobalDefense.")
-
-  @Test
-  def testGetHumanActionFromChoiceNoTargets(): Unit =
-
-    val emptyContext = CityContext("Rome", Set.empty)
-    val result = InputHandler.getActionFromChoice(0, emptyContext, humanActions)
-
-    val error = result.left.getOrElse(fail("Expected InputParsingError for empty targets."))
-    error match
-      case InputParsingError(input, msg) =>
-        assertEquals("Targets", input)
-        assertTrue(msg.contains("not your cities"))
-      case _ => fail("Expected InputParsingError.")

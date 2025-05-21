@@ -1,7 +1,7 @@
 package model.strategy
 
 import model.map.WorldState.WorldState
-import model.util.GameDifficulty.Difficulty
+import model.util.GameSettings.Difficulty
 
 import scala.util.Random
 

@@ -1,8 +1,13 @@
 # Primo Meeting – 14/04/2025
 
-Il team si è incontrato tramite **Microsoft Teams** per discutere e definire le specifiche del progetto, analizzare le regole d'esame e stabilire un'architettura iniziale che tenesse conto degli aspetti di **design**, **implementazione**, **deployment** e **processo di sviluppo**.
+Il team si è incontrato in loco per discutere e definire le specifiche del
+progetto, analizzare le regole d'esame e stabilire un'architettura iniziale 
+che tenesse conto degli aspetti di **design**, **implementazione**, 
+**deployment** e **processo di sviluppo**.
 
-La riunione ha avuto una durata di circa **3 ore**, in quanto è stato necessario definire non solo la gestione e implementazione del progetto, ma anche ideare le **regole di gioco** e l'**obiettivo del sistema**.
+La riunione ha avuto una durata di circa **3 ore**, in quanto è 
+stato necessario definire non solo la gestione e implementazione del 
+progetto, ma anche ideare le **regole di gioco** e l'**obiettivo del sistema**.
 
 ## Processo di Sviluppo
 

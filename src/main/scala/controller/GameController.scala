@@ -6,8 +6,7 @@ import model.map.WorldMapModule.createWorldMap
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy
 import model.strategy.*
-import model.util.GameDifficulty.Difficulty
-import model.util.GameMode.GameMode
+import model.util.GameSettings.GameSettings
 import model.util.Util.doesTheActionGoesRight
 import view.ViewModule.CLIView
 
@@ -21,20 +20,19 @@ object GameController:
                            humanStrategy: PlayerStrategy[HumanAction])
 
   private case class TurnResult(
-                         playerAction: AiAction,
-                         playerProb: Int,
-                         humanAction: Option[HumanAction])
+                                 playerAction: AiAction,
+                                 playerProb: Int,
+                                 humanAction: Option[HumanAction],
+                               )
 
   opaque type GameState = GameStateImpl
 
   import model.map.WorldMapModule.given
-
-  val (mode, diff) = CLIView.renderGameModeMenu()
-  given GameMode = mode
-  given Difficulty = diff
+  import model.util.GameSettings.given
+  given GameSettings = CLIView.renderGameModeMenu()
 
   def buildGameState(): GameState =
-  GameStateImpl(
+    GameStateImpl(
       createWorldState(createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
       SmartHumanStrategy)
 
@@ -43,12 +41,12 @@ object GameController:
     State(gs => (gs, gs))
 
   private def doPlayerAction(action: AiAction, prob: Int): State[GameState, Unit] = if doesTheActionGoesRight(prob)
-  then State ( gs =>
-    val currentWorldState = gs.worldState
-    val result = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
-    (gs.copy(worldState = currentWorldState.updatePlayer(result.getPlayer).updateMap(result.getCity)), ())
-    )
-  else State(gs => (gs,()))
+    then State ( gs =>
+        val currentWorldState = gs.worldState
+        val result = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
+        (gs.copy(worldState = currentWorldState.updatePlayer(result.getPlayer).updateMap(result.getCity)), ())
+        )
+    else State(gs => (gs,()))
 
   private def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] = State (gs =>
     val currentWorldState = gs.worldState
@@ -86,14 +84,17 @@ object GameController:
 
       case _ =>
         println("Invalid input. Retrying turn.")
-        renderTurn().run(gs))
+        renderTurn().run(gs)
+  )
+
+
 
   def gameTurn(): State[GameState, Unit] =
-          for
-            turn <- renderTurn()
-            _ <- doPlayerAction(turn.playerAction,turn.playerProb)
-            _ <- doHumanAction(turn.humanAction)
-          yield ()
+    for
+      turn <- renderTurn()
+      _ <- doPlayerAction(turn.playerAction,turn.playerProb)
+      _ <- doHumanAction(turn.humanAction)
+    yield ()
 
   extension(gs: GameState)
       def worldState: WorldState = gs.worldState
