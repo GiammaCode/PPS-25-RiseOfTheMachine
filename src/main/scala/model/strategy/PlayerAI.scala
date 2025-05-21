@@ -78,7 +78,7 @@ object PlayerAI:
    * @return A new PlayerAI instance.
    */
   def fromStats(using stats: AIStats): PlayerAI =
-    PlayerAIImpl(infectionPower = stats.infectionChance, sabotagePower = stats.sabotagePower)
+    PlayerAIImpl(infectionPower = stats.infectionPower, sabotagePower = stats.sabotagePower)
 
   /**
    * Constructs a PlayerAI instance using a complete GameSettings context.
@@ -88,7 +88,7 @@ object PlayerAI:
    */
   def fromSettings(using settings: GameSettings): PlayerAI =
     PlayerAIImpl(
-      infectionPower = settings.ai.infectionChance,
+      infectionPower = settings.ai.infectionPower,
       sabotagePower = settings.ai.sabotagePower
     )
 

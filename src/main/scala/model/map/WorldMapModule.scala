@@ -263,7 +263,7 @@ object WorldMapModule:
      * @param city the updated city to be inserted
      * @return a new WorldMap with the updated city
      */
-    def changeCity(city: City): WorldMap =
+    def changeACityOfTheMap(city: City): WorldMap =
       worldMap.find(_._1.getName == city.getName)
         .map((_, coords) => worldMap.filterNot(_._1.getName == city.getName) + (city -> coords))
         .getOrElse(worldMap)

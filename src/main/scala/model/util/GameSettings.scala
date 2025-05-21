@@ -12,11 +12,11 @@ object GameSettings:
   /**
    * Configuration for AI-controlled player behavior.
    *
-   * @param infectionChance Chance (as percentage) that the AI can infect a city.
+   * @param infectionPower Chance (as percentage) that the AI can infect a city.
    * @param sabotagePower   Power level of the AI's sabotage action.
    */
   final case class AIStats(
-                            infectionChance: Int,
+                            infectionPower: Int,
                             sabotagePower: Int
                           )
 
@@ -48,9 +48,9 @@ object GameSettings:
   import GameMode._
 
   private val aiConfigs: Map[Difficulty, AIStats] = Map(
-    Easy -> AIStats(infectionChance = 70, sabotagePower = 10),
-    Normal -> AIStats(infectionChance = 50, sabotagePower = 5),
-    Hard -> AIStats(infectionChance = 30, sabotagePower = 3)
+    Easy -> AIStats(infectionPower = 10, sabotagePower = 50),
+    Normal -> AIStats(infectionPower = 6, sabotagePower = 40),
+    Hard -> AIStats(infectionPower = 3, sabotagePower = 30)
   )
 
   private val humanConfigs: Map[Difficulty, HumanStats] = Map(
