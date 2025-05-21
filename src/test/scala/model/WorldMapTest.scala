@@ -5,19 +5,19 @@ import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModul
 import org.junit.Assert.{assertEquals, assertNotEquals}
 import org.junit.Test
 
-
+import WorldMapModule.given
 class WorldMapTest:
 
-  var worldMap: WorldMap = createWorldMap(10)(DeterministicMapModule)
+  var worldMap: WorldMap = createWorldMap(10)(using DeterministicMapModule)
 
   @Test
   def creationOfDeterministicMap(): Unit =
-    assertEquals( createWorldMap(10)(DeterministicMapModule), createWorldMap(10)(DeterministicMapModule))
+    assertEquals( createWorldMap(10)(using DeterministicMapModule), createWorldMap(10)(using DeterministicMapModule))
 
 
   @Test
   def creationOfUndeterministicMap(): Unit =
-     assertNotEquals( createWorldMap(10)(UndeterministicMapModule), createWorldMap(10)(UndeterministicMapModule))
+     assertNotEquals( createWorldMap(10), createWorldMap(10))
 
   @Test
   def numberOfCityTest():Unit =

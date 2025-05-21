@@ -22,10 +22,10 @@ Italy
 - [Implementation](sections/6_Implementation.md)
 - [Retrospective](sections/7_Retrospective.md)
 - [Sviluppo](sections/2_Development.md)
-- [Gianmaria](sections/Gianmaria.md)
-- [Lorenzo](sections/Lorenzo.md)
-- [Luca](sections/Luca.md)
+
 
 ## Meeting & Sprint Backlogs
 - [first-meeting](backlog/first-meeting.md)
 - [first-sprint](backlog/first-sprint.md)
+- [second-meeting](backlog/second-sprint.md)
+- [third-sprint](backlog/third-sprint.md)

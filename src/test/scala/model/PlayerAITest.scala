@@ -1,26 +1,31 @@
 package model
 
-import model.strategy.{AiAbility, AiAction, Evolve, Infect, PlayerAI, Sabotage, TurnAction}
+import controller.GameController.buildGameState
+import model.map.WorldMapModule.createWorldMap
+import model.strategy.{AiAbility, AiAction, Evolve, Infect, PlayerAI, PlayerHuman, Sabotage, TurnAction}
 import org.junit.*
 import org.junit.Assert.assertEquals
 import model.map.WorldState.*
+import model.util.GameSettings._
 
 class PlayerAITest :
   var player : PlayerAI = _
   var cities: List[String] = List("A", "B")
   var worldState : WorldState = _
-  
+  given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Easy)
+
 
   @Before
   def init(): Unit =
-    player = PlayerAI.default
-    worldState = GameFactory.createGame()
+    player = PlayerAI.fromSettings
+    worldState = createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats)
+
   @Test
   def applyEvolveAbilityTest() : Unit =
     val updatedPlayer = player.executeAction(Evolve, worldState.worldMap).getPlayer
     assert(updatedPlayer.unlockedAbilities.nonEmpty)
     if (updatedPlayer.unlockedAbilities.contains(AiAbility.ImprovedInfection)) {
-      assert(updatedPlayer.infectionChance == player.infectionChance + 10)
+      assert(updatedPlayer.infectionPower == player.infectionPower + 10)
     }
     if (updatedPlayer.unlockedAbilities.contains(AiAbility.StealthSabotage)) {
       assert(updatedPlayer.sabotagePower == player.sabotagePower + 5)
@@ -31,7 +36,7 @@ class PlayerAITest :
     val playerAfterFirstEvolve = player.executeAction(Evolve, worldState.worldMap).getPlayer
     val playerAfterSecondEvolve = playerAfterFirstEvolve.executeAction(Evolve, worldState.worldMap).getPlayer
     assert(playerAfterSecondEvolve.executedActions.size == 2)
-    assert(playerAfterSecondEvolve.infectionChance == player.infectionChance + 10)
+    assert(playerAfterSecondEvolve.infectionPower == player.infectionPower + 10)
     assert(playerAfterSecondEvolve.sabotagePower == player.sabotagePower + 5)
 
 
@@ -49,3 +54,4 @@ class PlayerAITest :
     assert(updatedPlayer.sabotagedCities.contains("A"))
     assert(updatedPlayer.sabotagedCities.contains("B"))
     assert(updatedPlayer.sabotagedCities.size == 2)
+

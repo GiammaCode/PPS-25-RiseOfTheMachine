@@ -1,15 +1,22 @@
 import controller.GameController
-import model.util.States.State
+import controller.GameController.{GameState, buildGameState, gameTurn}
+import model.util.GameSettings.*
+import view.ViewModule.CLIView
+
+import scala.annotation.tailrec
 
 @main def GameLoop(): Unit =
-  var gameState = GameController()
-  val maxTurns = 3
+  val initialState = buildGameState()
+  val maxTurns = 2
 
-  for turn <- 1 to maxTurns do
-    println(s"\n--- Turno $turn ---")
-    val (newState, _) = gameState.gameTurn().run(gameState)
-    gameState = newState
+  @tailrec
+  def loop(turn: Int, state: GameState): GameState =
+    if turn > maxTurns then state
+    else
+      println(s"\n--- Turno $turn ---")
+      val (newState, _) = gameTurn().run(state)
+      loop(turn + 1, newState)
 
+  val finalState = loop(1, initialState)
   println("\n--- Fine partita (raggiunto limite massimo di turni) ---")
-  println(gameState.worldState.playerAI) //TODO: not working 
 

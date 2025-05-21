@@ -1,44 +1,91 @@
-//package view
-//
-//import model.map.WorldMapModule.{UndeterministicMapModule,DeterministicMapModule, WorldMap, createWorldMap}
-//import model.map.WorldState.{WorldState, createWorldState}
-//import model.strategy.{PlayerAI, PlayerHuman}
-//import org.junit.Assert.assertTrue
-//import org.junit.*
-//import view.ViewModule.*
-//
-///** Example of layout
-// * -----RISE OF THE MACHINE - TURN 5-----
-// *
-// * Infected city: 3/15 --> 20.0%
-// * Abilities unlocked: ab1,ab2
-// *
-// * A A B
-// * B B B
-// * C C C
-// * Select your action:
-// * 1. Infect
-// * 2. Sabotages
-// * 3. Exit
-// * Insert your action >
-// */
-//
-//class CLIViewTest:
-//  var human: PlayerHuman = _
-//  var ai: PlayerAI = _
-//  var worldMap: WorldMap = _
-//  var state: WorldState = _
-//
-//  @Before
-//  def init(): Unit =
-//    human = PlayerHuman.default
-//    ai = PlayerAI.default
-//    worldMap = createWorldMap(5)(UndeterministicMapModule)
-//    state = createWorldState(worldMap, ai, human)
-//
-//  @Test
-//  def testPrintableGameTurn(): Unit =
-//    CLIView.renderGameTurn(state)
-//    assertTrue(true)
-//
-//
+package view
+
+import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
+import model.map.WorldState.{WorldState, createWorldState}
+import model.strategy.{PlayerAI, PlayerHuman}
+import model.util.GameSettings.{Difficulty, GameMode, GameSettings, forSettings}
+import org.junit.Assert.{assertEquals, assertTrue}
+import org.junit.*
+import view.ViewModule.*
+
+class CLIViewTest:
+  var human: PlayerHuman = _
+  var ai: PlayerAI = _
+  var worldMap: WorldMap = _
+  var state: WorldState = _
+
+  given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Normal)
+
+  given GameMode = GameMode.Singleplayer
+
+  @Before
+  def init(): Unit =
+    human = PlayerHuman.fromSettings
+    ai = PlayerAI.fromSettings
+    worldMap = createWorldMap(5)
+    state = createWorldState(worldMap, ai, human)
+
+  @Test
+  def testRenderGameModeMenu_SinglePlayer_Easy(): Unit =
+    val input = new java.io.ByteArrayInputStream("1\n1\n".getBytes) // 1 → Singleplayer, 1 → Easy
+    val outputBuffer = new java.io.ByteArrayOutputStream()
+
+    val gameSettings = Console.withIn(input) {
+      Console.withOut(outputBuffer) {
+        CLIView.renderGameModeMenu()
+      }
+    }
+
+    assertEquals(GameMode.Singleplayer, gameSettings.gameMode)
+    assertEquals(Difficulty.Easy, gameSettings.difficulty)
+
+  @Test
+  def testRenderGameModeMenu_InvalidDefaults(): Unit =
+    val input = new java.io.ByteArrayInputStream("wrong\nx\n".getBytes)
+    val outputBuffer = new java.io.ByteArrayOutputStream()
+
+    val gameSettings = Console.withIn(input) {
+      Console.withOut(outputBuffer) {
+        CLIView.renderGameModeMenu()
+      }
+    }
+
+    assertEquals(GameMode.Singleplayer, gameSettings.gameMode)
+    assertEquals(Difficulty.Normal, gameSettings.difficulty)
+
+
+  @Test
+  def testRenderGameModeMenu_Multiplayer_DefaultsToNormal(): Unit =
+    val input = new java.io.ByteArrayInputStream("2\n".getBytes) // 2 → Multiplayer
+    val outputBuffer = new java.io.ByteArrayOutputStream()
+
+    val gameSettings = Console.withIn(input) {
+      Console.withOut(outputBuffer) {
+        CLIView.renderGameModeMenu()
+      }
+    }
+
+    assertEquals(GameMode.Multiplayer, gameSettings.gameMode)
+    assertEquals(Difficulty.Normal, gameSettings.difficulty)
+
+
+  @Test
+  def testRenderGameTurnWithSimulatedInput(): Unit =
+    val simulatedInput = new java.io.ByteArrayInputStream("1 A\n".getBytes)
+    val outputBuffer = new java.io.ByteArrayOutputStream()
+
+    val result = Console.withIn(simulatedInput) {
+      Console.withOut(outputBuffer) {
+        CLIView.renderGameTurn(state)
+      }
+    }
+
+    val printedOutput = outputBuffer.toString
+
+    assertTrue(printedOutput.contains("RISE OF THE MACHINE - TURN"))
+    assertTrue(printedOutput.contains("Infected city:"))
+    assertTrue(printedOutput.contains("Insert your action"))
+    assertEquals(((1, "A"), None), result)
+
+
+
