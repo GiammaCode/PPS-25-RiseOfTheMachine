@@ -7,7 +7,9 @@ import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy
 import model.strategy.*
 import model.util.GameSettings.{GameMode, GameSettings}
+import model.util.Util.doesTheActionGoesRight
 import view.ViewModule.CLIView
+import view.ViewModule.CLIView.renderGameModeMenu
 
 object GameController:
   /**
@@ -27,11 +29,12 @@ object GameController:
   opaque type GameState = GameStateImpl
 
   import model.map.WorldMapModule.given
-  import model.util.GameDifficulty.given
+  import model.util.GameSettings.given
+  
+  given GameSettings = renderGameModeMenu()
 
 
-  def buildGameState(using GameSettings): GameState =
-    import model.util.GameSettings.given
+  def buildGameState(): GameState =
     GameStateImpl(
       createWorldState(createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
       SmartHumanStrategy)
@@ -56,35 +59,38 @@ object GameController:
   )
 
 
-  private def renderTurn(using GameSettings): State[GameState, (AiAction, Option[HumanAction])] = State { gs =>
+  private def renderTurn(): State[GameState, TurnResult] = State(gs =>
     val currentWorldState = gs.worldState
-    val input = CLIView.renderGameTurn(currentWorldState)
+    val ((aiChoiceIndex, aiTargetCity), humanInputOpt) = CLIView.renderGameTurn(currentWorldState)
+
+    val context = CityContext(aiTargetCity, currentWorldState.attackableCities.map(_._1))
 
     val playerResult = InputHandler.getActionFromChoice(
-      input._1._1,
-      CityContext(input._1._2, currentWorldState.attackableCities.map(_._1)),
-      currentWorldState.playerAI.getPossibleAction
-    )
+      aiChoiceIndex,
+      context,
+      currentWorldState.playerAI.getPossibleAction)
 
-    val humanResultOpt = input._2.map { humanInput =>
-      InputHandler.getActionFromChoice(
-        humanInput._1,
-        CityContext(humanInput._2, currentWorldState.attackableCities.map(_._1)),
-        currentWorldState.playerHuman.getPossibleAction
-      )
+    val humanResultOpt = humanInputOpt.map { case (idx, city) =>
+      val ctx = CityContext(city, currentWorldState.attackableCities.map(_._1))
+      InputHandler.getActionFromChoice(idx, ctx, currentWorldState.playerHuman.getPossibleAction)
     }
+
     (playerResult, humanResultOpt) match
       case (Right(playerAction), Some(Right(humanAction))) =>
-        (gs, TurnResult(playerAction, 0, Some(humanAction)))
-      case (Right(playerAction), None) =>
-        (gs, TurnResult(playerAction, currentWorldState.probabilityByCityandAction(input._1._2,playerAction), None))
-      case _ => renderTurn.run(gs)
-  }
+        val prob = currentWorldState.probabilityByCityandAction(aiTargetCity, playerAction)
+        (gs, TurnResult(playerAction, prob, Some(humanAction)))
 
-  def gameTurn(using GameSettings): State[GameState, Unit] =
+      case (Right(playerAction), None) =>
+        val prob = currentWorldState.probabilityByCityandAction(aiTargetCity, playerAction)
+        (gs, TurnResult(playerAction, prob, None))
+
+      case _ =>
+        println("Invalid input. Retrying turn.")
+        renderTurn().run(gs))
+
+  def gameTurn(): State[GameState, Unit] =
         for
-          turn <- renderTurn
-          if doesTheActionGoesRight(turn._2)
+          turn <- renderTurn()
           _ <- doPlayerAction(turn._1)
           _ <- doHumanAction(turn._3)
         yield ()

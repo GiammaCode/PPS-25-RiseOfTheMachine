@@ -35,7 +35,7 @@ object ViewModule:
      * @param gameMode   the game mode (Singleplayer or Multiplayer), passed implicitly.
      * @return a tuple containing the AI player's action and optionally the human player's action.
      */
-    def renderGameTurn(worldState: WorldState)(using gameSettings: GameSettings): ((Int, String), Option[(Int, String)])
+    def renderGameTurn(worldState: WorldState)(using GameSettings): ((Int, String), Option[(Int, String)])
 
   /**
    * CLIView is the command-line implementation of GameView.
