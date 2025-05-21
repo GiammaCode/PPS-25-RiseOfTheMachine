@@ -1,4 +1,4 @@
-# First Sprint Planning – 08/05/2025
+# third Sprint Planning – 08/05/2025
 
 Il team si è incontrato in loco per rivedere i risultati del secondo sprint e pianificare le attività successive.  
 Durante l'incontro è stato deciso il rilascio della seconda release: **V2.0.0**.
