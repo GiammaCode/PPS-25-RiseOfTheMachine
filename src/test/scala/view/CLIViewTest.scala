@@ -3,9 +3,7 @@ package view
 import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.{PlayerAI, PlayerHuman}
-import .Difficulty
-import .Difficulty.Normal
-import model.util.GameMode.GameMode
+import model.util.GameSettings.{Difficulty, GameMode, GameSettings, forSettings}
 import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.*
 import view.ViewModule.*
@@ -16,13 +14,14 @@ class CLIViewTest:
   var worldMap: WorldMap = _
   var state: WorldState = _
 
-  given Difficulty = Difficulty.Easy // TODO: get from CLI
+  given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Normal)
+
   given GameMode = GameMode.Singleplayer
 
   @Before
   def init(): Unit =
-    human = PlayerHuman.fromDifficulty(Normal)
-    ai = PlayerAI.fromDifficulty(Normal)
+    human = PlayerHuman.fromSettings
+    ai = PlayerAI.fromSettings
     worldMap = createWorldMap(5)
     state = createWorldState(worldMap, ai, human)
 
@@ -31,28 +30,28 @@ class CLIViewTest:
     val input = new java.io.ByteArrayInputStream("1\n1\n".getBytes) // 1 → Singleplayer, 1 → Easy
     val outputBuffer = new java.io.ByteArrayOutputStream()
 
-    val (mode, difficulty) = Console.withIn(input) {
+    val gameSettings = Console.withIn(input) {
       Console.withOut(outputBuffer) {
         CLIView.renderGameModeMenu()
       }
     }
 
-    assertEquals(GameMode.Singleplayer, mode)
-    assertEquals(Difficulty.Easy, difficulty)
+    assertEquals(GameMode.Singleplayer, gameSettings.gameMode)
+    assertEquals(Difficulty.Easy, gameSettings.difficulty)
 
   @Test
   def testRenderGameModeMenu_InvalidDefaults(): Unit =
     val input = new java.io.ByteArrayInputStream("wrong\nx\n".getBytes)
     val outputBuffer = new java.io.ByteArrayOutputStream()
 
-    val (mode, difficulty) = Console.withIn(input) {
+    val gameSettings = Console.withIn(input) {
       Console.withOut(outputBuffer) {
         CLIView.renderGameModeMenu()
       }
     }
 
-    assertEquals(GameMode.Singleplayer, mode)
-    assertEquals(Difficulty.Normal, difficulty)
+    assertEquals(GameMode.Singleplayer, gameSettings.gameMode)
+    assertEquals(Difficulty.Normal, gameSettings.difficulty)
 
 
   @Test
@@ -60,14 +59,14 @@ class CLIViewTest:
     val input = new java.io.ByteArrayInputStream("2\n".getBytes) // 2 → Multiplayer
     val outputBuffer = new java.io.ByteArrayOutputStream()
 
-    val (mode, difficulty) = Console.withIn(input) {
+    val gameSettings = Console.withIn(input) {
       Console.withOut(outputBuffer) {
         CLIView.renderGameModeMenu()
       }
     }
 
-    assertEquals(GameMode.Multiplayer, mode)
-    assertEquals(Difficulty.Normal, difficulty)
+    assertEquals(GameMode.Multiplayer, gameSettings.gameMode)
+    assertEquals(Difficulty.Normal, gameSettings.difficulty)
 
 
   @Test
