@@ -56,4 +56,5 @@ Durante l'incontro è stato deciso il rilascio della seconda release: **V2.0.0**
 ### Risultati ottenuti
 
 Il team ha raggiunto tutti gli obiettivi previsti.  
-Il sistema risulta attualmente **giocabile** e con le modifiche sostanziali apportate in questo sprint si procederà con il rilascio della nuova versione **2.0.0**.
+Il sistema risulta attualmente **giocabile** e con le modifiche sostanziali apportate in 
+questo sprint si procederà con il rilascio della nuova versione **3.0.0**.

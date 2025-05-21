@@ -27,5 +27,5 @@ Italy
 ## Meeting & Sprint Backlogs
 - [first-meeting](backlog/first-meeting.md)
 - [first-sprint](backlog/first-sprint.md)
-- [second-meeting](backlog/second-sprint.md)
+- [second-sprint](backlog/second-sprint.md)
 - [third-sprint](backlog/third-sprint.md)
