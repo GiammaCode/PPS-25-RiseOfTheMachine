@@ -1,29 +1,28 @@
-# First Sprint Planning – 08/05/2025
+# third Sprint Planning – 08/05/2025
 
-Il team si è incontrato in loco per rivedere i risultati del secondo sprint
-e decidere il continuo dei lavori.
-Durante quest incontro è stato deciso di eseguire la seconda release V2.0.0
+Il team si è incontrato in loco per rivedere i risultati del secondo sprint e pianificare le attività successive.  
+Durante l'incontro è stato deciso il rilascio della seconda release: **V2.0.0**.
 
-L'incontro ha avuto durata di 2 ore circa.
-
----
-
-## Obiettivi Sprint
-
-- Aggiungere la modalità multiplayer
-- Aggiungere la strategia in modalità singleplayer del giocatore Human
-- Aggiungere la scelta delle modalità (multiplayer e singleplayer)
-- Aggiunre la scelta delle difficoltà (easy, medium, hard)
+**Durata dell'incontro:** circa 2 ore
 
 ---
 
-## Planning & Comunicazione
+## Obiettivi dello Sprint
+
+- Aggiunta della modalità multiplayer
+- Implementazione della strategia per il giocatore Human in modalità singleplayer
+- Introduzione della selezione delle modalità di gioco (singleplayer/multiplayer)
+- Introduzione della selezione della difficoltà (easy, normal, hard)
+
+---
+
+## Planning e Comunicazione
 
 - Incontri frequenti, sia in presenza che online
 - Collaborazione diretta su codice e decisioni progettuali
 - Comunicazione continua e confronto immediato
-- 
-**Deadline sprint: 22/05/2023** 
+
+**Deadline sprint:** 22/05/2025
 
 ---
 
@@ -31,17 +30,30 @@ L'incontro ha avuto durata di 2 ore circa.
 
 ### Gianmaria Casamenti
 
+- Sviluppo del sistema di strategia per il **giocatore Human** in modalità singleplayer  
+  Il sistema adatta il comportamento in base alla difficoltà:
+    - **Easy**: strategia passiva
+    - **Normal**: strategia casuale
+    - **Hard**: strategia proattiva
+- Miglioramento della **view** con l'aggiunta della gestione multiplayer e del menù di gioco
 
 ### Lorenzo Leoni
 
+- Aggiunta del supporto multiplayer all'**InputHandler** e creazione delle **turnAction** generiche
+- Introduzione di `GameSettings` al posto delle classi `GameDifficulty` e `GameMode`
+- Aggiunta del supporto a **ScalaTest** e generazione del **fat JAR**
 
 ### Luca Pasini
+
+- Implementazione della logica multiplayer all'interno del **controller**
+- Gestione della possibilità di fallimento delle azioni all'interno del controller
+- Creazione di test tramite **ScalaTest** per i moduli `city`, `map` e `controller`
 
 ---
 
 ## Sprint Review – 21/05/2025
 
-### Risultati ottenuti:
-Il team ha portato a termine prefissati, attualmente il sistema si presenta
-giocabile e con le ultime e sostanziali modifiche di questa sprint verrà rilasciata
-una nuova versione con la major maggiorata
+### Risultati ottenuti
+
+Il team ha raggiunto tutti gli obiettivi previsti.  
+Il sistema risulta attualmente **giocabile** e con le modifiche sostanziali apportate in questo sprint si procederà con il rilascio della nuova versione **2.0.0**.
