@@ -3,9 +3,8 @@ package model
 import model.map.WorldMapModule.createWorldMap
 import model.map.WorldState.*
 import model.strategy.*
-import model.util.GameDifficulty
-import model.util.GameDifficulty.Difficulty
-import model.util.GameDifficulty.Difficulty.{Easy, Hard, Normal}
+import .Difficulty
+import .Difficulty.{Easy, Hard, Normal}
 import org.junit.*
 import org.junit.Assert.*
 

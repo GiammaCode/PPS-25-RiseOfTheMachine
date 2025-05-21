@@ -3,8 +3,8 @@ package view
 import model.map.WorldMapModule.{DeterministicMapModule, UndeterministicMapModule, WorldMap, createWorldMap}
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy.{PlayerAI, PlayerHuman}
-import model.util.GameDifficulty.Difficulty
-import model.util.GameDifficulty.Difficulty.Normal
+import .Difficulty
+import .Difficulty.Normal
 import model.util.GameMode.GameMode
 import org.junit.Assert.{assertEquals, assertTrue}
 import org.junit.*

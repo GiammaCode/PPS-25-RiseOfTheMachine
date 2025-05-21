@@ -1,5 +1,4 @@
-import model.util.GameDifficulty.Difficulty.*
-import model.util.GameDifficulty.{AIStats, Difficulty, HumanStats, aiStatsFor, humanStatsFor}
+import .Difficulty.*
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 

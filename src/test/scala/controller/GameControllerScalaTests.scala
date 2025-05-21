@@ -1,7 +1,7 @@
 package controller
 
 import controller.GameController.*
-import model.util.GameDifficulty.Difficulty
+import .Difficulty
 import model.util.GameMode.GameMode
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers

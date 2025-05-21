@@ -4,8 +4,8 @@ import model.strategy.*
 import model.strategy.HumanAction.*
 import model.map.WorldState.*
 import model.map.WorldMapModule.{UndeterministicMapModule, createWorldMap}
-import model.util.GameDifficulty.Difficulty
-import model.util.GameDifficulty.Difficulty.Normal
+import .Difficulty
+import .Difficulty.Normal
 import org.junit.*
 import org.junit.Assert.*
 

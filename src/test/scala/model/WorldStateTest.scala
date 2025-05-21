@@ -3,8 +3,8 @@ package model
 import model.map.WorldMapModule.{WorldMap, createWorldMap}
 import model.map.WorldState.*
 import model.strategy.{Evolve, Infect, PlayerAI, PlayerHuman, Sabotage}
-import model.util.GameDifficulty.Difficulty
-import model.util.GameDifficulty.Difficulty.Normal
+import .Difficulty
+import .Difficulty.Normal
 import org.junit.*
 import org.junit.Assert.*
 
