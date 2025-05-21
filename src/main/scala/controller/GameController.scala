@@ -68,10 +68,11 @@ object GameController:
       context,
       currentWorldState.playerAI.getPossibleAction)
 
-    val humanResultOpt = humanInputOpt.map { case (idx, city) =>
-      val ctx = CityContext(city, currentWorldState.attackableCities.map(_._1))
-      InputHandler.getActionFromChoice(idx, ctx, currentWorldState.playerHuman.getPossibleAction)
-    }
+    val humanResultOpt = humanInputOpt.map(x =>
+      InputHandler.getActionFromChoice(
+        x._1,
+        CityContext(x._2, currentWorldState.attackableCities.map(_._1)),
+        currentWorldState.playerHuman.getPossibleAction))
 
     (playerResult, humanResultOpt) match
       case (Right(playerAction), Some(Right(humanAction))) =>
