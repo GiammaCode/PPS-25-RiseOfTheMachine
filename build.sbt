@@ -10,5 +10,6 @@ lazy val root = project
     scalaVersion := scala3Version,
     libraryDependencies += "com.github.sbt" % "junit-interface" % "0.13.2" % Test,
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % Test,
-    mainClass := Some("GameLoop")
+    mainClass := Some("GameLoop"),
+      assembly / mainClass := Some("GameLoop")
   )
