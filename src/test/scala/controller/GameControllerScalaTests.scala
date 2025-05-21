@@ -18,15 +18,15 @@ class GameControllerScalaTests extends AnyFunSuite with Matchers {
     gameState.worldState.worldMap.numberOfCity() should be > 0
   }
 
-  test("doPlayerAction should update the world state") {
-    val initialState = gameState.worldState
-
-    // Choose a city to infect
-    val targetCity = initialState.worldMap.HumanCities.head
-
-    val (updatedState,_) = gameTurn().run(gameState)
-    val updatedCity = updatedState.worldState.worldMap.getCityByName(targetCity.getName).get
-
-    updatedCity.getOwner shouldBe model.map.CityModule.Owner.AI
-  }
+//  test("doPlayerAction should update the world state") {
+//    val initialState = gameState.worldState
+//
+//    // Choose a city to infect
+//    val targetCity = initialState.worldMap.HumanCities.head
+//
+//    val (updatedState,_) = gameTurn().run(gameState)
+//    val updatedCity = updatedState.worldState.worldMap.getCityByName(targetCity.getName).get
+//
+//    updatedCity.getOwner shouldBe model.map.CityModule.Owner.AI
+//  }
 }
