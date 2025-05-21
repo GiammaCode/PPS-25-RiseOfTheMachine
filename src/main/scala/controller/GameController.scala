@@ -19,11 +19,9 @@ object GameController:
   case class GameStateImpl(worldState: WorldState,
                            humanStrategy: PlayerStrategy[HumanAction])
 
-  private case class TurnResult(
-                                 playerAction: AiAction,
+  private case class TurnResult(playerAction: AiAction,
                                  playerProb: Int,
-                                 humanAction: Option[HumanAction],
-                               )
+                                 humanAction: Option[HumanAction])
 
   opaque type GameState = GameStateImpl
 
@@ -33,7 +31,9 @@ object GameController:
 
   def buildGameState(): GameState =
     GameStateImpl(
-      createWorldState(createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
+      createWorldState(createWorldMap(10),
+      PlayerAI.fromStats,
+      PlayerHuman.fromStats),
       SmartHumanStrategy)
 
   import model.util.States.State.State
@@ -86,9 +86,6 @@ object GameController:
         println("Invalid input. Retrying turn.")
         renderTurn().run(gs)
   )
-
-
-
   def gameTurn(): State[GameState, Unit] =
     for
       turn <- renderTurn()
