@@ -51,10 +51,10 @@ object ViewModule:
      */
     override def renderGameModeMenu(): GameSettings =
       println("╭──────────────────────────────╮")
-      println("│  🎮 Welcome to RotMa         │")
-      println("│  📊 Select Difficulty Level  │")
-      println("│  1. Single Player            │")
-      println("│  2. Multiplayer              │")
+      println("  🎮 Welcome to RotMa         ")
+      println("  📊 Select Difficulty Level  ")
+      println("  1. Single Player            ")
+      println("  2. Multiplayer              ")
       println("╰──────────────────────────────╯")
       print("Insert your choice > ")
       val selectedMode: GameMode = StdIn.readLine().trim match
@@ -67,10 +67,10 @@ object ViewModule:
       val selectedDifficulty: Difficulty = selectedMode match
         case GameMode.Singleplayer =>
           println("╭──────────────────────────────╮")
-          println("│  📊 Select Difficulty Level  │")
-          println("│  1. Easy                     │")
-          println("│  2. Normal                   │")
-          println("│  3. Hard                     │")
+          println("  📊 Select Difficulty Level  ")
+          println("  1. Easy                     ")
+          println("  2. Normal                   ")
+          println("  3. Hard                     ")
           println("╰──────────────────────────────╯")
           print("Insert your choice > ")
           StdIn.readLine().trim match
@@ -97,7 +97,7 @@ object ViewModule:
      */
     override def renderGameTurn(worldState: WorldState)(using gameSettings: GameSettings): ((Int, String), Option[(Int, String)]) =
       renderTurn(worldState.turn)
-      renderMap(worldState.worldMap)
+      renderMap(worldState.worldMap, worldState.playerAI.conqueredCities)
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
       renderProbability(worldState.attackableCities)
       renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
@@ -127,12 +127,16 @@ object ViewModule:
      *
      * @param worldMap the current WorldMap
      */
-    private def renderMap(worldMap: WorldMap): Unit =
-      println("       \uD83D\uDDFA\uFE0F  World Map")
+    private def renderMap(worldMap: WorldMap, AIconqueredCities: Set[String]): Unit =
+      println("       🗺️  World Map")
       val mapString = (0 until worldMap.getSizeOfTheMap).map { y =>
         (0 until worldMap.getSizeOfTheMap).map { x =>
-          worldMap.findInMap { case (_, coords) => coords.contains((x, y)) }.
-            getOrElse("/")
+          worldMap.findInMap { case (_, coords) => coords.contains((x, y)) } match
+            case Some(city) =>
+              val name = city
+              if AIconqueredCities.contains(city) then s"❗"
+              else name
+            case None => "/"
         }.mkString(" ")
       }.mkString("\n    ")
       println("    " + mapString)
@@ -144,12 +148,16 @@ object ViewModule:
      * @param abilities      the currently unlocked AiAbilities
      */
     private def renderStatus(infectionState: (Int, Int), abilities: Set[AiAbility]): Unit =
-      val percentageDone = infectionState._1.toDouble / infectionState._2 * 100
-      println(s"Infected city: ${infectionState._1}/${infectionState._2} --> $percentageDone%.2f%%".format(percentageDone))
-      println(
-        Option.when(abilities.nonEmpty)(s"Abilities unlocked: ${abilities.mkString(", ")}")
-          .getOrElse("0 abilities unlocked")
-      )
+      val percentageInfected = (infectionState._1.toDouble / infectionState._2 * 100).toInt
+      val abilitiesOutput = if abilities.nonEmpty then abilities.mkString(", ") else "0 unlocked"
+      val killSwitchProgress = s"TODO"
+
+      println("╭────────────────────────────────────╮")
+      println(" 📊 Statistics                                                 ")
+      println(f" 🦠 Infected Cities: $percentageInfected%3d%%                 ")
+      println(f" 🤖 AI Abilities:        ${abilitiesOutput.padTo(25, ' ')}    ")
+      println(f" 🧪 Develop KillSwitch:  ${killSwitchProgress.padTo(25, ' ')} ")
+      println("╰────────────────────────────────────╯")
 
     /**
      * Renders the infection and sabotage probabilities for each attackable city.
@@ -197,9 +205,9 @@ object ViewModule:
      */
     private def renderActionMenu(options: List[String]): (Int, String) =
       println("╭──────────────────────────────╮")
-      println("│Select your action            │")
+      println(" Select your action            ")
       options.zipWithIndex.foreach { case (option, index) =>
-        println(f"│ $index%2d. $option%-20s     │")
+        println(f"  $index%2d. $option%-20s     ")
       }
       println("╰──────────────────────────────╯")
       print("Insert your action > ")
