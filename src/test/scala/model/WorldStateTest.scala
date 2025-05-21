@@ -3,8 +3,7 @@ package model
 import model.map.WorldMapModule.{WorldMap, createWorldMap}
 import model.map.WorldState.*
 import model.strategy.{Evolve, Infect, PlayerAI, PlayerHuman, Sabotage}
-import .Difficulty
-import .Difficulty.Normal
+import model.util.GameSettings.{Difficulty, GameMode, GameSettings, forSettings}
 import org.junit.*
 import org.junit.Assert.*
 
@@ -14,12 +13,13 @@ class WorldStateTest:
   var ai: PlayerAI = _
   var worldMap: WorldMap = _
 
-  given Difficulty = Difficulty.Easy // TODO: get from CLI
+  given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Normal)
+
 
   @Before
   def init(): Unit =
-    human = PlayerHuman.fromDifficulty(Normal)
-    ai = PlayerAI.fromDifficulty(Normal)
+    human = PlayerHuman.fromSettings
+    ai = PlayerAI.fromSettings
     worldMap = createWorldMap(5)
 
   @Test
