@@ -19,11 +19,9 @@ object GameController:
   case class GameStateImpl(worldState: WorldState,
                            humanStrategy: PlayerStrategy[HumanAction])
 
-  private case class TurnResult(
-                                 playerAction: AiAction,
+  private case class TurnResult(playerAction: AiAction,
                                  playerProb: Int,
-                                 humanAction: Option[HumanAction],
-                               )
+                                 humanAction: Option[HumanAction])
 
   opaque type GameState = GameStateImpl
 
@@ -33,7 +31,9 @@ object GameController:
 
   def buildGameState(): GameState =
     GameStateImpl(
-      createWorldState(createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats),
+      createWorldState(createWorldMap(10),
+      PlayerAI.fromStats,
+      PlayerHuman.fromStats),
       SmartHumanStrategy)
 
   import model.util.States.State.State
@@ -68,10 +68,11 @@ object GameController:
       context,
       currentWorldState.playerAI.getPossibleAction)
 
-    val humanResultOpt = humanInputOpt.map { case (idx, city) =>
-      val ctx = CityContext(city, currentWorldState.attackableCities.map(_._1))
-      InputHandler.getActionFromChoice(idx, ctx, currentWorldState.playerHuman.getPossibleAction)
-    }
+    val humanResultOpt = humanInputOpt.map(x =>
+      InputHandler.getActionFromChoice(
+        x._1,
+        CityContext(x._2, currentWorldState.attackableCities.map(_._1)),
+        currentWorldState.playerHuman.getPossibleAction))
 
     (playerResult, humanResultOpt) match
       case (Right(playerAction), Some(Right(humanAction))) =>
@@ -86,9 +87,6 @@ object GameController:
         println("Invalid input. Retrying turn.")
         renderTurn().run(gs)
   )
-
-
-
   def gameTurn(): State[GameState, Unit] =
     for
       turn <- renderTurn()
