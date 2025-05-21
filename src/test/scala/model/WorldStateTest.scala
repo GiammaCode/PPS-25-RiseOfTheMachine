@@ -1,9 +1,9 @@
 package model
 
-import model.map.WorldMapModule.{UndeterministicMapModule, WorldMap, createWorldMap}
+import model.map.WorldMapModule.{WorldMap, createWorldMap}
 import model.map.WorldState.*
-import model.strategy.{PlayerAI, PlayerHuman}
-import model.util.GameDifficulty.Difficulty.Normal
+import model.strategy.{Evolve, Infect, PlayerAI, PlayerHuman, Sabotage}
+import model.util.GameSettings.{Difficulty, GameMode, GameSettings, forSettings}
 import org.junit.*
 import org.junit.Assert.*
 
@@ -13,11 +13,14 @@ class WorldStateTest:
   var ai: PlayerAI = _
   var worldMap: WorldMap = _
 
+  given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Normal)
+
+
   @Before
   def init(): Unit =
-    human = PlayerHuman.default
-    ai = PlayerAI.fromDifficulty(Normal)
-    worldMap = createWorldMap(5)(UndeterministicMapModule)
+    human = PlayerHuman.fromSettings
+    ai = PlayerAI.fromSettings
+    worldMap = createWorldMap(5)
 
   @Test
   def testWorldStateCreation(): Unit =
@@ -45,7 +48,20 @@ class WorldStateTest:
     val state = createWorldState(worldMap, ai, human)
     assertFalse(state.isGameOver)
 
+  @Test
+  def testProbabilityByCityAndAction(): Unit =
+    val state = createWorldState(worldMap, ai, human)
+    val attackables = state.attackableCities
 
+    //first city of the list
+    val (cityName, expectedInfect, expectedSabotage) = attackables.head
+    val infectProbability = state.probabilityByCityandAction(cityName, Infect(List(cityName)))
+    println(s"Infect: $infectProbability")
+    assertEquals("Infect probability is wrong", expectedInfect, infectProbability)
 
+    val sabotageProbability = state.probabilityByCityandAction(cityName, Sabotage(List(cityName)))
+    println(s"Sabotage: $sabotageProbability")
+    assertEquals("Sabotage probability is wrong", expectedSabotage, sabotageProbability)
 
-
+    val evolveProbability = state.probabilityByCityandAction(cityName, Evolve)
+    assertEquals( 100, evolveProbability)
