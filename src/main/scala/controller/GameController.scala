@@ -78,11 +78,11 @@ object GameController:
     (playerResult, humanResultOpt) match
       case (Right(playerAction), Some(Right(humanAction))) =>
         val prob = currentWorldState.probabilityByCityandAction(aiTargetCity, playerAction)
-        (gs, TurnResult(playerAction, prob, Some(humanAction)))
+        (gs.copy(worldState = currentWorldState), TurnResult(playerAction, prob, Some(humanAction)))
 
       case (Right(playerAction), None) =>
         val prob = currentWorldState.probabilityByCityandAction(aiTargetCity, playerAction)
-        (gs, TurnResult(playerAction, prob, None))
+        (gs.copy(worldState = currentWorldState), TurnResult(playerAction, prob, None))
 
       case _ =>
         println("Invalid input. Retrying turn.")
