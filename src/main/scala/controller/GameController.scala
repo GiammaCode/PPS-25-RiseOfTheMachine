@@ -33,7 +33,7 @@ object GameController:
     GameStateImpl(
       createWorldState(createWorldMap(10),
       PlayerAI.fromStats,
-      PlayerHuman.fromStats),
+      PlayerHuman.fromStats, 0),
       SmartHumanStrategy)
 
   import model.util.States.State.State
@@ -58,7 +58,8 @@ object GameController:
 
 
   private def renderTurn(): State[GameState, TurnResult] = State ( gs =>
-    val currentWorldState = gs.worldState
+    val currentWorldState = gs.worldState.updateTurn
+
     val ((aiChoiceIndex, aiTargetCity), humanInputOpt) = CLIView.renderGameTurn(currentWorldState)
 
     val context = CityContext(aiTargetCity, currentWorldState.attackableCities.map(_._1))

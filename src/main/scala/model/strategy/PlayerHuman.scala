@@ -59,15 +59,6 @@ private case class PlayerHumanImpl(
       val updated = copy(killSwitch = killSwitch + 10).addAction(action)
       result(updated, None, "KillSwitch progress increased")
 
-  private def result(player: PlayerHumanImpl, city: Option[City], message: String): ExecuteActionResult[Self] =
-    ExecuteActionResult(player, city, List(message))
-
-  private def withDefendedCities(cities: Set[String]): PlayerHumanImpl =
-    copy(defendedCities = defendedCities ++ cities)
-
-  private def addAction(action: HumanAction): PlayerHumanImpl =
-    copy(executedActions = action :: executedActions)
-
   override def toString: String =
     def formatSet(label: String, set: Set[String]): String =
       s"$label : ${if set.isEmpty then "None" else set.mkString(", ")}"
@@ -81,6 +72,15 @@ private case class PlayerHumanImpl(
         |${formatSet("Conquered Cities", conqueredCities)}
         |${formatList("Executed Actions", executedActions)}
         |------------------------""".stripMargin
+
+  private def result(player: PlayerHumanImpl, city: Option[City], message: String): ExecuteActionResult[Self] =
+    ExecuteActionResult(player, city, List(message))
+
+  private def withDefendedCities(cities: Set[String]): PlayerHumanImpl =
+    copy(defendedCities = defendedCities ++ cities)
+
+  private def addAction(action: HumanAction): PlayerHumanImpl =
+    copy(executedActions = action :: executedActions)
 
 
 

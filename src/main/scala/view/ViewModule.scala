@@ -98,7 +98,7 @@ object ViewModule:
     override def renderGameTurn(worldState: WorldState)(using gameSettings: GameSettings): ((Int, String), Option[(Int, String)]) =
       renderTurn(worldState.turn)
       renderMap(worldState.worldMap, worldState.playerAI.conqueredCities)
-      renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
+      renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities, worldState.playerHuman.killSwitch)
       renderProbability(worldState.attackableCities)
       renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
       gameSettings.gameMode match
@@ -147,14 +147,14 @@ object ViewModule:
      * @param infectionState tuple of (infected cities, total cities)
      * @param abilities      the currently unlocked AiAbilities
      */
-    private def renderStatus(infectionState: (Int, Int), abilities: Set[AiAbility]): Unit =
+    private def renderStatus(infectionState: (Int, Int), abilities: Set[AiAbility], killSwitch: Int): Unit =
       val percentageInfected = (infectionState._1.toDouble / infectionState._2 * 100).toInt
       val abilitiesOutput = if abilities.nonEmpty then abilities.mkString(", ") else "0 unlocked"
-      val killSwitchProgress = s"TODO"
+      val killSwitchProgress = s"$killSwitch%"
 
       println("╭────────────────────────────────────╮")
       println(" 📊 Statistics                                                 ")
-      println(f" 🦠 Infected Cities: $percentageInfected%3d%%                 ")
+      println(f" 🦠 Infected Cities:   $percentageInfected%3d%%                 ")
       println(f" 🤖 AI Abilities:        ${abilitiesOutput.padTo(25, ' ')}    ")
       println(f" 🧪 Develop KillSwitch:  ${killSwitchProgress.padTo(25, ' ')} ")
       println("╰────────────────────────────────────╯")

@@ -21,7 +21,7 @@ object WorldState:
    */
   private enum WorldStateImpl:
     case State(worldMap: WorldMap, playerAI: PlayerAI,
-               playerHuman: PlayerHuman, difficulty: Difficulty, turn: Int = 0)
+               playerHuman: PlayerHuman, difficulty: Difficulty, turn: Int)
 
   import WorldStateImpl.*
 
@@ -35,8 +35,8 @@ object WorldState:
    * @param playerHuman the human player
    * @return a new WorldState instance
    */
-  def createWorldState(worldMap: WorldMap, playerAI: PlayerAI, playerHuman: PlayerHuman)(using settings: GameSettings): WorldState =
-    State(worldMap, playerAI, playerHuman, settings.difficulty)
+  def createWorldState(worldMap: WorldMap, playerAI: PlayerAI, playerHuman: PlayerHuman, turn: Int)(using settings: GameSettings): WorldState =
+    State(worldMap, playerAI, playerHuman, settings.difficulty, turn)
 
   /**
    * Extension methods available on WorldState instances.
@@ -151,7 +151,7 @@ object WorldState:
      * @return a new WorldState with the new AI
      */
     def updatePlayer(newAI: PlayerAI): WorldState = ws match
-      case State(map, _, human, t, _) => State(map, newAI, human, t)
+      case State(map, _, human, difficulty, turn) => State(map, newAI, human, difficulty, turn)
 
     /**
      * Creates a new WorldState with an updated human player.
@@ -160,7 +160,7 @@ object WorldState:
      * @return a new WorldState with the new Human
      */
     def updateHuman(newHuman: PlayerHuman): WorldState = ws match
-      case State(map, ai, _, t, _) => State(map, ai, newHuman, t)
+      case State(map, ai, _, difficulty, turn) => State(map, ai, newHuman, difficulty, turn)
 
     /**
      * Creates a new WorldState with an updated city in the map.
@@ -170,9 +170,15 @@ object WorldState:
      * @return a new WorldState with the updated map
      */
     def updateMap(newCity: Option[City]): WorldState = ws match
-      case State(map, ai, human, t, _) =>
+      case State(map, ai, human, difficulty, turn) =>
         val updatedMap = newCity.map(map.changeACityOfTheMap).getOrElse(map)
-        State(updatedMap, ai, human, t)
+        State(updatedMap, ai, human, difficulty, turn)
+
+    def updateTurn: WorldState = ws match
+      case State(map, ai, human, difficulty, turn) =>
+        val newTurn = turn + 1
+        State (map, ai, human, difficulty, newTurn)
+
 
     /**
      * Returns the success percentage for a given city and action type.
