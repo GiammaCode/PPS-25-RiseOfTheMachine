@@ -37,7 +37,7 @@ object ViewModule:
      */
     def renderGameTurn(worldState: WorldState)(using GameSettings): ((Int, String), Option[(Int, String)])
 
-    override def renderEndGame(winner: PlayerEnitity): Unit
+    def renderEndGame(winner: PlayerEntity): Unit
 
   /**
    * CLIView is the command-line implementation of GameView.
@@ -125,8 +125,21 @@ object ViewModule:
      * @param winner the player entity that has fulfilled the victory condition (AI or Human)
      */
     override def renderEndGame(winner: PlayerEntity): Unit= winner match
-      case _:PlayerHuman => println("Humans saved the world")
-      case _:PlayerAI => println("AI conquered the world")
+      case _: PlayerHuman =>
+        println("╭───────────────────────────────────────────╮")
+        println ("  \uD83C\uDF0D  HUMANS SAVED THE WORLD!     ")
+        println ("                                            ")
+        println ("  ✅ The kill switch was activated.         ")
+        println ("  \uD83E\uDDEC Humanity survives... for now.")
+        println ("╰──────────────────────────────────────────╯")
+
+      case _: PlayerAI =>
+        println("╭───────────────────────────────────────────╮")
+        println("  🤖  AI CONQUERED THE WORLD!                ")
+        println("                                             ")
+        println("  💥 All cities have fallen.                 ")
+        println("  🔒 Resistance was futile                   ")
+        println("╰──────────────────────────────────────────╯ ")
 
     /**
      * Prints the current turn number in a stylized header.
