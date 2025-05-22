@@ -94,7 +94,7 @@ object WorldState:
      */
     def isGameOver: Boolean = ws match
       case State(map, _, human, _, _) =>
-        val valueToWin: Int = 70
+        val valueToWin: Int = 20
         val killSwitchCompleted: Int = 100
         map.numberOfCityInfected().toDouble / map.numberOfCityInfected().toDouble * 100 >= 70 ||
           human.killSwitch == killSwitchCompleted

@@ -59,7 +59,6 @@ object GameController:
 
   private def renderTurn(): State[GameState, TurnResult] = State ( gs =>
     val currentWorldState = gs.worldState.updateTurn
-
     val ((aiChoiceIndex, aiTargetCity), humanInputOpt) = CLIView.renderGameTurn(currentWorldState)
 
     val context = CityContext(aiTargetCity, currentWorldState.attackableCities.map(_._1))
@@ -86,8 +85,7 @@ object GameController:
 
       case _ =>
         println("Invalid input. Retrying turn.")
-        renderTurn().run(gs)
-  )
+        renderTurn().run(gs))
   def gameTurn(): State[GameState, Unit] =
     for
       turn <- renderTurn()
@@ -97,6 +95,10 @@ object GameController:
 
   extension(gs: GameState)
       def worldState: WorldState = gs.worldState
+
+      def isGameOver: Boolean =
+        worldState.isGameOver
+        //chiamate view
 
 
 
