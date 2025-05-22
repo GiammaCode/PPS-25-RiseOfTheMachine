@@ -18,7 +18,7 @@ class PlayerHumanTest:
   @Before
   def init(): Unit =
     player = PlayerHuman.fromSettings
-    worldState = createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats)
+    worldState = createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats, 0)
 
   @Test
   def developKillSwitchIncreasesProgress(): Unit =

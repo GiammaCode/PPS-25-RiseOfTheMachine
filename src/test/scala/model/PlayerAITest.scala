@@ -18,7 +18,7 @@ class PlayerAITest :
   @Before
   def init(): Unit =
     player = PlayerAI.fromSettings
-    worldState = createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats)
+    worldState = createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats, 0)
 
   @Test
   def applyEvolveAbilityTest() : Unit =
