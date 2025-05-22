@@ -24,18 +24,18 @@ class WorldStateTest:
 
   @Test
   def testWorldStateCreation(): Unit =
-    val state = createWorldState(worldMap, ai, human)
+    val state = createWorldState(worldMap, ai, human, 0)
     assertNotNull(state)
 
   @Test
   def testConqueredCitiesAccess(): Unit =
-    val state = createWorldState(worldMap, ai, human)
+    val state = createWorldState(worldMap, ai, human, 0)
     assertEquals(Set.empty, state.AIConqueredCities)
     assertEquals(Set.empty, state.humanConqueredCities)
 
   @Test
   def testAttackableCities(): Unit =
-    val state = createWorldState(worldMap, ai, human)
+    val state = createWorldState(worldMap, ai, human, 0)
     val attackables = state.attackableCities
     println(attackables)
     assertTrue(attackables.nonEmpty)
@@ -45,12 +45,12 @@ class WorldStateTest:
 
   @Test
   def testIsGameOverInitially(): Unit =
-    val state = createWorldState(worldMap, ai, human)
-    assertFalse(state.isGameOver)
+    val state = createWorldState(worldMap, ai, human, 0)
+    assertFalse(state.isGameOver._1)
 
   @Test
   def testProbabilityByCityAndAction(): Unit =
-    val state = createWorldState(worldMap, ai, human)
+    val state = createWorldState(worldMap, ai, human, 0)
     val attackables = state.attackableCities
 
     //first city of the list

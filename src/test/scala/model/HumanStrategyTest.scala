@@ -19,7 +19,7 @@ class SmartHumanStrategyTest:
     val human = PlayerHuman.fromSettings
     val ai = PlayerAI.fromSettings
     val map = createWorldMap(5)
-    state = createWorldState(map, ai, human)
+    state = createWorldState(map, ai, human, 0)
 
   @Test
   def testDecideActionReturnsValidAction(): Unit =

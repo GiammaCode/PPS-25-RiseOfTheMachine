@@ -23,7 +23,7 @@ class CLIViewTest:
     human = PlayerHuman.fromSettings
     ai = PlayerAI.fromSettings
     worldMap = createWorldMap(5)
-    state = createWorldState(worldMap, ai, human)
+    state = createWorldState(worldMap, ai, human, 0)
 
   @Test
   def testRenderGameModeMenu_SinglePlayer_Easy(): Unit =
@@ -82,8 +82,8 @@ class CLIViewTest:
 
     val printedOutput = outputBuffer.toString
 
-    assertTrue(printedOutput.contains("RISE OF THE MACHINE - TURN"))
-    assertTrue(printedOutput.contains("Infected city:"))
+    assertTrue(printedOutput.contains("RISE OF THE MACHINE"))
+    assertTrue(printedOutput.contains("Infected Cities:"))
     assertTrue(printedOutput.contains("Insert your action"))
     assertEquals(((1, "A"), None), result)
 
