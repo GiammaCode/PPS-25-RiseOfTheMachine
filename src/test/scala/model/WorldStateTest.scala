@@ -46,7 +46,7 @@ class WorldStateTest:
   @Test
   def testIsGameOverInitially(): Unit =
     val state = createWorldState(worldMap, ai, human, 0)
-    assertFalse(state.isGameOver)
+    assertFalse(state.isGameOver._1)
 
   @Test
   def testProbabilityByCityAndAction(): Unit =
