@@ -30,7 +30,7 @@ object GameController:
 
   def buildGameState(using GameSettings): GameState =
   GameStateImpl(
-      createWorldState(createWorldMap(10),
+      createWorldState(createWorldMap(8),
       PlayerAI.fromStats,
       PlayerHuman.fromStats, 0),
       SmartHumanStrategy)

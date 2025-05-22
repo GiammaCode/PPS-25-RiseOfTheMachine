@@ -178,6 +178,11 @@ object WorldState:
         val updatedMap = newCity.map(map.changeACityOfTheMap).getOrElse(map)
         State(updatedMap, ai, human, difficulty, turn)
 
+    /**
+     * Creates a new WorldState with an updated play turn.
+     *
+     * @return a new WorldState with the updated turn
+     */
     def updateTurn: WorldState = ws match
       case State(map, ai, human, difficulty, turn) =>
         val newTurn = turn + 1
@@ -207,10 +212,13 @@ object WorldState:
      * @param playerAttackValue the value of player attack
      * @return a value to success
      */
-    private def calculatePercentageOfSuccess(cityDefense: Int, playerAttackValue: Int, difficulty: Difficulty): Int = difficulty match
+    private def calculatePercentageOfSuccess(cityDefense: Int, playerAttackValue: Int, difficulty: Difficulty): Int =
+      val rawValue = difficulty match
       case Difficulty.Easy => 110 - cityDefense + playerAttackValue
       case Difficulty.Normal => 100 - cityDefense + playerAttackValue
       case Difficulty.Hard => 90 - cityDefense + playerAttackValue
+
+      Math.max(5, Math.min(95, rawValue))
 
 
 
