@@ -98,7 +98,7 @@ object WorldState:
         val conqueredPercentage = (map.numberOfCityInfected().toDouble / totalCities) * 100
         val killSwitchProgress = human.killSwitch
 
-        if conqueredPercentage >= 60 then (true, Some(ai))
+        if conqueredPercentage >= 10 then (true, Some(ai))
         else if killSwitchProgress >= 90 then (true, Some(human))
         else (false, None)
 
