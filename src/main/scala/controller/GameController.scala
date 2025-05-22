@@ -27,10 +27,9 @@ object GameController:
 
   import model.map.WorldMapModule.given
   import model.util.GameSettings.given
-  given GameSettings = CLIView.renderGameModeMenu()
 
-  def buildGameState(): GameState =
-    GameStateImpl(
+  def buildGameState(using GameSettings): GameState =
+  GameStateImpl(
       createWorldState(createWorldMap(10),
       PlayerAI.fromStats,
       PlayerHuman.fromStats, 0),
@@ -57,7 +56,7 @@ object GameController:
   )
 
 
-  private def renderTurn(): State[GameState, TurnResult] = State ( gs =>
+  private def renderTurn(using GameSettings): State[GameState, TurnResult] = State ( gs =>
     val currentWorldState = gs.worldState.updateTurn
     val ((aiChoiceIndex, aiTargetCity), humanInputOpt) = CLIView.renderGameTurn(currentWorldState)
 
@@ -85,10 +84,10 @@ object GameController:
 
       case _ =>
         println("Invalid input. Retrying turn.")
-        renderTurn().run(gs))
-  def gameTurn(): State[GameState, Unit] =
+        renderTurn.run(gs))
+  def gameTurn(using GameSettings): State[GameState, Unit] =
     for
-      turn <- renderTurn()
+      turn <- renderTurn
       _ <- doPlayerAction(turn.playerAction,turn.playerProb)
       _ <- doHumanAction(turn.humanAction)
     yield ()
