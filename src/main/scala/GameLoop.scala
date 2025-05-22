@@ -11,5 +11,6 @@ def GameLoop(initialState: GameState)(using gameState: GameSettings): Unit =
     else
       val (newState, _) = gameTurn.run(state)
       loop(newState)
-  val finalState = loop(initialState)
+
+  loop(initialState)
 
