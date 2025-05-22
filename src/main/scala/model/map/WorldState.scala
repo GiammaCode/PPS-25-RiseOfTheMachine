@@ -2,10 +2,10 @@ package model.map
 
 import model.map.WorldMapModule.*
 import model.strategy.AiAbility.AiAbility
-import model.strategy.{AiAction, Evolve, Infect, PlayerAI, PlayerHuman, Sabotage}
-import model.util.Util.*
+import model.strategy.{AiAction, Evolve, Infect, PlayerAI, PlayerEntity, PlayerHuman, Sabotage}
 import model.map.CityModule.CityImpl.City
 import model.util.GameSettings.{Difficulty, GameSettings}
+
 /**
  * The `WorldState` module represents the full game state at a given turn.
  * It includes information about the world map, both players, and the current turn.
@@ -92,12 +92,16 @@ object WorldState:
      *
      * @return true if game over, false otherwise
      */
-    def isGameOver: Boolean = ws match
-      case State(map, _, human, _, _) =>
-        val valueToWin: Int = 70
-        val killSwitchCompleted: Int = 100
-        map.numberOfCityInfected().toDouble / map.numberOfCityInfected().toDouble * 100 >= 70 ||
-          human.killSwitch == killSwitchCompleted
+    def isGameOver: (Boolean, Option[PlayerEntity]) = ws match
+      case State(map, ai, human, _, _) =>
+        val totalCities = map.numberOfCity()
+        val conqueredPercentage = (map.numberOfCityInfected().toDouble / totalCities) * 100
+        val killSwitchProgress = human.killSwitch
+
+        if conqueredPercentage >= 60 then (true, Some(ai))
+        else if killSwitchProgress >= 90 then (true, Some(human))
+        else (false, None)
+
 
     /**
      * Returns a set of attackable cities with infection and sabotage success rates.
