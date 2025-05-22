@@ -97,8 +97,8 @@ object GameController:
 
       def isGameOver: Boolean =
         val result = worldState.isGameOver
-        //if result._1 then
-          //CLIView.renderEndGame(result._2)
+        if result._1 then
+          CLIView.renderEndGame(result._2.get)
         result._1
 
 

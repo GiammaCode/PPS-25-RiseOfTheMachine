@@ -3,7 +3,7 @@ package view
 import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.WorldState
 import model.strategy.AiAbility.AiAbility
-import model.strategy.{ActionTarget, AiAction, CityDefense, DevelopKillSwitch, Evolve, GlobalDefense, Infect, PlayerAI, PlayerHuman, Sabotage, TurnAction}
+import model.strategy.{ActionTarget, AiAction, CityDefense, DevelopKillSwitch, Evolve, GlobalDefense, Infect, PlayerAI, PlayerEntity, PlayerHuman, Sabotage, TurnAction}
 import model.util.GameSettings.*
 
 import scala.io.StdIn
@@ -36,6 +36,8 @@ object ViewModule:
      * @return a tuple containing the AI player's action and optionally the human player's action.
      */
     def renderGameTurn(worldState: WorldState)(using GameSettings): ((Int, String), Option[(Int, String)])
+
+    def renderEndGame(winner: PlayerEntity): Unit
 
   /**
    * CLIView is the command-line implementation of GameView.
@@ -113,6 +115,31 @@ object ViewModule:
           println("\n HUMAN PLAYER TURN")
           val humanMove = renderActionMenu(worldState.HumanOptions)
           ((aiMove), Some(humanMove))
+
+    /**
+     * Displays the end-game message based on the winning player.
+     *
+     * This method takes a `PlayerEntity` (either a `PlayerHuman` or `PlayerAI`) and prints
+     * a corresponding message to indicate who won the game.
+     *
+     * @param winner the player entity that has fulfilled the victory condition (AI or Human)
+     */
+    override def renderEndGame(winner: PlayerEntity): Unit= winner match
+      case _: PlayerHuman =>
+        println("╭───────────────────────────────────────────╮")
+        println ("  \uD83C\uDF0D  HUMANS SAVED THE WORLD!     ")
+        println ("                                            ")
+        println ("  ✅ The kill switch was activated.         ")
+        println ("  \uD83E\uDDEC Humanity survives... for now.")
+        println ("╰──────────────────────────────────────────╯")
+
+      case _: PlayerAI =>
+        println("╭───────────────────────────────────────────╮")
+        println("  🤖  AI CONQUERED THE WORLD!                ")
+        println("                                             ")
+        println("  💥 All cities have fallen.                 ")
+        println("  🔒 Resistance was futile                   ")
+        println("╰──────────────────────────────────────────╯ ")
 
     /**
      * Prints the current turn number in a stylized header.
