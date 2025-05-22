@@ -12,12 +12,12 @@ rappresenta l'umanità che cercherà di difendere le varie città e completare
 una cura per salvarsi.
 
 ## Report
-You can download the updated report [here](https://giammacode.github.io/PPS-25-RiseOfTheMachine/).
+You can view the updated report [here](https://giammacode.github.io/PPS-25-RiseOfTheMachine/).
 
 
 ## Group's components
 - Gianmaria Casamenti ([GiammaCode](https://github.com/GiammaCode))
-- Luca Pasini([Paso.Luca](https://github.com/Paso.Luca))
+- Luca Pasini([Paso.Luca](https://github.com/Paso2000))
 - Lorenzo Leoni([LoryBug](https://github.com/LoryBug))
 
 
