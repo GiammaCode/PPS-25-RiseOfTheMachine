@@ -64,9 +64,7 @@ object GameController:
 
     val playerResult = resolveAction(aiChoiceIndex, aiTargetCity, currentWorldState.playerAI.getPossibleAction)
 
-    val humanResultOpt = humanInputOpt.map { case (idx, city) =>
-      resolveAction(idx, city, currentWorldState.playerHuman.getPossibleAction)
-    }
+    val humanResultOpt = humanInputOpt.map(resolveAction(_, _, currentWorldState.playerHuman.getPossibleAction))
 
     (playerResult, humanResultOpt) match
       case (Right(playerAction), humanOpt) if humanOpt.forall(_.isRight) =>
@@ -75,7 +73,8 @@ object GameController:
         (gs.copy(worldState = currentWorldState), TurnResult(playerAction, probability, humanActionOpt))
       case _ =>
         println("Invalid input. Retrying turn.")
-        renderTurn.run(gs))
+        renderTurn.run(gs)
+  )
 
   def gameTurn(using GameSettings): State[GameState, Unit] =
     for
