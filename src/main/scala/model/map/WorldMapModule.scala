@@ -4,7 +4,6 @@ import model.map.CityModule.*
 import model.map.CityModule.CityImpl.*
 import model.util.States.State.State
 import model.util.Util.{doesTheActionGoesRight, letterAt}
-
 import scala.annotation.tailrec
 import scala.util.Random
 
@@ -102,7 +101,7 @@ object WorldMapModule:
    */
   object UndeterministicMapModule extends CreateModuleType:
 
-      opaque type RNGState[A] = State[Random, A]
+      private type RNGState[A] = State[Random, A]
 
       private def randomInt(max: Int): RNGState[Int] =
         State(rng => (rng, rng.nextInt(max)))
@@ -234,14 +233,16 @@ object WorldMapModule:
      *
      * @return a Set of infected cities
      */
-    def AiCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.AI).map(_._1)
+    def aiCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.AI).map(_._1)
 
     /**
      * Returns all cities currently owned by humans.
      *
      * @return a Set of human-controlled cities
      */
-    def HumanCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
+    def humanCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
+
+    def capitalConqueredCounter: Int = worldMap.count(map => map._1.isCapital && map._1.getOwner == Owner.AI)
 
     /**
      * Identifies human cities that are adjacent to any infected (AI) city.
@@ -249,7 +250,7 @@ object WorldMapModule:
      * @return a Set of human cities next to infected cities
      */
     def getAdjacentCities: Set[City] =
-      if AiCities.isEmpty then HumanCities
+      if aiCities.isEmpty then humanCities
       else worldMap.collect:
         case (city, coords)
           if city.getOwner == Owner.HUMAN &&
@@ -266,6 +267,8 @@ object WorldMapModule:
       worldMap.find(_._1.getName == city.getName)
         .map((_, coords) => worldMap.filterNot(_._1.getName == city.getName) + (city -> coords))
         .getOrElse(worldMap)
+
+
 
 
 

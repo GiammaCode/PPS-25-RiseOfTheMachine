@@ -36,16 +36,20 @@ class WorldMapTest:
      assertEquals(Some("j"), worldMap.findInMap { case (_, coords) => coords.contains(2,2)})
   @Test
   def getAdjacentCities(): Unit =
-    assertEquals(worldMap.getAdjacentCities, worldMap.HumanCities)
+    assertEquals(worldMap.getAdjacentCities, worldMap.humanCities)
     val newWorldMAp = worldMap.changeACityOfTheMap(worldMap.getCityByName("m").get.infectCity())
-    assertNotEquals(newWorldMAp.getAdjacentCities,newWorldMAp.HumanCities)
-    assertEquals(Set("m"), newWorldMAp.AiCities.map(_.getName))
+    assertNotEquals(newWorldMAp.getAdjacentCities,newWorldMAp.humanCities)
+    assertEquals(Set("m"), newWorldMAp.aiCities.map(_.getName))
 
   @Test
   def changeACityOfTheMap(): Unit =
       assertEquals(worldMap.getCityByName("i").get.infectCity(), worldMap.changeACityOfTheMap(worldMap.getCityByName("i").get.infectCity()).getCityByName("i").get)
       assertNotEquals(worldMap.getCityByName("i").get.infectCity(), worldMap.changeACityOfTheMap(worldMap.getCityByName("j").get.infectCity()).getCityByName("j").get)
 
+  @Test
+  def conquerCapitalTest(): Unit =
+    assertEquals(0,worldMap.capitalConqueredCounter)
+    assertEquals(1,worldMap.changeACityOfTheMap(worldMap.getCityByName("A").get.infectCity()).capitalConqueredCounter)
 
 
 
