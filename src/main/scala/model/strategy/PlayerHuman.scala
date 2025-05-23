@@ -48,12 +48,13 @@ private case class PlayerHumanImpl(
   override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] = action match
     case CityDefense(targets) =>
       val updated = withDefendedCities(targets.toSet).addAction(action)
-      val maybeCity = targets.headOption.flatMap(worldMap.getCityByName).map(_.defenseCity())
-      result(updated, maybeCity, s"CityDefense on: ${targets.mkString(", ")}")
+      val updatedCity = targets.headOption.flatMap(worldMap.getCityByName).map(_.defenseCity())
+      result(updated, updatedCity, s"CityDefense on: ${targets.mkString(", ")}")
 
     case GlobalDefense(targets) =>
       val updated = withDefendedCities(defendedCities).addAction(action)
-      result(updated, None, "GlobalDefense executed")
+      val updatedCities = targets.flatMap(worldMap.getCityByName).map(_.defenseCity())
+      result(updated, updatedCities.headOption, "GlobalDefense executed")
 
     case DevelopKillSwitch =>
       val updated = copy(killSwitch = killSwitch + 10).addAction(action)
