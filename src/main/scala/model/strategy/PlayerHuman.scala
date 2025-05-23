@@ -2,6 +2,7 @@ package model.strategy
 
 import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.WorldMap
+import model.map.WorldState.WorldState
 import model.strategy.ExecuteActionResult.ExecuteActionResult
 import model.strategy.HumanAction
 import model.util.GameSettings.{GameSettings, HumanStats}
@@ -16,6 +17,8 @@ trait PlayerHuman extends PlayerEntity:
   def getPossibleAction: List[HumanAction]
 
   def executedActions: List[HumanAction]
+
+  def decideActionByStrategy(worldState: WorldState): HumanAction
 
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
@@ -48,12 +51,13 @@ private case class PlayerHumanImpl(
   override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] = action match
     case CityDefense(targets) =>
       val updated = withDefendedCities(targets.toSet).addAction(action)
-      val maybeCity = targets.headOption.flatMap(worldMap.getCityByName).map(_.defenseCity())
-      result(updated, maybeCity, s"CityDefense on: ${targets.mkString(", ")}")
+      val updatedCity = targets.headOption.flatMap(worldMap.getCityByName).map(_.defenseCity())
+      result(updated, updatedCity, s"CityDefense on: ${targets.mkString(", ")}")
 
     case GlobalDefense(targets) =>
       val updated = withDefendedCities(defendedCities).addAction(action)
-      result(updated, None, "GlobalDefense executed")
+      val updatedCities = targets.flatMap(worldMap.getCityByName).map(_.defenseCity())
+      result(updated, updatedCities.headOption, "GlobalDefense executed")
 
     case DevelopKillSwitch =>
       val updated = copy(killSwitch = killSwitch + 10).addAction(action)
@@ -72,6 +76,9 @@ private case class PlayerHumanImpl(
         |${formatSet("Conquered Cities", conqueredCities)}
         |${formatList("Executed Actions", executedActions)}
         |------------------------""".stripMargin
+
+  def decideActionByStrategy(worldState: WorldState): HumanAction =
+    SmartHumanStrategy.decideAction(worldState)
 
   private def result(player: PlayerHumanImpl, city: Option[City], message: String): ExecuteActionResult[Self] =
     ExecuteActionResult(player, city, List(message))

@@ -49,14 +49,15 @@ object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
 
       val topCities = possibleTargets
         .filterNot(state.playerHuman.defendedCities.contains)
-        .take(2)
+        .take(1)
 
       val actions = List(
         Option.when(topCities.nonEmpty)(CityDefense(topCities)),
         Option.when(state.playerHuman.killSwitch < 80)(DevelopKillSwitch),
-        Some(GlobalDefense())
+        Some(GlobalDefense(possibleTargets))
       ).flatten
       Random.shuffle(actions).head
+
 
     state.difficulty match
       case Difficulty.Easy => decideEasy

@@ -15,8 +15,7 @@ object GameController:
    *
    * @return Un nuovo GameController
    */
-  case class GameStateImpl(worldState: WorldState,
-                           humanStrategy: PlayerStrategy[HumanAction])
+  case class GameStateImpl(worldState: WorldState)
 
   private case class TurnResult(playerAction: AiAction,
                                  playerProb: Int,
@@ -28,10 +27,9 @@ object GameController:
 
   def buildGameState(using GameSettings): GameState =
   GameStateImpl(
-      createWorldState(createWorldMap(10),
+      createWorldState(createWorldMap(8),
       PlayerAI.fromStats,
-      PlayerHuman.fromStats, 0),
-      SmartHumanStrategy)
+      PlayerHuman.fromStats, 0))
 
   import model.util.States.State.State
 
@@ -45,7 +43,7 @@ object GameController:
 
   private def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] = State (gs =>
     val currentWorldState = gs.worldState
-    val action = maybeAction.getOrElse(gs.humanStrategy.decideAction(currentWorldState))
+    val action = maybeAction.getOrElse(gs.worldState.playerHuman.decideActionByStrategy(currentWorldState))
     val actionResult = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
     val updatedState = gs.worldState.updateHuman(actionResult.getPlayer).updateMap(actionResult.getCity)
     (gs.copy(worldState = updatedState), ())

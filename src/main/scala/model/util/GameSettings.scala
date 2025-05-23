@@ -55,8 +55,8 @@ object GameSettings:
 
   private val humanConfigs: Map[Difficulty, HumanStats] = Map(
     Easy -> HumanStats(killSwitch = 0),
-    Normal -> HumanStats(killSwitch = 30),
-    Hard -> HumanStats(killSwitch = 50)
+    Normal -> HumanStats(killSwitch = 5),
+    Hard -> HumanStats(killSwitch = 20)
   )
   /**
    * Factory method to generate a full GameSettings instance based on mode and difficulty.

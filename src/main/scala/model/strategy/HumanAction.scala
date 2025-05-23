@@ -14,7 +14,7 @@ object HumanAction:
   val allActions: List[HumanAction] = List(CityDefense(), GlobalDefense(), DevelopKillSwitch)
   def cityDefense(targets: List[ActionTarget]) : HumanAction = CityDefense(targets)
 
-  def globalDefense(): HumanAction = GlobalDefense()
+  def globalDefense(targets: List[ActionTarget]): HumanAction = GlobalDefense(targets)
 
   def developKillSwitch(): HumanAction = DevelopKillSwitch
 

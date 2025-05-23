@@ -90,15 +90,16 @@ object WorldState:
      * Checks whether the game is over.
      * The game ends if more than 10 cities are infected.
      *
-     * @return true if game over, false otherwise
+     * @return true if game over, false otherwise and who wins the game
      */
     def isGameOver: (Boolean, Option[PlayerEntity]) = ws match
       case State(map, ai, human, _, _) =>
         val totalCities = map.numberOfCity()
         val conqueredPercentage = (map.numberOfCityInfected().toDouble / totalCities) * 100
         val killSwitchProgress = human.killSwitch
+        val capitalConquered = map.capitalConqueredCounter
 
-        if conqueredPercentage >= 10 then (true, Some(ai))
+        if conqueredPercentage >= 50 || capitalConquered == 3  then (true, Some(ai))
         else if killSwitchProgress >= 90 then (true, Some(human))
         else (false, None)
 
@@ -178,6 +179,11 @@ object WorldState:
         val updatedMap = newCity.map(map.changeACityOfTheMap).getOrElse(map)
         State(updatedMap, ai, human, difficulty, turn)
 
+    /**
+     * Creates a new WorldState with an updated play turn.
+     *
+     * @return a new WorldState with the updated turn
+     */
     def updateTurn: WorldState = ws match
       case State(map, ai, human, difficulty, turn) =>
         val newTurn = turn + 1
@@ -197,7 +203,7 @@ object WorldState:
           case Infect(_) => infect
           case Sabotage(_) => sabotage
           case Evolve => 100
-      }.getOrElse(0)
+      }.getOrElse(100)
 
     /**
      * Private method to calculate a percentage of success
@@ -207,10 +213,13 @@ object WorldState:
      * @param playerAttackValue the value of player attack
      * @return a value to success
      */
-    private def calculatePercentageOfSuccess(cityDefense: Int, playerAttackValue: Int, difficulty: Difficulty): Int = difficulty match
+    private def calculatePercentageOfSuccess(cityDefense: Int, playerAttackValue: Int, difficulty: Difficulty): Int =
+      val rawValue = difficulty match
       case Difficulty.Easy => 110 - cityDefense + playerAttackValue
       case Difficulty.Normal => 100 - cityDefense + playerAttackValue
       case Difficulty.Hard => 90 - cityDefense + playerAttackValue
+
+      Math.max(5, Math.min(95, rawValue))
 
 
 
