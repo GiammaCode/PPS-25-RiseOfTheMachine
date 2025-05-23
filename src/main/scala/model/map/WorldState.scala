@@ -90,15 +90,16 @@ object WorldState:
      * Checks whether the game is over.
      * The game ends if more than 10 cities are infected.
      *
-     * @return true if game over, false otherwise
+     * @return true if game over, false otherwise and who wins the game
      */
     def isGameOver: (Boolean, Option[PlayerEntity]) = ws match
       case State(map, ai, human, _, _) =>
         val totalCities = map.numberOfCity()
         val conqueredPercentage = (map.numberOfCityInfected().toDouble / totalCities) * 100
         val killSwitchProgress = human.killSwitch
+        val capitalConquered = map.capitalConqueredCounter
 
-        if conqueredPercentage >= 10 then (true, Some(ai))
+        if conqueredPercentage >= 50 || capitalConquered == 3  then (true, Some(ai))
         else if killSwitchProgress >= 90 then (true, Some(human))
         else (false, None)
 

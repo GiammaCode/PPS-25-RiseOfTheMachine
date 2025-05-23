@@ -2,6 +2,7 @@ package model.strategy
 
 import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.WorldMap
+import model.map.WorldState.WorldState
 import model.strategy.ExecuteActionResult.ExecuteActionResult
 import model.strategy.HumanAction
 import model.util.GameSettings.{GameSettings, HumanStats}
@@ -16,6 +17,8 @@ trait PlayerHuman extends PlayerEntity:
   def getPossibleAction: List[HumanAction]
 
   def executedActions: List[HumanAction]
+
+  def decideActionByStrategy(worldState: WorldState): HumanAction
 
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
@@ -73,6 +76,9 @@ private case class PlayerHumanImpl(
         |${formatSet("Conquered Cities", conqueredCities)}
         |${formatList("Executed Actions", executedActions)}
         |------------------------""".stripMargin
+
+  def decideActionByStrategy(worldState: WorldState): HumanAction =
+    SmartHumanStrategy.decideAction(worldState)
 
   private def result(player: PlayerHumanImpl, city: Option[City], message: String): ExecuteActionResult[Self] =
     ExecuteActionResult(player, city, List(message))

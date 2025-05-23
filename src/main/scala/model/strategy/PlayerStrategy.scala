@@ -56,8 +56,8 @@ object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
         Option.when(state.playerHuman.killSwitch < 80)(DevelopKillSwitch),
         Some(GlobalDefense(possibleTargets))
       ).flatten
-      //Random.shuffle(actions).head
-      GlobalDefense(possibleTargets)
+      Random.shuffle(actions).head
+
 
     state.difficulty match
       case Difficulty.Easy => decideEasy
