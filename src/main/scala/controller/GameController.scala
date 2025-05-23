@@ -8,7 +8,6 @@ import model.strategy
 import model.strategy.*
 import model.util.GameSettings.GameSettings
 import model.util.Util.doesTheActionGoesRight
-import view.ViewModule.CLIView
 
 object GameController:
   /**
@@ -26,7 +25,6 @@ object GameController:
   opaque type GameState = GameStateImpl
 
   import model.map.WorldMapModule.given
-  import model.util.GameSettings.given
 
   def buildGameState(using GameSettings): GameState =
   GameStateImpl(
@@ -36,59 +34,52 @@ object GameController:
       SmartHumanStrategy)
 
   import model.util.States.State.State
-  private def getGameState: State[GameState, GameState] =
-    State(gs => (gs, gs))
 
   private def doPlayerAction(action: AiAction, prob: Int): State[GameState, Unit] = if doesTheActionGoesRight(prob)
     then State ( gs =>
         val currentWorldState = gs.worldState
-        val result = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
-        (gs.copy(worldState = currentWorldState.updatePlayer(result.getPlayer).updateMap(result.getCity)), ())
+        val actionResult = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
+        (gs.copy(worldState = currentWorldState.updatePlayer(actionResult.getPlayer).updateMap(actionResult.getCity)), ())
         )
     else State(gs => (gs,()))
 
   private def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] = State (gs =>
     val currentWorldState = gs.worldState
     val action = maybeAction.getOrElse(gs.humanStrategy.decideAction(currentWorldState))
-    val result = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
-    val updatedState = gs.worldState.updateHuman(result.getPlayer).updateMap(result.getCity)
+    val actionResult = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
+    val updatedState = gs.worldState.updateHuman(actionResult.getPlayer).updateMap(actionResult.getCity)
     (gs.copy(worldState = updatedState), ())
   )
 
 
   private def renderTurn(using GameSettings): State[GameState, TurnResult] = State ( gs =>
     val currentWorldState = gs.worldState.updateTurn
+
+    import view.ViewModule.CLIView
+
     val ((aiChoiceIndex, aiTargetCity), humanInputOpt) = CLIView.renderGameTurn(currentWorldState)
 
-    val context = CityContext(aiTargetCity, currentWorldState.attackableCities.map(_._1))
+    def resolveAction[A <: TurnAction](index: Int, city: String, options: List[A])(using InputHandler.ActionResolver[A]) =
+      InputHandler.getActionFromChoice(index, CityContext(city, currentWorldState.attackableCities.map(_._1)), options)
 
-    val playerResult = InputHandler.getActionFromChoice(
-      aiChoiceIndex,
-      context,
-      currentWorldState.playerAI.getPossibleAction)
+    val playerResult = resolveAction(aiChoiceIndex, aiTargetCity, currentWorldState.playerAI.getPossibleAction)
 
-    val humanResultOpt = humanInputOpt.map(x =>
-      InputHandler.getActionFromChoice(
-        x._1,
-        CityContext(x._2, currentWorldState.attackableCities.map(_._1)),
-        currentWorldState.playerHuman.getPossibleAction))
+    val humanResultOpt = humanInputOpt.map(resolveAction(_, _, currentWorldState.playerHuman.getPossibleAction))
 
     (playerResult, humanResultOpt) match
-      case (Right(playerAction), Some(Right(humanAction))) =>
-        val prob = currentWorldState.probabilityByCityandAction(aiTargetCity, playerAction)
-        (gs.copy(worldState = currentWorldState), TurnResult(playerAction, prob, Some(humanAction)))
-
-      case (Right(playerAction), None) =>
-        val prob = currentWorldState.probabilityByCityandAction(aiTargetCity, playerAction)
-        (gs.copy(worldState = currentWorldState), TurnResult(playerAction, prob, None))
-
+      case (Right(playerAction), humanOpt) if humanOpt.forall(_.isRight) =>
+        val probability = currentWorldState.probabilityByCityandAction(aiTargetCity, playerAction)
+        val humanActionOpt = humanOpt.flatMap(_.toOption)
+        (gs.copy(worldState = currentWorldState), TurnResult(playerAction, probability, humanActionOpt))
       case _ =>
         println("Invalid input. Retrying turn.")
-        renderTurn.run(gs))
+        renderTurn.run(gs)
+  )
+
   def gameTurn(using GameSettings): State[GameState, Unit] =
     for
       turn <- renderTurn
-      _ <- doPlayerAction(turn.playerAction,turn.playerProb)
+      _ <- doPlayerAction(turn.playerAction, turn.playerProb)
       _ <- doHumanAction(turn.humanAction)
     yield ()
 
@@ -96,10 +87,11 @@ object GameController:
       def worldState: WorldState = gs.worldState
 
       def isGameOver: Boolean =
-        val result = worldState.isGameOver
-        if result._1 then
-          CLIView.renderEndGame(result._2.get)
-        result._1
+        val (gameOver,winner) = worldState.isGameOver
+        import view.ViewModule.CLIView
+        if gameOver then
+          CLIView.renderEndGame(winner.get)
+        gameOver
 
 
 

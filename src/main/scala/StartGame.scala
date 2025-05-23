@@ -15,6 +15,5 @@ object StartGame:
       else
         val (newState, _) = GameController.gameTurn.run(state)
         gameLoop(newState)
-
     gameLoop(initialState)
 

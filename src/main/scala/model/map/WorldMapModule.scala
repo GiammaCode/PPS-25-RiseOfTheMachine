@@ -169,8 +169,7 @@ object WorldMapModule:
       .filter((x, y) =>
         x >= 0 && y >= 0 && x < size && y < size &&
           !exclude.contains((x, y))
-      )
-      .distinct
+      ).distinct
 
   private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
     validNeighbors(tiles, size, tiles)
