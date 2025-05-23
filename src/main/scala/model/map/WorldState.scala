@@ -202,7 +202,7 @@ object WorldState:
           case Infect(_) => infect
           case Sabotage(_) => sabotage
           case Evolve => 100
-      }.getOrElse(0)
+      }.getOrElse(100)
 
     /**
      * Private method to calculate a percentage of success
