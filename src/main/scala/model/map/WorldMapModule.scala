@@ -241,7 +241,11 @@ object WorldMapModule:
      * @return a Set of human-controlled cities
      */
     def humanCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
-
+    /**
+     * Counts the number of capitals currently infected (AI-controlled).
+     *
+     * @return the number of infected capitals
+     */
     def capitalConqueredCounter: Int = worldMap.count(map => map._1.isCapital && map._1.getOwner == Owner.AI)
 
     /**
