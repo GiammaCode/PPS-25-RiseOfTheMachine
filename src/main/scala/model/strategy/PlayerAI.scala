@@ -179,8 +179,10 @@ private case class PlayerAIImpl (
    */
   private def infect(cities: List[String], worldMap: WorldMap): ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = copy(conqueredCities = conqueredCities ++ cities).addAction(Infect(cities))
-    val maybeCity =  cities.headOption.flatMap(worldMap.getCityByName).map(_.infectCity())
-    ExecuteActionResult.apply(updatedPlayer, maybeCity, List(s"Infect, you have infected: $conqueredCities\n"))
+    val infectedCities: List[City] = cities.flatMap(cityName =>
+      worldMap.getCityByName(cityName).map(_.infectCity())
+    )
+    ExecuteActionResult.apply(updatedPlayer, Some(infectedCities), List(s"Infect, you have infected: $conqueredCities\n"))
 
   /**
    * Performs the sabotage action on a list of city names.
@@ -191,8 +193,10 @@ private case class PlayerAIImpl (
    */
   private def sabotage(cities: List[String], worldMap: WorldMap): ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = copy(sabotagedCities = sabotagedCities ++ cities).addAction(Sabotage(cities))
-    val maybeCity = cities.headOption.flatMap(worldMap.getCityByName).map(_.sabotateCity(sabotagePower))
-    ExecuteActionResult.apply(updatedPlayer, maybeCity, List(s"Sabotage, you have sabotaged: $sabotagedCities\n"))
+    val sabotagedCityList: List[City] = cities.flatMap(cityName =>
+      worldMap.getCityByName(cityName).map(_.sabotateCity(sabotagePower))
+    )
+    ExecuteActionResult.apply(updatedPlayer, Some(sabotagedCityList), List(s"Sabotage, you have sabotaged: $sabotagedCities\n"))
 
   /**
    * Adds an executed action to the internal history.

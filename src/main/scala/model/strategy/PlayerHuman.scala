@@ -51,13 +51,15 @@ private case class PlayerHumanImpl(
   override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] = action match
     case CityDefense(targets) =>
       val updated = withDefendedCities(targets.toSet).addAction(action)
-      val updatedCity = targets.headOption.flatMap(worldMap.getCityByName).map(_.defenseCity())
-      result(updated, updatedCity, s"CityDefense on: ${targets.mkString(", ")}")
+      val defendedCities: List[City] = targets.flatMap(cityName =>
+        worldMap.getCityByName(cityName).map(_.defenseCity())
+      )
+      result(updated, Some(defendedCities), s"CityDefense on: ${targets.mkString(", ")}")
 
     case GlobalDefense(targets) =>
       val updated = withDefendedCities(defendedCities).addAction(action)
       val updatedCities = targets.flatMap(worldMap.getCityByName).map(_.defenseCity())
-      result(updated, updatedCities.headOption, "GlobalDefense executed")
+      result(updated, Some(updatedCities), "GlobalDefense executed")
 
     case DevelopKillSwitch =>
       val updated = copy(killSwitch = killSwitch + 10).addAction(action)
@@ -80,7 +82,7 @@ private case class PlayerHumanImpl(
   def decideActionByStrategy(worldState: WorldState): HumanAction =
     SmartHumanStrategy.decideAction(worldState)
 
-  private def result(player: PlayerHumanImpl, city: Option[City], message: String): ExecuteActionResult[Self] =
+  private def result(player: PlayerHumanImpl, city: Option[List[City]], message: String): ExecuteActionResult[Self] =
     ExecuteActionResult(player, city, List(message))
 
   private def withDefendedCities(cities: Set[String]): PlayerHumanImpl =
