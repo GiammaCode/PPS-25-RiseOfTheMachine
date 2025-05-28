@@ -153,8 +153,8 @@ private case class PlayerAIImpl (
    */
   private def withNewAbility(ability: AiAbility): PlayerAIImpl = copy(
     unlockedAbilities = unlockedAbilities + ability,
-    infectionPower = infectionPower + ability.infectionBonus,
-    sabotagePower = sabotagePower + ability.sabotageBonus
+    infectionPower = math.round(infectionPower * (1 + ability.infectionBonusPerc / 100.0)).toInt,
+    sabotagePower = math.round(sabotagePower * (1 + ability.sabotageBonusPerc / 100.0)).toInt
   )
 
   /**
