@@ -38,18 +38,19 @@ object GameController:
       then State ( gs =>
           val currentWorldState = gs.worldState
           val actionResult = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
-          (gs.copy(worldState = currentWorldState.updatePlayer(actionResult.getPlayer).updateMap(actionResult.getCity)), //CLiView.renderActionResult(true,action)
+          (gs.copy(worldState = currentWorldState.updatePlayer(actionResult.getPlayer).updateMap(actionResult.getCities)), //CLiView.renderActionResult(true,action)
             ())
           )
       else State(gs => (gs, //CLiView.renderActionResult(false,action)
       ())
     )
 
+
   private def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] = State (gs =>
     val currentWorldState = gs.worldState
     val action = maybeAction.getOrElse(gs.worldState.playerHuman.decideActionByStrategy(currentWorldState))
     val actionResult = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
-    val updatedState = gs.worldState.updateHuman(actionResult.getPlayer).updateMap(actionResult.getCity)
+    val updatedState = gs.worldState.updateHuman(actionResult.getPlayer).updateMap(actionResult.getCities)
     (gs.copy(worldState = updatedState), ())
   )
 

@@ -1,26 +1,31 @@
 package model.strategy
 
+object AiAbilityValues:
+  val ImprovedInfectionBonusPerc: Int = 50
+  val StealthSabotageBonusPerc: Int = 50
+  val DefaultPerc: Int = 0
 /** Represents abilities that an AI player can unlock.
  * These abilities enhance the AI's infection or sabotage capabilities.
  */
 object AiAbility:
-
+  import AiAbilityValues._
   /** Trait for all AI abilities.
    * Provides optional bonuses to infection, sabotage, etc.
    */
   sealed trait AiAbility:
+
     /** Bonus to infection probability. Defaults to 0. */
-    def infectionBonus: Int = 0
+    def infectionBonusPerc: Int = DefaultPerc
     /** Bonus to sabotage power. Defaults to 0. */
-    def sabotageBonus: Int = 0
+    def sabotageBonusPerc: Int = DefaultPerc
 
-  /** Grants a +10 infection bonus when unlocked. */
+  /** Grants a +15% infection bonus when unlocked. */
   case object ImprovedInfection extends AiAbility:
-    override def infectionBonus: Int = 10
+    override def infectionBonusPerc: Int = ImprovedInfectionBonusPerc
 
-  /** Grants a +5 sabotage bonus when unlocked. */
+  /** Grants a +15% sabotage bonus when unlocked. */
   case object StealthSabotage extends AiAbility:
-    override def sabotageBonus: Int = 5
+    override def sabotageBonusPerc: Int = StealthSabotageBonusPerc
 
   /** Set of all available AI abilities. */
   val allAbilities : Set[AiAbility] = Set(ImprovedInfection, StealthSabotage) //Could be changed to a getAll

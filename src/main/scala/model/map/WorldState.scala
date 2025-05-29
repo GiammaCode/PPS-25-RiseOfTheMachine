@@ -171,14 +171,15 @@ object WorldState:
      * Creates a new WorldState with an updated city in the map.
      * The new city replaces the existing one with the same name.
      *
-     * @param newCity the updated City instance
+     * @param newCities the updated City instance
      * @return a new WorldState with the updated map
      */
-    def updateMap(newCity: Option[City]): WorldState = ws match
+    def updateMap(newCities: Option[List[City]]): WorldState = ws match
       case State(map, ai, human, difficulty, turn) =>
-        val updatedMap = newCity.map(map.changeACityOfTheMap).getOrElse(map)
+        val updatedMap = newCities match
+          case Some(cityList) => cityList.foldLeft(map)((m, city) => m.changeACityOfTheMap(city))
+          case None           => map
         State(updatedMap, ai, human, difficulty, turn)
-
     /**
      * Creates a new WorldState with an updated play turn.
      *
