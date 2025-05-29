@@ -6,7 +6,6 @@ import view.ViewModule.CLIView
 object Main:
   @main def playGame(): Unit =
     while true do
-        given GameSettings = CLIView.renderGameModeMenu()
-        startGame
+        startGame()
 
 

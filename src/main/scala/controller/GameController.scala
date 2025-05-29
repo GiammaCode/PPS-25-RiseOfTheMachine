@@ -7,7 +7,6 @@ import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy
 import model.strategy.*
 import model.util.GameSettings.GameSettings
-import model.util.Util.doesTheActionGoesRight
 
 object GameController:
   /**
@@ -33,13 +32,18 @@ object GameController:
 
   import model.util.States.State.State
 
-  private def doPlayerAction(action: AiAction, prob: Int): State[GameState, Unit] = if doesTheActionGoesRight(prob)
-    then State ( gs =>
-        val currentWorldState = gs.worldState
-        val actionResult = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
-        (gs.copy(worldState = currentWorldState.updatePlayer(actionResult.getPlayer).updateMap(actionResult.getCity)), ())
-        )
-    else State(gs => (gs,()))
+  private def doPlayerAction(action: AiAction, prob: Int): State[GameState, Unit] =
+    import model.util.Util.doesTheActionGoesRight
+    if doesTheActionGoesRight(prob)
+      then State ( gs =>
+          val currentWorldState = gs.worldState
+          val actionResult = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
+          (gs.copy(worldState = currentWorldState.updatePlayer(actionResult.getPlayer).updateMap(actionResult.getCity)), //CLiView.renderActionResult(true,action)
+            ())
+          )
+      else State(gs => (gs, //CLiView.renderActionResult(false,action)
+      ())
+    )
 
   private def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] = State (gs =>
     val currentWorldState = gs.worldState
@@ -61,7 +65,6 @@ object GameController:
       InputHandler.getActionFromChoice(index, CityContext(city, currentWorldState.attackableCities.map(_._1)), options)
 
     val playerResult = resolveAction(aiChoiceIndex, aiTargetCity, currentWorldState.playerAI.getPossibleAction)
-
     val humanResultOpt = humanInputOpt.map(resolveAction(_, _, currentWorldState.playerHuman.getPossibleAction))
 
     (playerResult, humanResultOpt) match
