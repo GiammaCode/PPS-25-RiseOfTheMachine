@@ -1,8 +1,7 @@
 # Intro
 
-Questa sezione contiene la descrizione da me implementate durante lo sviluppo del progetto.
-
-## Struttura generale:
+Questa sezione contiene la descrizione delle classi da me implementate durante lo sviluppo del progetto.
+Mi sono occupato principalmente di:
 
 * **`model.strategy`**: Definisce i comportamenti astratti e concreti delle azioni disponibili per Human e IA, tramite trait come `TurnAction`, `AiAction`, `HumanAction`, e le loro rispettive implementazioni (`Infect`, `Sabotage`, `CityDefense`, ecc.).
 
@@ -15,23 +14,21 @@ Questa sezione contiene la descrizione da me implementate durante lo sviluppo de
 
 ## PlayerEntity
 
-### Link al codice
+**Link al codice** *da inserire manualmente*
 
-*da inserire manualmente*
-
-### Descrizione
+**Descrizione:**
 
 `PlayerEntity` è un trait che rappresenta qualsiasi entità giocante all'interno del progetto, come un giocatore umano o un'intelligenza artificiale. Questa classe fa parte del package `model` ed è utilizzata per modellare il comportamento di un giocatore che può eseguire azioni durante il gioco.
  La scelta di usare un trait parametrizzato tramite tipi associati (`ValidAction` e `Self`) permette una forte tipizzazione e flessibilità, garantendo che le azioni eseguite siano compatibili con la specifica entità.
 
-### Caratteristiche funzionali
+**Caratteristiche funzionali:**
 
 * **Tipi associati (`ValidAction` e `Self`)**: permettono di definire in modo generico quali azioni sono valide per una specifica entità e di mantenere il tipo dell'entità stessa durante l'esecuzione delle azioni.
   *Vantaggi:* forte sicurezza di tipo e possibilità di estendere facilmente il comportamento con nuove entità e azioni senza modificare il trait base.
 * **Metodo `executeAction`**: esegue un'azione valida sul mondo di gioco aggiornando lo stato dell'entità e restituendo un risultato che indica l'esito.
   *Vantaggi:* incapsula la logica di mutazione dell'entità e il possibile effetto sull'ambiente di gioco, permettendo di mantenere immutabilità e di usare pattern funzionali per la gestione dello stato.
 
-### Diagramma Mermaid della classe
+**Diagramma Mermaid della classe**
 
 ```mermaid
 classDiagram
