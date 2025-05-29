@@ -74,7 +74,7 @@ object CityModule:
        * @return a new City instance with augmented defense
        */
 
-      def defenseCity(): City
+      def defenseCity(defenseImprove: Int): City
 
 
   /**
@@ -146,5 +146,5 @@ object CityModule:
        *
        * @return a new city instance with improved defense
        */
-      def defenseCity(): City =
-        city.copy(defense = city.defense + 20)
+      def defenseCity(defenseImprove: Int): City =
+        city.copy(defense = city.defense + defenseImprove)

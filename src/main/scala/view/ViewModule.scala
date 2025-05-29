@@ -57,6 +57,8 @@ object ViewModule:
       println("  📊 Select Difficulty Level  ")
       println("  1. Single Player            ")
       println("  2. Multiplayer              ")
+      println("  3. Tutorial              ")
+      println("  4. Exit                      ")
       println("╰──────────────────────────────╯")
       print("Insert your choice > ")
       val selectedMode: GameMode = StdIn.readLine().trim match
