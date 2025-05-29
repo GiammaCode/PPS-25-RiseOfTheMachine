@@ -23,7 +23,13 @@ object CLIFormatter:
     }
     println("╰" + "─" * contentWidth + "╯")
 
-
+  /**
+   * Prints a menu list with indexed options inside a styled box,
+   * and prompts the user to select an option.
+   *
+   * @param title the title displayed at the top of the menu
+   * @param body  the list of menu options to display
+   */
   def printBoxedMenu(title: String, body: List[String]): Unit  =
     val width = (title.length :: body.map(_.length + 6)).max + 4
     println("╭" + "─" * width + "╮")
@@ -36,6 +42,11 @@ object CLIFormatter:
     println("╰" + "─" * width + "╯")
     print("Insert your choice > ")
 
+  /**
+   * Prints a large ASCII art title to the console using the jfiglet font engine.
+   *
+   * @param text the text to be rendered in ASCII art style
+   */
   def printAsciiTitle(text: String): Unit =
     val ascii = com.github.lalyos.jfiglet.FigletFont.convertOneLine(text)
     println(ascii)
