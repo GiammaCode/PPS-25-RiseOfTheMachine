@@ -3,8 +3,9 @@ package view
 import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.WorldState
 import model.strategy.AiAbility.AiAbility
-import model.strategy.{ActionTarget, AiAction, CityDefense, DevelopKillSwitch, Evolve, GlobalDefense, Infect, PlayerAI, PlayerEntity, PlayerHuman, Sabotage, TurnAction}
+import model.strategy.*
 import model.util.GameSettings.*
+import view.ViewModule.GameTurnInput.GameTurnInput
 
 import scala.io.StdIn
 
@@ -14,6 +15,14 @@ import scala.io.StdIn
  */
 object ViewModule:
 
+  object GameTurnInput:
+    opaque type GameTurnInput = ((Int, String), Option[(Int, String)])
+
+    def apply(aiInput: (Int, String), humanInput: Option[(Int, String)]): GameTurnInput = (aiInput, humanInput)
+
+    extension (input: GameTurnInput)
+      def aiInput: (Int, String) = input._1
+      def humanInput: Option[(Int, String)] = input._2
   /**
    * Trait representing the view layer of the game.
    * It abstracts rendering menus, turns, and actions based on the current WorldState.
@@ -35,7 +44,7 @@ object ViewModule:
      * @param gameMode   the game mode (Singleplayer or Multiplayer), passed implicitly.
      * @return a tuple containing the AI player's action and optionally the human player's action.
      */
-    def renderGameTurn(worldState: WorldState)(using GameSettings): ((Int, String), Option[(Int, String)])
+    def renderGameTurn(worldState: WorldState)(using GameSettings): GameTurnInput
 
     def renderEndGame(winner: PlayerEntity): Unit
 
@@ -99,7 +108,7 @@ object ViewModule:
      * @param gameMode   the selected game mode (implicit)
      * @return a tuple: (AIPlayer input, Optional HumanPlayer input)
      */
-    override def renderGameTurn(worldState: WorldState)(using gameSettings: GameSettings): ((Int, String), Option[(Int, String)]) =
+    override def renderGameTurn(worldState: WorldState)(using gameSettings: GameSettings): GameTurnInput =
       renderTurn(worldState.turn)
       renderMap(worldState.worldMap, worldState.playerAI.conqueredCities)
       renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities, worldState.playerHuman.killSwitch)
@@ -109,14 +118,14 @@ object ViewModule:
         case GameMode.Singleplayer =>
           println("\n AI PLAYER TURN")
           val aiMove = renderActionMenu(worldState.AiOptions)
-          ((aiMove), None)
+          GameTurnInput(aiMove, None)
 
         case GameMode.Multiplayer =>
           println("\n AI PLAYER TURN")
           val aiMove = renderActionMenu(worldState.AiOptions)
           println("\n HUMAN PLAYER TURN")
           val humanMove = renderActionMenu(worldState.HumanOptions)
-          ((aiMove), Some(humanMove))
+          GameTurnInput(aiMove, Some(humanMove))
 
     /**
      * Displays the end-game message based on the winning player.
