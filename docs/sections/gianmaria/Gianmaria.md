@@ -1,6 +1,6 @@
 Durante l'implementazione del progetto *Rise of the Machine*, mi sono occupato della progettazione e sviluppo di componenti chiave sia lato modello che lato vista, con particolare attenzione alla coerenza del sistema e all’estensibilità del codice.
 
-### Moduli Realizzati
+Tra i moduli da me sviluppati troviamo: 
 
 #### Stato di gioco del sistema
 Ho sviluppato il modulo `WorldState`, che gestisce lo stato globale del gioco. Include:
