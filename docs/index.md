@@ -19,14 +19,13 @@ Italy
 - Lorenzo Leoni - lorenzo.leoni5@studio.unibo.it
 
 ## Indice
-- [Introduction](sections/1_Introduction.md)
-- [Develope](sections/2_Development.md)
-- [Requirements](sections/3_Requirements.md)
-- [Architecture](sections/4_Architecture.md)
-- [Design](sections/5_Design.md)
-- [Implementation](sections/6_Implementation.md)
-- [Retrospective](sections/7_Retrospective.md)
+- [Introduzione](sections/1_Introduction.md)
 - [Sviluppo](sections/2_Development.md)
+- [Requisiti](sections/3_Requirements.md)
+- [Archittetura](sections/4_Architecture.md)
+- [Design](sections/5_Design.md)
+- [Implementazione](sections/6_Implementation.md)
+- [Retrospettiva](sections/7_Retrospective.md)
 
 
 ## Meeting & Sprint Backlogs
