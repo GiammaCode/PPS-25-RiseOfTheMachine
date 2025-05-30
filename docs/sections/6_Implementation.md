@@ -1,6 +1,6 @@
 # Implementazione
 
-- [Gianmaria](Gianmaria.md)
+- [Gianmaria](gianmaria/Gianmaria.md)
 
 - [Luca](Luca.md)
  

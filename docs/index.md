@@ -1,3 +1,8 @@
+---
+layout: default
+title: Home
+---
+
 # Paradigmi di Programmazione e Sviluppo
 
 M.S. Engineering and Computer Science

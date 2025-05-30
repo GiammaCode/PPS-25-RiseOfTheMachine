@@ -1,3 +1,5 @@
+
+
 # WorldState
 Il modulo `WorldState` rappresenta lo stato globale del gioco ad un dato turno.  
 È progettato in stile **funzionale** e **immutabile** usando `opaque type`, e fornisce un'interfaccia 
@@ -28,7 +30,7 @@ def createWorldState(worldMap: WorldMap, playerAI: PlayerAI, playerHuman: Player
 ## Dettagli implementativi
 //TODO
 
-![UML WorldState](../image/WorldState.png)
+![UML WorldState](../../image/WorldState.png)
 ---
 # PlayerHuman
 
@@ -77,7 +79,7 @@ Il modulo `PlayerHuman` rappresenta il giocatore umano nel gioco.
 
 //TODO
 
-![UML PlayerHuman](../image/PlayerHuman.png)
+![UML PlayerHuman](../../image/PlayerHuman.png)
 ---
 
 # HumanAction
@@ -115,7 +117,7 @@ una **concreta `CLIView`** che stampa il gioco su terminale.
 
 //TODO 
 
-![UML ViewModule](../image/ViewModule.png)
+![UML ViewModule](../../image/ViewModule.png)
 
 ### Output di `renderGameTurn`
 ```
