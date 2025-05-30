@@ -52,13 +52,13 @@ private case class PlayerHumanImpl(
     case CityDefense(targets) =>
       val updated = withDefendedCities(targets.toSet).addAction(action)
       val defendedCities: List[City] = targets.flatMap(cityName =>
-        worldMap.getCityByName(cityName).map(_.defenseCity())
+        worldMap.getCityByName(cityName).map(_.defenseCity(20))
       )
       result(updated, Some(defendedCities), s"CityDefense on: ${targets.mkString(", ")}")
 
     case GlobalDefense(targets) =>
       val updated = withDefendedCities(defendedCities).addAction(action)
-      val updatedCities = targets.flatMap(worldMap.getCityByName).map(_.defenseCity())
+      val updatedCities = targets.flatMap(worldMap.getCityByName).map(_.defenseCity(2))
       result(updated, Some(updatedCities), "GlobalDefense executed")
 
     case DevelopKillSwitch =>

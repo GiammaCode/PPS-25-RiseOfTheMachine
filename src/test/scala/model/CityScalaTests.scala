@@ -36,7 +36,7 @@ class CityScalaTests extends AnyFunSuite with Matchers:
 
     test("defenseCity should increase base defense by 20") {
       val city = createCity("Naples", 1, isCapital = false)
-      val defended = city.defenseCity()
+      val defended = city.defenseCity(20)
 
       val expectedDefense = (40 + 20) + (1 * 5) // 60 + 5 = 65
       defended.getDefense shouldBe expectedDefense

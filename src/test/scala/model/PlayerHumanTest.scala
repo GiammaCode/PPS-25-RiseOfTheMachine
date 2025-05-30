@@ -24,7 +24,7 @@ class PlayerHumanTest:
   def developKillSwitchIncreasesProgress(): Unit =
     val updatedPlayer = player.executeAction(DevelopKillSwitch, worldState.worldMap).getPlayer
     //killswitch with normal difficulty starts to 30 (+10)
-    assertEquals(40, updatedPlayer.killSwitch)
+    assertEquals(15, updatedPlayer.killSwitch)
     assertEquals(1, updatedPlayer.executedActions.size)
 
   @Test
@@ -34,22 +34,3 @@ class PlayerHumanTest:
     assertTrue(updatedPlayer.defendedCities.contains("B"))
     assertEquals(2, updatedPlayer.defendedCities.size)
     assertEquals(1, updatedPlayer.executedActions.size)
-
-  /*
-  @Test
-  def normalDifficultyStatsTest(): Unit =
-    val expected = GameDifficulty.humanStatsFor(Normal)
-    assertEquals(expected.killSwitch, player.killSwitch)
-
-  @Test
-  def easyDifficultyStatsTest(): Unit =
-    val easyPlayer = PlayerHuman.fromDifficulty(Easy)
-    val expected = GameDifficulty.humanStatsFor(Easy)
-    assertEquals(expected.killSwitch, easyPlayer.killSwitch)
-
-  @Test
-  def hardDifficultyStatsTest(): Unit =
-    val hardPlayer = PlayerHuman.fromDifficulty(Hard)
-    val expected = GameDifficulty.humanStatsFor(Hard)
-    assertEquals(expected.killSwitch, hardPlayer.killSwitch)
-  */

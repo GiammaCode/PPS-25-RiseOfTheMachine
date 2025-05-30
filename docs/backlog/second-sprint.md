@@ -1,22 +1,28 @@
 # Second Sprint Planning – 30/04/2025
 
-## 
+Il team si è incontrato in loco per rivedere le specifiche del progetto e
+definire i task del **secondo sprint**.  
+**Durata:** 2 ore
+
 ---
 
 ## Obiettivi Sprint
 Rilasciare una versione del gioco funzionante,
-dando al committente la possibilità di provare le core feature del videogioco(successione di turni di gioco dove si possono svolgere azioni con conseguenze sulla mappa)
-permettendo al team di sviluppo in futuro di non dipendere in maniera stringente gli uni dagli altri fornendo la possibilità di runnare un applicazione funzionante e ottenendo i relativi feedback.
+dando al committente la possibilità di provare le core feature del videogioco(successione di turni di gioco dove
+si possono svolgere azioni con conseguenze sulla mappa)
+permettendo al team di sviluppo in futuro di non dipendere in maniera stringente gli uni dagli altri fornendo la
+possibilità di runnare un applicazione funzionante e ottenendo i relativi feedback.
 Tutto questo tralasciando piccoli dettagli che verranno trattati nelle prossime sprint
 
 
 ---
 
 ## Planning & Comunicazione
-
+- Incontri frequenti, sia in presenza che online
+- Collaborazione diretta su codice e decisioni progettuali
+- Comunicazione continua e confronto immediato
 
 **Deadline sprint:** 12/05/2025
-
 ---
 
 ## Divisione del Lavoro
@@ -38,7 +44,8 @@ Tutto questo tralasciando piccoli dettagli che verranno trattati nelle prossime 
 
 ## Sprint Review – 08/05/2025
 
-Si è deciso di chiudere prima la sprint perché il risultato della sprint era stato raggiunto, grazie a un aumento delle ore di lavoro del team 
+Si è deciso di chiudere prima la sprint perché il risultato della sprint era stato raggiunto, grazie a un aumento delle 
+ore di lavoro del team 
 
 ### Risultati ottenuti:
 La release simula un serie di turni di gioco che modificano lo stato del gioco e quindi la mappa
