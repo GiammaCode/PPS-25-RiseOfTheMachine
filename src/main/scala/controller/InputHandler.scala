@@ -77,7 +77,7 @@ object InputHandler:
             case _: GlobalDefense =>
               Either.cond(
                 targets.nonEmpty,
-                GlobalDefense(targets),
+                GlobalDefense(ownedCities.toList),
                 InputParsingError("Targets", "Some targets are not your cities.")
               )
             case DevelopKillSwitch => Right(DevelopKillSwitch)
