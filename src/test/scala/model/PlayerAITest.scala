@@ -6,7 +6,8 @@ import model.strategy.{AiAbility, AiAction, Evolve, Infect, PlayerAI, PlayerHuma
 import org.junit.*
 import org.junit.Assert.assertEquals
 import model.map.WorldState.*
-import model.util.GameSettings._
+import model.strategy.AiAbilityValues.{ImprovedInfectionBonusPerc, StealthSabotageBonusPerc}
+import model.util.GameSettings.*
 
 class PlayerAITest :
   var player : PlayerAI = _
@@ -15,29 +16,35 @@ class PlayerAITest :
   given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Easy)
 
 
+  private val EasyPlayerInfcPwr = 10
+
   @Before
   def init(): Unit =
     player = PlayerAI.fromSettings
-    worldState = createWorldState( createWorldMap(10), PlayerAI.fromStats, PlayerHuman.fromStats, 0)
+    worldState = createWorldState( createWorldMap(EasyPlayerInfcPwr), PlayerAI.fromStats, PlayerHuman.fromStats, 0)
+
+  private val EasyPlayerSabPwr = 50
+  private val BasicPercBonus = 50
+
 
   @Test
   def applyEvolveAbilityTest() : Unit =
     val updatedPlayer = player.executeAction(Evolve, worldState.worldMap).getPlayer
     assert(updatedPlayer.unlockedAbilities.nonEmpty)
     if (updatedPlayer.unlockedAbilities.contains(AiAbility.ImprovedInfection)) {
-      assert(updatedPlayer.infectionPower == player.infectionPower + 10)
+      assertEquals(updatedPlayer.infectionPower, math.round(EasyPlayerInfcPwr * (1 + ImprovedInfectionBonusPerc / 100.0)).toInt)
     }
     if (updatedPlayer.unlockedAbilities.contains(AiAbility.StealthSabotage)) {
-      assert(updatedPlayer.sabotagePower == player.sabotagePower + 5)
+      assertEquals(updatedPlayer.sabotagePower ,math.round(EasyPlayerSabPwr * (1 + StealthSabotageBonusPerc / 100.0)).toInt)
     }
 
   @Test
   def applyMultipleEvolveActionsTest(): Unit =
     val playerAfterFirstEvolve = player.executeAction(Evolve, worldState.worldMap).getPlayer
     val playerAfterSecondEvolve = playerAfterFirstEvolve.executeAction(Evolve, worldState.worldMap).getPlayer
-    assert(playerAfterSecondEvolve.executedActions.size == 2)
-    assert(playerAfterSecondEvolve.infectionPower == player.infectionPower + 10)
-    assert(playerAfterSecondEvolve.sabotagePower == player.sabotagePower + 5)
+    assertEquals(playerAfterSecondEvolve.executedActions.size, 2)
+    assertEquals(playerAfterSecondEvolve.infectionPower ,math.round(EasyPlayerInfcPwr * (1 + ImprovedInfectionBonusPerc / 100.0)).toInt)
+    assertEquals(playerAfterSecondEvolve.sabotagePower , math.round(EasyPlayerSabPwr * (1 + StealthSabotageBonusPerc / 100.0)).toInt)
 
 
   @Test
