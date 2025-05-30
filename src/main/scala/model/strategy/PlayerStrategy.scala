@@ -65,7 +65,6 @@ object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
       val actions = baseHumanActions(defend, topRiskTargets(state))
       Random.shuffle(actions).head
 
-
     state.difficulty match
       case Difficulty.Easy => decideEasy
       case Difficulty.Normal => decideNormal
