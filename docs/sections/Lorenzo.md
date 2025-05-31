@@ -9,6 +9,38 @@ Mi sono occupato principalmente di:
 
 * **`controller`**: Gestisce l'interazione tra l’utente e il sistema. Fornisce il parsing dell’input, la risoluzione delle azioni tramite contesto e la gestione degli errori (`InputHandler`, `InputHandlingError`, ecc.).
 
+## Diagramma di funzionamento
+```mermaid
+flowchart TD
+    A["User Input - city name or choice"] --> B[InputHandler.getActionFromChoice]
+    B --> C{Is choice valid?}
+    C -- No --> D[Return InvalidChoice Error]
+    C -- Yes --> E[Resolver.resolve action, context]
+
+    E --> F{Context valid?}
+    F -- No --> G[Return InputParsingError]
+    F -- Yes --> H[Resolved AiAction - Infect/Sabotage/Evolve]
+
+    H --> I[Controller.doPlayerAction AiAction, probability]
+
+    I --> J{doesTheActionGoesRight prob?}
+    J -- No --> K[Return unchanged GameState]
+    J -- Yes --> L[PlayerAI.executeAction AiAction, worldMap]
+
+    L --> M{AiAction type}
+    M -- Infect --> N[PlayerAIImpl.infect targets, worldMap]
+    M -- Sabotage --> O[PlayerAIImpl.sabotage targets, worldMap]
+    M -- Evolve --> P[PlayerAIImpl.evolve]
+
+    N --> Q[Update conqueredCities + City.infectCity]
+    O --> R[Update sabotagedCities + City.sabotateCity]
+    P --> S[Unlock new AiAbility]
+
+    Q --> T[Update GameState]
+    R --> T
+    S --> T
+    T --> U[Return updated GameState]
+```
 
 # Model
 
