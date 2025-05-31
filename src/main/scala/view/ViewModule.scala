@@ -209,9 +209,9 @@ object ViewModule:
         case CityDefense(targets) => s"CityDefense(${targets.mkString(", ")})"
         case GlobalDefense(targets) => s"GlobalDefense"
 
-      printBoxedContent("🧾 Action Summary", List(
-        s"🧍 Human: ${human.executedActions.map(formatAction).mkString(" || ")}",
-        s"🤖 AI   : ${ai.executedActions.map(formatAction).mkString(" || ")}"
+      printBoxedContent("🧾 Action Summary (last 7 actions)", List(
+        s"🧍 Human: ${human.executedActions.take(7).map(formatAction).mkString(" || ")}",
+        s"🤖 AI   : ${ai.executedActions.take(7).map(formatAction).mkString(" || ")}"
       ))
 
     /**

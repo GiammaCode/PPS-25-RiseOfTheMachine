@@ -24,7 +24,6 @@ class SmartHumanStrategyTest:
   @Test
   def testDecideActionReturnsValidAction(): Unit =
     val action = SmartHumanStrategy.decideAction(state)
-    println(action.name)
     assertNotNull(action)
     assertTrue(action.isInstanceOf[HumanAction])
 
