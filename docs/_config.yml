@@ -6,4 +6,4 @@ plugins:
 
 just_the_docs:
   mermaid:
-    version: "10.4.0"
+    version: "9.1.3"
