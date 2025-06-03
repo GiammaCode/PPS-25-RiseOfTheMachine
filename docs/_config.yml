@@ -4,4 +4,6 @@ remote_theme: just-the-docs/just-the-docs@v0.6.0
 plugins:
   - jekyll-remote-theme
 
-markdown: kramdown
+just_the_docs:
+  mermaid:
+    version: "10.4.0" # o l'ultima disponibile
