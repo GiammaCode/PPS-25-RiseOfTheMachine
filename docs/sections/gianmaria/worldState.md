@@ -40,6 +40,7 @@ metodi estensivi sicuri.
 ---
 
 ## Diagramma dei componenti
+
 ```mermaid
 classDiagram
   class WorldState
@@ -53,3 +54,4 @@ classDiagram
   WorldState --> PlayerAI : contiene
   WorldState --> Difficulty : imposta
 
+```
