@@ -123,6 +123,7 @@ object WorldMapModule:
 
     private def randomMaxSize(isCapital: Boolean): Int =
       3 + Random.nextInt(3) + (if isCapital then 4 else 0)
+
     private def growCity(start: Coord, isCapital :Boolean,available: Set[Coord], mapSize: Int): Set[Coord] =
       @tailrec
       def expand(frontier: List[Coord], built: Set[Coord]): Set[Coord] =
@@ -135,17 +136,17 @@ object WorldMapModule:
           expand(frontier.tail ++ neighbors, built + next)
 
       expand(List(start), Set(start))
-    override def createMap(citySize: Int): WorldMap =
+    override def createMap(size: Int): WorldMap =
 
-        val size = citySize
-        val allCoords: Set[Coord] = (for
+        val allCoords: Set[Coord] =
+        (for
           x <- 0 until size
           y <- 0 until size
         yield (x, y)).toSet
 
         val fullMaps: LazyList[WorldMap] = placeCities(size, allCoords)
 
-        fullMaps.find(m => m.flatMap(_._2).size == size * size ).getOrElse(Set.empty)
+        fullMaps.find(m => m.flatMap(_._2).size == size * size ).get
 
   private def validNeighbors(seeds: List[Coord], size: Int, blocked: Set[Coord]): List[Coord] =
       for
