@@ -66,3 +66,4 @@ classDiagram
 
   CLIView --|> GameView
   CLIView --> CLIFormatter
+```

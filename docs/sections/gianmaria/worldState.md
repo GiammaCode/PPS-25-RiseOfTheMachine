@@ -29,6 +29,7 @@ metodi estensivi sicuri.
 ---
 
 ### Funzionalità principali
+
 | Metodo | Descrizione |
 |--------|-------------|
 | `attackableCities` | Restituisce le città attaccabili con probabilità di infezione e sabotaggio |
