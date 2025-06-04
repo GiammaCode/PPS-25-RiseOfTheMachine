@@ -1,5 +1,7 @@
 package view
 
+import model.map.WorldMapModule.WorldMap
+
 /**
  * CLIFormatter is a utility object that provides reusable functions
  * for rendering stylized CLI elements such as boxes, menus, and ASCII titles.
@@ -51,4 +53,16 @@ object CLIFormatter:
     val ascii = com.github.lalyos.jfiglet.FigletFont.convertOneLine(text)
     println(ascii)
 
+  def printMap(map: WorldMap, conquered: Set[String]): Unit =
+    val mapString = (0 until map.getSizeOfTheMap).map { y =>
+      (0 until map.getSizeOfTheMap).map { x =>
+        map.findInMap { case (_, coords) => coords.contains((x, y)) } match
+          case Some(city) =>
+            val name = city
+            if conquered.contains(city) then s"❗"
+            else name
+          case None => "/"
+      }.mkString(" ")
+    }.mkString("\n    ")
+    println("    " + mapString)
 

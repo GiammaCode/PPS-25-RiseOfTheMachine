@@ -7,6 +7,7 @@ import model.strategy.*
 import model.util.GameSettings.*
 import view.ViewModule.GameTurnInput.GameTurnInput
 
+import scala.annotation.tailrec
 import scala.io.StdIn
 
 /**
@@ -54,7 +55,6 @@ object ViewModule:
    * It renders all game content to the terminal and handles user input via StdIn.
    */
   object CLIView extends GameView:
-
     import CLIFormatter.*
 
     /**
@@ -65,15 +65,8 @@ object ViewModule:
      */
     override def renderGameModeMenu(): GameSettings =
       printAsciiTitle("RISE OF THE MACHINE")
-      printBoxedMenu("📊 Select game mode", List("Single Player", "Multiplayer", "Tutorial", "Exit"))
-      val selectedMode: GameMode = StdIn.readLine().trim match
-        case "0" => GameMode.Singleplayer
-        case "1" => GameMode.Multiplayer
-        case _ =>
-          println("Invalid input. Defaulting to Single Player.")
-          GameMode.Singleplayer
-
-      val selectedDifficulty: Difficulty = selectedMode match
+      val mode = askGameMode()
+      val selectedDifficulty: Difficulty = mode match
         case GameMode.Singleplayer =>
           printBoxedMenu("📊 Select difficulty level", List("Easy", "Normal", "Hard"))
           StdIn.readLine().trim match
@@ -86,7 +79,7 @@ object ViewModule:
 
         case GameMode.Multiplayer => Difficulty.Normal
 
-      forSettings(selectedMode, selectedDifficulty)
+      forSettings(mode, selectedDifficulty)
 
     /**
      * Renders the current game turn, including map, infection status,
@@ -135,6 +128,35 @@ object ViewModule:
         ))
 
     /**
+     * Recursively displays the game mode selection menu and handles user input.
+     *
+     * If "Tutorial" is selected, the tutorial content is shown and the menu is re-displayed.
+     * If "Exit" is selected, the application terminates.
+     * If an invalid input is entered, the menu is shown again.
+     *
+     * The method guarantees that a valid GameMode is returned.
+     *
+     * @return the selected GameMode (Singleplayer or Multiplayer)
+     */
+    @tailrec
+    private def askGameMode(): GameMode =
+      printBoxedMenu("📊 Select game mode", List("Single Player", "Multiplayer", "Tutorial", "Exit"))
+      StdIn.readLine().trim match
+        case "0" => GameMode.Singleplayer
+        case "1" => GameMode.Multiplayer
+        case "2" =>
+          renderTutorial
+          println("\nPress ENTER to continue...")
+          StdIn.readLine()
+          askGameMode()
+        case "3" =>
+          println("Exiting game. Goodbye!")
+          sys.exit(0)
+        case _ =>
+          println("Invalid input. Please try again.")
+          askGameMode()
+
+    /**
      * Prints the current turn number in a stylized header.
      *
      * @param turn the current turn index
@@ -148,18 +170,8 @@ object ViewModule:
      * @param worldMap the current WorldMap
      */
     private def renderMap(worldMap: WorldMap, AIconqueredCities: Set[String]): Unit =
-      println("       🗺️  World Map")
-      val mapString = (0 until worldMap.getSizeOfTheMap).map { y =>
-        (0 until worldMap.getSizeOfTheMap).map { x =>
-          worldMap.findInMap { case (_, coords) => coords.contains((x, y)) } match
-            case Some(city) =>
-              val name = city
-              if AIconqueredCities.contains(city) then s"❗"
-              else name
-            case None => "/"
-        }.mkString(" ")
-      }.mkString("\n    ")
-      println("    " + mapString)
+      println("    🗺️  World Map")
+      printMap(worldMap, AIconqueredCities)
 
     /**
      * Displays the infection progress and unlocked abilities of the AI.
@@ -210,8 +222,8 @@ object ViewModule:
         case GlobalDefense(targets) => s"GlobalDefense"
 
       printBoxedContent("🧾 Action Summary (last 7 actions)", List(
-        s"🧍 Human: ${human.executedActions.take(7).map(formatAction).mkString(" || ")}",
-        s"🤖 AI   : ${ai.executedActions.take(7).map(formatAction).mkString(" || ")}"
+        s"Human: ${human.executedActions.take(7).map(formatAction).mkString(" || ")}",
+        s"AI   : ${ai.executedActions.take(7).map(formatAction).mkString(" || ")}"
       ))
 
     /**
@@ -234,3 +246,59 @@ object ViewModule:
         case _ =>
           println("Invalid input. Defaulting to (0, \"\")")
           (0, "")
+
+    /**
+     * Renders a stylized game's tutorial
+     * Print a box with instructions
+     */
+    private def renderTutorial: Unit =
+      printBoxedContent("TUTORIAL – RISE OF THE MACHINE", List(
+        "Welcome! This tutorial will guide you through your first steps in the game.",
+        "",
+        "🎮 GAME MODE:",
+        "At startup, select the game mode:",
+        "  0. Single Player",
+        "  1. Multiplayer",
+        "  2. Tutorial",
+        "  3. Exit",
+        "Default chosen is Single Player.",
+        "",
+        "🎯 DIFFICULTY LEVEL:",
+        "After selecting the mode, choose a difficulty:",
+        "  0. Easy    → Passive AI",
+        "  1. Normal  → Balanced challenge",
+        "  2. Hard    → Aggressive and strategic AI",
+        "Default chosen is Normal difficulty.",
+        "",
+        "🌍 WORLD MAP:",
+        "A grid displays the world map with city letters as identifiers.",
+        "",
+        "📊 STATISTICS:",
+        "- Infected cities",
+        "- Unlocked AI abilities",
+        "- Human KillSwitch progress",
+        "",
+        "📈 ATTACKABLE CITIES:",
+        "For each city, you can see:",
+        "  💉 Infection success chance",
+        "  🛠️  Sabotage success chance",
+        "",
+        "🧠 HUMAN TURN:",
+        "Available actions:",
+        "  1. Defend vulnerable cities",
+        "  2. Launch global defense",
+        "  3. Develop the KillSwitch",
+        "",
+        "🤖 AI TURN:",
+        "Available actions:",
+        "  1. Infect to conquer a city",
+        "  2. Sabotage to weaken a city",
+        "  3. Evolve to unlock new abilities",
+        "",
+        "🏁 WIN CONDITIONS:",
+        "- The AI wins if it infects 50% of cities or conquers 3 capitals",
+        "- The human wins if the KillSwitch reaches 90% progress",
+        "",
+        "📝 TIP:",
+        "Check success rates, defend key cities, and adapt your strategy!"
+      ))
