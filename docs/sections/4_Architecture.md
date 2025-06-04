@@ -1,3 +1,9 @@
+---
+layout: Default
+title: Archittetura
+nav_order: 4
+---
+
 # Architettura
 
 ## Pattern Architetturale

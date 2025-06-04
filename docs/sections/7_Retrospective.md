@@ -1,3 +1,9 @@
+---
+layout: Default
+title: Retrospettiva
+nav_order: 7
+---
+
 # Retrospettiva
 
 ## Processo di sviluppo

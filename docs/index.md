@@ -1,7 +1,6 @@
 ---
 layout: home
 title: Rise of the Machine
-nav_order: 1
 ---
 
 # Paradigmi di Programmazione e Sviluppo

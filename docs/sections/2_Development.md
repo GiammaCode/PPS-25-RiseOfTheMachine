@@ -1,3 +1,9 @@
+---
+layout: Default
+title: Processo di sviluppo
+nav_order: 2
+---
+
 # Processo di sviluppo
 Il processo di sviluppo adottato dal team è ispirato a Scrum: sarà basato su **sprint** e **obiettivi**
 per realizzare il progetto in maniera **agile**.  

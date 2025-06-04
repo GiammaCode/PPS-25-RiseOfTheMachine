@@ -1,3 +1,9 @@
+---
+layout: Default
+title: Design
+nav_order: 5
+---
+
 # Design di Dettaglio
 
 ## Design del Model

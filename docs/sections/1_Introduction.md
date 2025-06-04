@@ -1,3 +1,9 @@
+---
+layout: Default
+title: Introduzione
+nav_order: 1
+---
+
 # Introduzione
  Il gruppo si è posto come obiettivo la realizzazione di un videogioco
  dove l'utente si metterà nei panni di un intelligenza artificiale senziente e
