@@ -1,3 +1,9 @@
+---
+layout: default
+title: 2° sprint
+nav_order: 10
+---
+
 # Second Sprint Planning – 30/04/2025
 
 Il team si è incontrato in loco per rivedere le specifiche del progetto e
