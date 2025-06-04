@@ -1,5 +1,5 @@
 ---
-layout: Default
+layout: default
 title: Archittetura
 nav_order: 4
 ---
