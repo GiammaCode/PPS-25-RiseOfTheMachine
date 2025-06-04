@@ -2,7 +2,7 @@ Durante l'implementazione del progetto *Rise of the Machine*, mi sono occupato d
 
 Tra i moduli da me sviluppati troviamo: 
 
-#### Stato di gioco del sistema
+## **Stato di gioco del sistema**
 Ho sviluppato il modulo `WorldState`, che gestisce lo stato globale del gioco. Include:
 - Lo stato corrente delle città (livelli di infezione e sabotaggio)
 - I giocatori coinvolti (umano e AI)
@@ -11,7 +11,8 @@ Ho sviluppato il modulo `WorldState`, che gestisce lo stato globale del gioco. I
 
 > Questo componente è centrale per mantenere una simulazione coerente del mondo e per permettere strategie dinamiche basate sull'evoluzione della partita.
 
-- [Spiegazione dettagliata](worldState.md)
+🔍 [Full details](worldState.md)
+
 ---
 
 #### Entità di gioco Human
@@ -22,7 +23,8 @@ Mi sono occupato della definizione dell'entità `PlayerHuman`, con responsabilit
 
 > Il design è stato pensato per supportare strategie evolutive e test unitari efficaci.
 
-- [Spiegazione dettagliata](humanEntity.md)
+🔍 [Full details](humanEntity.md)
+
 ---
 
 #### Componentistica di View
@@ -34,7 +36,8 @@ Ho contribuito alla parte di interfaccia, progettando componenti della **View** 
 
 > L'obiettivo era mantenere una separazione chiara tra logica e presentazione, seguendo i principi dell'architettura MVC.
 
-- [Spiegazione dettagliata](viewSystem.md)
+🔍 [Full details](viewSystem.md)
+
 ---
 
 *Per maggiori dettagli, consulta ciascun modulo linkato.*
