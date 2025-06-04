@@ -15,7 +15,7 @@ Ho sviluppato il modulo `WorldState`, che gestisce lo stato globale del gioco. I
 
 ---
 
-#### Entità di gioco Human
+## **Entità di gioco Human**
 Mi sono occupato della definizione dell'entità `PlayerHuman`, con responsabilità come:
 - Gestione delle città difese
 - Azioni disponibili per il giocatore umano
@@ -27,7 +27,7 @@ Mi sono occupato della definizione dell'entità `PlayerHuman`, con responsabilit
 
 ---
 
-#### Componentistica di View
+## **Componentistica di View**
 Ho contribuito alla parte di interfaccia, progettando componenti della **View** in modo modulare:
 - Rappresentazione dello stato delle città
 - Interazione per le azioni del giocatore (es. difesa o sviluppo kill switch)

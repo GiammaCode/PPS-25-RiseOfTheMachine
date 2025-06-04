@@ -53,6 +53,12 @@ object CLIFormatter:
     val ascii = com.github.lalyos.jfiglet.FigletFont.convertOneLine(text)
     println(ascii)
 
+  /**
+   * Prints a grid of String from a map (WorldMap)
+   *
+   * @param map worldMap of a cities
+   * @param conquered string also contained in map, to change color
+   */
   def printMap(map: WorldMap, conquered: Set[String]): Unit =
     val mapString = (0 until map.getSizeOfTheMap).map { y =>
       (0 until map.getSizeOfTheMap).map { x =>
