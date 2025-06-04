@@ -99,8 +99,6 @@ Si attiva su **tag semantici** (es. v\*.\*.\*) e produce un **JAR eseguibile** (
 sbt assembly, che viene poi caricato come release su GitHub. Questo permette di avere una base stabile su cui iterare 
 dopo ogni sprint.
 
-### 
-
 ### **Versioning**
 
 Per la gestione del codice sorgente, il team utilizza **Git** adottando il flusso di lavoro **GitFlow**, che consente 
