@@ -25,7 +25,7 @@ Campus of Cesena – Italy
 - Lorenzo Leoni – [lorenzo.leoni5@studio.unibo.it](mailto:lorenzo.leoni5@studio.unibo.it)
 
 [![Gianmaria](https://github.com/GiammaCode.png?size=80)](https://github.com/GiammaCode)
-[![Luca](https://github.com/Paso2000.png?size=20)](https://github.com/Paso2000)
+[![Luca](https://github.com.png?size=20)](https://github.com/Paso2000)
 [![Lorenzo](https://github.com/LoryBug.png?size=80)](https://github.com/LoryBug)
 
 ---
