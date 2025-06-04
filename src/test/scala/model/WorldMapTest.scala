@@ -52,9 +52,5 @@ class WorldMapTest:
     assertEquals(1,worldMap.changeACityOfTheMap(worldMap.getCityByName("A").get.infectCity()).capitalConqueredCounter)
 
 
-  @Test
-    def renderWorldMAp(): Unit =
-      println(createWorldMap(8)(using UndeterministicMapModule).renderMap(8))
-
 
 

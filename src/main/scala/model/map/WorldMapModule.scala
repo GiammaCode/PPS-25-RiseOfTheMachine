@@ -152,7 +152,7 @@ object WorldMapModule:
         (x, y) <- seeds
         dx <- -1 to 1
         dy <- -1 to 1
-        if (dx != 0 || dy != 0)
+        if dx != 0 || dy != 0
         nx = x + dx
         ny = y + dy
         if 0 <= nx && nx < size
