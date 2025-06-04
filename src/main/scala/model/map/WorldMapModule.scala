@@ -2,8 +2,8 @@ package model.map
 
 import model.map.CityModule.*
 import model.map.CityModule.CityImpl.*
-import model.util.States.State.State
 import model.util.Util.{doesTheActionGoesRight, letterAt}
+
 import scala.annotation.tailrec
 import scala.util.Random
 
@@ -44,7 +44,9 @@ object WorldMapModule:
    * - Set of coordinates (tiles) associated with the city
    */
 
-  opaque type WorldMap = Set[(City, Set[(Int, Int)])]
+  type Coord = (Int, Int)
+
+  opaque type WorldMap = Set[(City, Set[Coord])]
 
   /**
    * Strategy trait for creating a world map.
@@ -101,77 +103,66 @@ object WorldMapModule:
    */
   object UndeterministicMapModule extends CreateModuleType:
 
-      private type RNGState[A] = State[Random, A]
+    private def placeCities(size: Int, remaining: Set[Coord], n: Int = 0, acc: WorldMap = Set.empty,remainingCapitals: Int = 5): LazyList[WorldMap] =
+      if remaining.isEmpty then LazyList(acc)
+      else
+        for
+          start <- LazyList.from(remaining)
+          isCapital = remainingCapitals > 0 && doesTheActionGoesRight(50)
+          tiles = growCity(start, isCapital, remaining, size)
+          city = createCity(letterAt(n, isCapital), tiles.size, isCapital)
+          updatedAcc = acc + (city -> tiles)
+          updatedRemaining = remaining -- tiles
+          result <- placeCities(
+            size,
+            updatedRemaining,
+            n + 1, updatedAcc,
+            if isCapital then remainingCapitals - 1 else remainingCapitals)
 
-      private def randomInt(max: Int): RNGState[Int] =
-        State(rng => (rng, rng.nextInt(max)))
+        yield result
 
+    private def randomMaxSize(isCapital: Boolean): Int =
+      3 + Random.nextInt(3) + (if isCapital then 4 else 0)
 
-      private def shuffleList[A](list: List[A]): RNGState[List[A]] =
-        State(rng => (rng, rng.shuffle(list)))
-
-
-      private def randomCitySize(isCapital:Boolean): RNGState[Int] =
-        if isCapital
-        then randomInt(3).map(_ + 7)
-        else randomInt(3).map(_ + 3)
-
-
-
-      private def generateCityTiles(start: (Int, Int), desiredSize: Int, occupied: Set[(Int, Int)], size: Int): RNGState[Set[(Int, Int)]] =
-        def expand(frontier: List[(Int, Int)], current: Set[(Int, Int)]): RNGState[Set[(Int, Int)]] =
-          if current.size >= desiredSize || frontier.isEmpty then State(rng => (rng, current))
-          else
-            val neighbors = validNeighbors(frontier.headOption.toList, size, occupied ++ current)
-            shuffleList(neighbors).flatMap(shuffled =>
-              val next = shuffled.take(desiredSize - current.size)
-              expand(frontier.tail ++ next, current ++ next)
-            )
-        expand(List(start), Set(start))
-
-      private def chooseStartingPoint(acc: WorldMap, occupied: Set[(Int, Int)], mapSize: Int): RNGState[(Int, Int)] =
-        if acc.isEmpty then
-          for
-            x <- randomInt(mapSize)
-            y <- randomInt(mapSize)
-          yield (x, y)
+    private def growCity(start: Coord, isCapital :Boolean,available: Set[Coord], mapSize: Int): Set[Coord] =
+      @tailrec
+      def expand(frontier: List[Coord], built: Set[Coord]): Set[Coord] =
+        if built.size >= randomMaxSize(isCapital) || frontier.isEmpty then built
         else
-          val allCoords = acc.flatMap(_._2)
-          val possibleStarts = adjacentTo(allCoords, mapSize).filterNot(occupied.contains)
-          if possibleStarts.isEmpty then
-            State(rng => (rng, allCoords.head)) // fallback se non ci sono spazi adiacenti
-          else
-            shuffleList(possibleStarts).map(_.head)
+          val next = frontier.head
+          val neighbors = adjacentTo(built,mapSize).filter(c =>
+            c._1 >= 0 && c._2 >= 0 && c._1 < mapSize && c._2 < mapSize && available.contains(c) && !built.contains(c)
+          )
+          expand(frontier.tail ++ neighbors, built + next)
 
-      private def generateMapState(mapSize: Int, capitalCount: Int): RNGState[WorldMap] =
-        def loop(n: Int, capitalsLeft: Int, acc: WorldMap, occupied: Set[(Int, Int)]): RNGState[WorldMap] =
-          val remainingTiles = mapSize * mapSize - occupied.size
-          if remainingTiles == 0  then State(rng => (rng, acc))
-          else
-            val isCapital = capitalsLeft > 0 && doesTheActionGoesRight(50)
-            for
-              size <- randomCitySize(isCapital)
-              start <- chooseStartingPoint(acc, occupied, mapSize)
-              tiles <- generateCityTiles(start, size, occupied, mapSize)
-              city = createCity(letterAt(n, isCapital), size,isCapital)
-              next <- loop(n + 1, if isCapital then capitalsLeft - 1 else capitalsLeft, acc + (city -> tiles), occupied ++ tiles)
-            yield next
-        loop(0, capitalCount, Set.empty, Set.empty)
+      expand(List(start), Set(start))
+    override def createMap(size: Int): WorldMap =
 
-      def createMap(citySize: Int): WorldMap =
-        val (finalRng, worldMap) = generateMapState(citySize,citySize/2).run(Random())
-        worldMap
+        val allCoords: Set[Coord] =
+        (for
+          x <- 0 until size
+          y <- 0 until size
+        yield (x, y)).toSet
 
-  private def validNeighbors(tiles: Iterable[(Int, Int)], size: Int, exclude: Set[(Int, Int)] = Set.empty): List[(Int, Int)] =
-    tiles.toList
-      .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
-      .filter((x, y) =>
-        x >= 0 && y >= 0 && x < size && y < size &&
-          !exclude.contains((x, y))
-      ).distinct
+        val fullMaps: LazyList[WorldMap] = placeCities(size, allCoords)
 
-  private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
-    validNeighbors(tiles, size, tiles)
+        fullMaps.find(m => m.flatMap(_._2).size == size * size ).get
+
+  private def validNeighbors(seeds: List[Coord], size: Int, blocked: Set[Coord]): List[Coord] =
+      for
+        (x, y) <- seeds
+        dx <- -1 to 1
+        dy <- -1 to 1
+        if dx != 0 || dy != 0
+        nx = x + dx
+        ny = y + dy
+        if 0 <= nx && nx < size
+        if 0 <= ny && ny < size
+        if !blocked.contains((nx, ny))
+      yield (nx, ny)
+
+  private def adjacentTo(tiles: Set[Coord], size: Int): List[(Coord)] =
+    validNeighbors(tiles.toList, size, tiles)
 
 
   given undeterministicMap: CreateModuleType = UndeterministicMapModule
