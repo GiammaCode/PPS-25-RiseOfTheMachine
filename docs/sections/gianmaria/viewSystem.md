@@ -1,66 +1,68 @@
+# Sistema di Visualizzazione - CLIView
 
-# ViewModule
+## Descrizione
+Il modulo `CLIView`, contenuto in `ViewModule.scala`, rappresenta la **vista testuale** del gioco *Rise of the Machine*.
+Implementa l'interfaccia `GameView` e consente l'interazione con il giocatore attraverso il terminale. 
+Ogni fase del gioco (menu, turni, stato, azioni) è resa accessibile tramite un'interfaccia utente testuale chiara e 
+coerente.
 
-Il modulo `ViewModule` gestisce la visualizzazione dello stato del gioco.  
-In questa implementazione è presente una **interfaccia `GameView`** e
-una **concreta `CLIView`** che stampa il gioco su terminale.
+---
 
-## Componenti principali
+## Aspetti Implementativi
 
-- `GameView`: trait che definisce il metodo `renderGameTurn`
-- `CLIView`: implementazione console che mostra:
-    - Turno attuale
-    - Mappa
-    - Stato infezione
-    - Probabilità di attacco
-    - Menu di scelta azioni
+- Utilizza il pattern **strategy-view**, separando la logica del gioco dalla presentazione.
+- Implementa `GameView` come interfaccia funzionale, rendendo facile sostituire la vista CLI con altre (es. GUI).
+- Le funzionalità CLI sono modulari grazie a `CLIFormatter`, che offre:
+    - Menu formattati (`printBoxedMenu`)
+    - Blocchi informativi (`printBoxedContent`)
+    - ASCII art del titolo (`printAsciiTitle`)
+    - Mappa dinamica (`printMap`)
 
-## Funzionalità esposte
+- Usa funzioni **ricorsive** con `@tailrec` per rendere la logica dei menu robusta e priva di mutabilità (`askGameMode()`).
+- Input utente gestito con pattern matching e fallback intelligenti.
+- Il sistema è **completamente testabile** grazie alla separazione `input/output`.
+
+---
+
+## Funzioni principali
 
 | Metodo | Descrizione |
 |--------|-------------|
-| `renderGameTurn` | Chiama in sequenza i vari metodi di rendering e ritorna una scelta dell'utente |
-| `renderTurn` | Mostra il numero del turno |
-| `renderMap` | Visualizza la mappa in formato testuale |
-| `renderStatus` | Mostra percentuale di infezione e abilità AI sbloccate |
-| `renderProbability` | Stampa le città attaccabili con percentuali |
-| `renderActionMenu` | Chiede all'utente di inserire l'azione da eseguire (es. `1 A`) |
+| `renderGameModeMenu()` | Mostra il menu principale e gestisce la selezione della modalità e difficoltà |
+| `askGameMode()` | Funzione ricorsiva tail-safe per la selezione della modalità |
+| `renderGameTurn()` | Mostra la mappa, lo stato del gioco e chiede le azioni a IA e giocatore |
+| `renderStatus()` | Visualizza il progresso di infezione, KillSwitch e abilità AI |
+| `renderProbability()` | Mostra probabilità di attacco su città vicine |
+| `renderComplessiveAction()` | Riepiloga le ultime azioni umane e AI |
+| `renderTutorial()` | Mostra guida rapida al gioco in stile terminale |
+| `printBoxedMenu() / printBoxedContent()` | Fornite da `CLIFormatter`, rendono l’interfaccia coerente e leggibile |
 
-## Dettagli implementativi
-
-//TODO
-
-![UML ViewModule](../../image/ViewModule.png)
-
-### Output di `renderGameTurn`
-```
------RISE OF THE MACHINE - TURN 0-----
-
-t | O O O q q x N r
-t O O O O O q N N N
-t t j O L L L N N N
-t j j j L L L L M M
-s s h p L k L M M M
-s s h h k k k M M M
-v b h h i i { g u u
-b b b i i i f g u u
-C a d d d f f g w w
-C a a e e e e z w y
-Infected city: 0/28 --> 0.00,00%
-
-0 abilities unlocked
-
-cities probability:  [L --> 65%, 20%] [f --> 95%, 50%] [j --> 90%, 45%] [| --> 95%, 50%] [{ --> 85%, 40%] 
-[i --> 85%, 40%] [x --> 90%, 45%] [y --> 85%, 40%] [h --> 85%, 40%] [g --> 95%, 50%] [t --> 85%, 40%] 
-[b --> 90%, 45%] [v --> 95%, 50%] [d --> 95%, 50%] [s --> 90%, 45%] [M --> 70%, 25%] [N --> 75%, 30%] 
-[r --> 85%, 40%] [O --> 65%, 20%] [u --> 90%, 45%] [p --> 85%, 40%] [q --> 95%, 50%] [e --> 90%, 45%] 
-[w --> 95%, 50%] [z --> 95%, 50%] [C --> 70%, 25%] [a --> 95%, 50%] [k --> 90%, 45%]
-
-Select your action:
-0. Sabotage
-1. Infect
-2. Evolve
-Insert your action > 
-```
 ---
 
+## Diagramma dei componenti
+
+```mermaid
+classDiagram
+  class GameView {
+    +renderGameModeMenu(): GameSettings
+    +renderGameTurn(worldState): GameTurnInput
+    +renderEndGame(winner): Unit
+  }
+
+  class CLIView {
+    -askGameMode(): GameMode
+    -renderGameModeMenu(): GameSettings
+    -renderGameTurn(ws): GameTurnInput
+    -renderStatus(...)
+    -renderTutorial
+  }
+
+  class CLIFormatter {
+    +printBoxedContent(title, body)
+    +printBoxedMenu(title, options)
+    +printAsciiTitle(text)
+    +printMap(map, conquered)
+  }
+
+  CLIView --|> GameView
+  CLIView --> CLIFormatter

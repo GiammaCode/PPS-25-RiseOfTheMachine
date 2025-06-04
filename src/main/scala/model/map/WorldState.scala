@@ -4,6 +4,7 @@ import model.map.WorldMapModule.*
 import model.strategy.AiAbility.AiAbility
 import model.strategy.{AiAction, Evolve, Infect, PlayerAI, PlayerEntity, PlayerHuman, Sabotage}
 import model.map.CityModule.CityImpl.City
+import model.map.WorldState.playerAI
 import model.util.GameSettings.{Difficulty, GameSettings}
 
 /**
