@@ -70,6 +70,6 @@ classDiagram
     +printMap(map, conquered)
   }
 
-  CLIView --|> GameView
-  CLIView --> CLIFormatter
+  CLIView --|> GameView : estende
+  CLIView --> CLIFormatter : usa
 ```
