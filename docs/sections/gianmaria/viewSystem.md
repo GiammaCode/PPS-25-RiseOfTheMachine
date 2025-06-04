@@ -26,16 +26,24 @@ coerente.
 
 ## Funzioni principali
 
-| Metodo | Descrizione |
-|--------|-------------|
+Funzionalità principali di ViewModule 
+
+| Metodo                 | Descrizione                                                                   |
+|------------------------|-------------------------------------------------------------------------------|
 | `renderGameModeMenu()` | Mostra il menu principale e gestisce la selezione della modalità e difficoltà |
-| `askGameMode()` | Funzione ricorsiva tail-safe per la selezione della modalità |
-| `renderGameTurn()` | Mostra la mappa, lo stato del gioco e chiede le azioni a IA e giocatore |
-| `renderStatus()` | Visualizza il progresso di infezione, KillSwitch e abilità AI |
-| `renderProbability()` | Mostra probabilità di attacco su città vicine |
-| `renderComplessiveAction()` | Riepiloga le ultime azioni umane e AI |
-| `renderTutorial()` | Mostra guida rapida al gioco in stile terminale |
-| `printBoxedMenu() / printBoxedContent()` | Fornite da `CLIFormatter`, rendono l’interfaccia coerente e leggibile |
+| `renderGameTurn()`     | Mostra la mappa, lo stato del gioco e chiede le azioni a IA e giocatore       |
+| `renderEndGame()`      | Mostra la schermata di fine gioco con il conseguente vincitore                |
+
+
+Funzionalità principali della util CLIFormatter
+
+| Metodo                | Descrizione                                                               |
+|-----------------------|---------------------------------------------------------------------------|
+| `printBoxedMenu()`    | Formatta il contenuto in modalità boxed e numera le il body del contenuto |
+| `printBoxedContent()` | Formatta il contenuto in modalità boxed                                   |
+| `printMap()`          | Formatta una mappa di caratteri stampandoli a griglia                     |
+| `printAsciiTitle`     | Formatta il testo in Ascii con font selezionato                           |
+
 
 ---
 
@@ -50,11 +58,9 @@ classDiagram
   }
 
   class CLIView {
-    -askGameMode(): GameMode
     -renderGameModeMenu(): GameSettings
     -renderGameTurn(ws): GameTurnInput
     -renderStatus(...)
-    -renderTutorial
   }
 
   class CLIFormatter {
