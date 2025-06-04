@@ -63,12 +63,12 @@ object GameController:
     def resolveAction[A <: TurnAction](index: Int, city: String, options: List[A])(using InputHandler.ActionResolver[A]) =
       InputHandler.getActionFromChoice(index, CityContext(city, currentWorldState.attackableCities.map(_._1)), options)
 
-    val playerResult = resolveAction(turnInput.aiInput._1, turnInput.aiInput._2, currentWorldState.playerAI.getPossibleAction)
+    val playerResult = resolveAction(turnInput.aiInput_action, turnInput.aiInput_city, currentWorldState.playerAI.getPossibleAction)
     val humanResultOpt = turnInput.humanInput.map(resolveAction(_, _, currentWorldState.playerHuman.getPossibleAction))
 
     (playerResult, humanResultOpt) match
       case (Right(playerAction), humanOpt) if humanOpt.forall(_.isRight) =>
-        val probability = currentWorldState.probabilityByCityandAction(turnInput.aiInput._2, playerAction)
+        val probability = currentWorldState.probabilityByCityandAction(turnInput.aiInput_city, playerAction)
         val humanActionOpt = humanOpt.flatMap(_.toOption)
         (gs.copy(worldState = currentWorldState), TurnResult(playerAction, probability, humanActionOpt))
       case _ =>
