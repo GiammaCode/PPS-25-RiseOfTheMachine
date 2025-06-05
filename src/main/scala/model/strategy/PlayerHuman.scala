@@ -52,7 +52,7 @@ object PlayerHuman:
    * Creates a PlayerHuman instance from game settings.
    */
   def fromSettings(using settings: GameSettings): PlayerHuman =
-    PlayerHumanImpl(killSwitch = settings.human.killSwitch)
+    PlayerHumanImpl(killSwitch = settings.human.killSwitch, actionsWeight = settings.human.actionsWeight)
 
 
 /**
@@ -65,6 +65,7 @@ object PlayerHuman:
  */
 private case class PlayerHumanImpl(
                                     killSwitch: Int = 0,
+                                    actionsWeight: ActionProbabilities = ActionProbabilities(33, 33, 34),
                                     defendedCities: Set[String] = Set.empty,
                                     conqueredCities: Set[String] = Set.empty,
                                     executedActions: List[HumanAction] = List.empty
@@ -73,10 +74,6 @@ private case class PlayerHumanImpl(
   private val CityDefenseBoost = 20
   private val GlobalDefenseBoost = 2
   private val KillSwitchIncrement = 10
-
-  private val EasyModeProbabilities = ActionProbabilities(70, 30, 0)
-  private val NormalModeProbabilities = ActionProbabilities(33, 33, 34)
-  private val HardModeProbabilities = ActionProbabilities(40, 100, 100)
 
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
@@ -121,11 +118,7 @@ private case class PlayerHumanImpl(
    * Decides an action based on the current difficulty and game state using SmartHumanStrategy.
    */
   def decideActionByStrategy(worldState: WorldState): HumanAction =
-    given ActionProbabilities = worldState.difficulty match
-      case Difficulty.Easy => EasyModeProbabilities
-      case Difficulty.Normal => NormalModeProbabilities
-      case Difficulty.Hard => HardModeProbabilities
-
+    given ActionProbabilities = actionsWeight
     SmartHumanStrategy.decideAction(worldState)
 
   private def result(player: PlayerHumanImpl, city: Option[List[City]], message: String): ExecuteActionResult[Self] =

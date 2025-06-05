@@ -1,5 +1,7 @@
 package model.util
 
+import model.strategy.ActionProbabilities
+
 object GameSettings:
 
   object DifficultyConstants:
@@ -17,6 +19,11 @@ object GameSettings:
     val EasyKillSwitch = 0
     val NormalKillSwitch = 5
     val HardKillSwitch = 20
+
+    // Human actions weight
+    val EasyModeProbabilities = ActionProbabilities(70, 30, 0)
+    val NormalModeProbabilities = ActionProbabilities(33, 33, 34)
+    val HardModeProbabilities = ActionProbabilities(40, 100, 100)
 
   enum Difficulty:
     case Easy, Normal, Hard
@@ -41,7 +48,8 @@ object GameSettings:
    * @param killSwitch Represents the effectiveness or cooldown of the kill switch feature.
    */
   final case class HumanStats(
-                               killSwitch: Int
+                               killSwitch: Int,
+                               actionsWeight: ActionProbabilities
                              )
 
   /**
@@ -70,9 +78,9 @@ object GameSettings:
   )
 
   private val humanConfigs: Map[Difficulty, HumanStats] = Map(
-    Easy -> HumanStats(killSwitch = EasyKillSwitch),
-    Normal -> HumanStats(killSwitch = NormalKillSwitch),
-    Hard -> HumanStats(killSwitch = HardKillSwitch)
+    Easy -> HumanStats(killSwitch = EasyKillSwitch, actionsWeight = EasyModeProbabilities),
+    Normal -> HumanStats(killSwitch = NormalKillSwitch, actionsWeight = NormalModeProbabilities),
+    Hard -> HumanStats(killSwitch = HardKillSwitch, actionsWeight = HardModeProbabilities)
   )
 
   /**
