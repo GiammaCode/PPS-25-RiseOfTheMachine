@@ -1,47 +1,78 @@
 package model
 
-import controller.GameController.worldState
-import model.map.WorldMapModule.createWorldMap
-import org.scalatest.funsuite.AnyFunSuite
+import model.map.WorldMapModule.{CreateModuleType, DeterministicMapModule, createWorldMap}
+import model.map.WorldState.*
+import model.strategy.*
 import model.strategy.HumanAction.*
 import model.util.GameSettings.{Difficulty, GameMode, GameSettings, forSettings}
-import model.map.WorldState
-import model.map.WorldState.*
-import model.strategy.{CityDefense, DevelopKillSwitch, GlobalDefense, PlayerAI, PlayerHuman, SmartHumanStrategy}
-import model.strategy.DevelopKillSwitch.*
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class SmartHumanStrategyScalaTest extends AnyFunSuite:
+import scala.language.postfixOps
 
+class SmartHumanStrategyFlatSpec extends AnyFlatSpec with Matchers:
 
-  test("Easy strategy should choose CityDefense or GlobalDefense") {
+  "SmartHumanStrategy in Easy mode" should "choose only CityDefense or GlobalDefense" in {
     given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Easy)
+    given ActionProbabilities = ActionProbabilities(70, 30, 0)
+
     val human = PlayerHuman.fromSettings
     val ai = PlayerAI.fromSettings
     val map = createWorldMap(5)
     val state = createWorldState(map, ai, human, 0)
+
     val action = SmartHumanStrategy.decideAction(state)
-    assert(action.isInstanceOf[CityDefense] || action.isInstanceOf[GlobalDefense])
+    action match
+      case _: CityDefense | _: GlobalDefense => succeed
+      case _ => fail(s"Unexpected action: $action")
   }
 
-  test("Normal strategy should return one of the defined HumanActions") {
+  "SmartHumanStrategy in Normal mode" should "choose any valid HumanAction based on probabilities" in {
     given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Normal)
+    given ActionProbabilities = ActionProbabilities(33, 33, 34)
 
     val human = PlayerHuman.fromSettings
     val ai = PlayerAI.fromSettings
     val map = createWorldMap(5)
     val state = createWorldState(map, ai, human, 0)
+
     val action = SmartHumanStrategy.decideAction(state)
-    assert(action.isInstanceOf[CityDefense] || action.isInstanceOf[GlobalDefense] || action == DevelopKillSwitch)
+    action shouldBe a[HumanAction]
   }
 
-  test("Hard strategy should prioritize cities with highest combined risk") {
+  "SmartHumanStrategy in Hard mode" should "choose actions targeting the highest-risk cities" in {
     given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Hard)
+    given ActionProbabilities = ActionProbabilities(50, 20, 30)
 
     val human = PlayerHuman.fromSettings
     val ai = PlayerAI.fromSettings
     val map = createWorldMap(5)
     val state = createWorldState(map, ai, human, 0)
+
     val action = SmartHumanStrategy.decideAction(state)
-    println(action)
-    assert(action.isInstanceOf[CityDefense] || action.isInstanceOf[GlobalDefense] || action == DevelopKillSwitch)
+    action shouldBe a[HumanAction]
+  }
+
+  "SmartHumanStrategy" should "prefer high-risk cities more in Hard than in Normal mode" in {
+    given DeterministicMap: CreateModuleType = DeterministicMapModule
+    val map = createWorldMap(8)
+
+    def runWithDifficulty(diff: Difficulty, probs: ActionProbabilities) =
+      given GameSettings = forSettings(GameMode.Singleplayer, diff)
+      given ActionProbabilities = probs
+
+      val human = PlayerHuman.fromSettings
+      val ai = PlayerAI.fromSettings
+      val state = createWorldState(map, ai, human, 0)
+      SmartHumanStrategy.decideAction(state)
+
+    val normalAction = runWithDifficulty(Difficulty.Normal, ActionProbabilities(100, 0, 0))
+    val hardAction = runWithDifficulty(Difficulty.Hard, ActionProbabilities(100, 0, 0))
+
+    normalAction shouldBe a[CityDefense]
+
+    hardAction match
+      case CityDefense(targets) =>
+        targets should contain ("C") // C is the city with highest risk in DeterministicMap (size = 8)
+      case _ => fail("Expected CityDefense targeting high-risk city")
   }

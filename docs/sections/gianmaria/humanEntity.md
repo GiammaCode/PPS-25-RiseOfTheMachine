@@ -31,7 +31,7 @@ e viene invocata da `PlayerHuman` per determinare l'azione da compiere.
 
 ---
 
-## 🔧 Funzionalità principali
+## Funzionalità principali
 
 | Componente                  | Descrizione                                                                |
 |-----------------------------|----------------------------------------------------------------------------|

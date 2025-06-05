@@ -40,7 +40,8 @@ Rilasciare la versione di gioco finale, soddisfacendo tutte le richieste del com
 ---
 
 ## Sprint Review – 07/06/2025
-
+- Bilanciamento dei valori di gioco del player in base alla difficoltà.
+- Creazione di un tipo apposito per la gestione del risultato delle azioni.
 
 ### Risultati ottenuti:
 

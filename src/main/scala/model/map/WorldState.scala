@@ -16,6 +16,17 @@ import model.util.GameSettings.{Difficulty, GameSettings}
  */
 object WorldState:
 
+  private val VictoryThresholdPercent = 50
+  private val MaxCapitalsConquered = 3
+  private val KillSwitchVictoryThreshold = 90
+
+  private val MinSuccessPercent = 5
+  private val MaxSuccessPercent = 95
+
+  private val EasyBaseSuccess = 110
+  private val NormalBaseSuccess = 100
+  private val HardBaseSuccess = 90
+
   /**
    * Internal representation of the world state.
    * Not visible to external modules.
@@ -49,7 +60,7 @@ object WorldState:
      *
      * @return list of option strings
      */
-    def AiOptions: List[String] = playerAI.getPossibleAction.map(_.name) //TODO: fix and exit
+    def AiOptions: List[String] = playerAI.getPossibleAction.map(_.name)
     def HumanOptions: List[String] = playerHuman.getPossibleAction.map(_.name)
 
     /**
@@ -100,8 +111,8 @@ object WorldState:
         val killSwitchProgress = human.killSwitch
         val capitalConquered = map.capitalConqueredCounter
 
-        if conqueredPercentage >= 50 || capitalConquered == 3  then (true, Some(ai))
-        else if killSwitchProgress >= 90 then (true, Some(human))
+        if conqueredPercentage >= VictoryThresholdPercent || capitalConquered == MaxCapitalsConquered then (true, Some(ai))
+        else if killSwitchProgress >= KillSwitchVictoryThreshold then (true, Some(human))
         else (false, None)
 
 
@@ -201,11 +212,11 @@ object WorldState:
      */
     def probabilityByCityandAction(cityName: String, action: AiAction): Int =
       attackableCities.find(_._1 == cityName).map{
-        case(_,infect, sabotage) => action match
-          case Infect(_) => infect
-          case Sabotage(_) => sabotage
-          case Evolve => 100
-      }.getOrElse(100)
+        case(_,infectChance, sabotageChance) => action match
+          case Infect(_) => infectChance
+          case Sabotage(_) => sabotageChance
+          case Evolve => NormalBaseSuccess
+      }.getOrElse(NormalBaseSuccess)
 
     /**
      * Private method to calculate a percentage of success
@@ -217,11 +228,11 @@ object WorldState:
      */
     private def calculatePercentageOfSuccess(cityDefense: Int, playerAttackValue: Int, difficulty: Difficulty): Int =
       val rawValue = difficulty match
-      case Difficulty.Easy => 110 - cityDefense + playerAttackValue
-      case Difficulty.Normal => 100 - cityDefense + playerAttackValue
-      case Difficulty.Hard => 90 - cityDefense + playerAttackValue
+      case Difficulty.Easy => EasyBaseSuccess - cityDefense + playerAttackValue
+      case Difficulty.Normal => NormalBaseSuccess - cityDefense + playerAttackValue
+      case Difficulty.Hard => HardBaseSuccess - cityDefense + playerAttackValue
 
-      Math.max(5, Math.min(95, rawValue))
+      Math.max(MinSuccessPercent, Math.min(MaxSuccessPercent, rawValue))
 
 
 

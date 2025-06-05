@@ -6,6 +6,27 @@ import model.util.GameSettings.Difficulty
 import scala.util.Random
 
 /**
+ * Represents the relative weights (probabilities) assigned to each possible HumanAction
+ * that a strategy can choose from during decision-making.
+ *
+ * These weights are used to influence the likelihood of each action being selected
+ * by weighted random selection logic.
+ *
+ * The higher the weight, the more likely the action is to be chosen.
+ * A weight of zero effectively disables that action.
+ *
+ * @param cityDefenseWeight     the weight assigned to the CityDefense action
+ * @param globalDefenseWeight   the weight assigned to the GlobalDefense action
+ * @param killSwitchWeight      the weight assigned to the DevelopKillSwitch action
+ */
+case class ActionProbabilities(
+                                cityDefenseWeight: Int,
+                                globalDefenseWeight: Int,
+                                killSwitchWeight: Int
+                              )
+
+
+/**
  * A generic trait for a player strategy that can decide a valid TurnAction
  * based on the current WorldState.
  *
@@ -18,7 +39,7 @@ trait PlayerStrategy[A <: TurnAction]:
    * @param state the current state of the game world
    * @return a valid TurnAction for the player
    */
-  def decideAction(state: WorldState): A
+  def decideAction(state: WorldState)(using probs: ActionProbabilities): A
 
 /**
  * A smart strategy implementation for the Human player.
@@ -35,40 +56,33 @@ object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
    * @param state the current world state
    * @return the chosen HumanAction
    */
-  override def decideAction(state: WorldState): HumanAction =
-
+  override def decideAction(state: WorldState)(using probs: ActionProbabilities): HumanAction =
     /**
      * Easy strategy: passive defense with occasional global protection.
      */
     def decideEasy: HumanAction =
       val defend = nonDefended(possibleTargets(state), state).take(1)
       val actions = List(
-        Option.when(defend.nonEmpty)(CityDefense(defend)),
-        Some(GlobalDefense())
+        Option.when(defend.nonEmpty)(CityDefense(defend)).map(_ -> probs.cityDefenseWeight),
+        Some(GlobalDefense()).map(_ -> probs.globalDefenseWeight)
       ).flatten
-      Random.shuffle(actions).head
+      chooseWeighted(actions)
 
-    /**
-     * Normal strategy: random among available actions including defense,
-     * kill switch development, and global defense.
-     */
-    def decideNormal: HumanAction =
-      val defend = nonDefended(possibleTargets(state), state).take(1)
-      val actions = baseHumanActions(defend, possibleTargets(state))
-      Random.shuffle(actions).head
-
-    /**
-     * Hard strategy: prioritize highest-risk cities and act proactively.
-     */
-    def decideHard: HumanAction =
-      val defend = nonDefended(topRiskTargets(state), state).take(1)
-      val actions = baseHumanActions(defend, topRiskTargets(state))
-      Random.shuffle(actions).head
+    def decideWeighted(targetSelector: WorldState => List[String]): HumanAction =
+      val targets = targetSelector(state)
+      val defend = nonDefended(targets, state).take(1)
+      val available = baseHumanActions(defend, targets)
+      val actions = available.collect {
+        case a: CityDefense => (a, probs.cityDefenseWeight)
+        case a: GlobalDefense => (a, probs.globalDefenseWeight)
+        case DevelopKillSwitch => (DevelopKillSwitch, probs.killSwitchWeight)
+      }
+      chooseWeighted(actions)
 
     state.difficulty match
       case Difficulty.Easy => decideEasy
-      case Difficulty.Normal => decideNormal
-      case Difficulty.Hard => decideHard
+      case Difficulty.Normal => decideWeighted(possibleTargets)
+      case Difficulty.Hard => decideWeighted(topRiskTargets)
 
 
   /**
@@ -115,4 +129,23 @@ object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
       Some(DevelopKillSwitch),
       Some(GlobalDefense(allTargets))
     ).flatten
+
+  /**
+   * Selects one action from a list of weighted HumanActions using a weighted random algorithm.
+   *
+   * Each action in the input list is associated with a weight (priority or likelihood).
+   * The selection is made such that the probability of choosing an action is proportional to its weight.
+   *
+   * @param actions a list of tuples where each tuple contains a HumanAction and its corresponding weight
+   * @return one HumanAction randomly selected based on the specified weights
+   */
+  private def chooseWeighted(actions: List[(HumanAction, Int)]): HumanAction =
+    val total = actions.map(_._2).sum
+    val rand = Random.nextInt(total)
+    actions
+      .scanLeft((Option.empty[HumanAction], 0)) {
+        case ((_, acc), (action, weight)) => (Some(action), acc + weight)
+      }
+      .collectFirst { case (Some(action), acc) if rand < acc => action }
+      .get
 
