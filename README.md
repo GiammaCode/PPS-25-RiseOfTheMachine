@@ -53,7 +53,7 @@ Il giocatore umano deve difendere le città da un'IA ostile tramite azioni strat
 ### Avviare il gioco
 
 ```bash
-git clone https://github.com/yourusername/PPS-25-RiseOfTheMachine.git
+git clone https://github.com/GiammaCode/PPS-25-RiseOfTheMachine.git
 cd PPS-25-RiseOfTheMachine
 sbt run
 ```
