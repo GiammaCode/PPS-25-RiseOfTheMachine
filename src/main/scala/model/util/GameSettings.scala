@@ -2,6 +2,21 @@ package model.util
 
 object GameSettings:
 
+  object DifficultyConstants:
+    // AI Stats per difficulty
+    val easyInfectionPower = 10
+    val easySabotagePower = 50
+
+    val normalInfectionPower = 6
+    val normalSabotagePower = 40
+
+    val hardInfectionPower = 3
+    val hardSabotagePower = 30
+
+    // Human Stats per difficulty
+    val easyKillSwitch = 0
+    val normalKillSwitch = 5
+    val hardKillSwitch = 20
 
   enum Difficulty:
     case Easy, Normal, Hard
@@ -46,18 +61,20 @@ object GameSettings:
 
   import Difficulty._
   import GameMode._
+  import DifficultyConstants._
 
   private val aiConfigs: Map[Difficulty, AIStats] = Map(
-    Easy -> AIStats(infectionPower = 10, sabotagePower = 50),
-    Normal -> AIStats(infectionPower = 6, sabotagePower = 40),
-    Hard -> AIStats(infectionPower = 3, sabotagePower = 30)
+    Easy -> AIStats(infectionPower = easyInfectionPower, sabotagePower = easySabotagePower),
+    Normal -> AIStats(infectionPower = normalInfectionPower, sabotagePower = normalSabotagePower),
+    Hard -> AIStats(infectionPower = hardInfectionPower, sabotagePower = hardSabotagePower)
   )
 
   private val humanConfigs: Map[Difficulty, HumanStats] = Map(
-    Easy -> HumanStats(killSwitch = 0),
-    Normal -> HumanStats(killSwitch = 5),
-    Hard -> HumanStats(killSwitch = 20)
+    Easy -> HumanStats(killSwitch = easyKillSwitch),
+    Normal -> HumanStats(killSwitch = normalKillSwitch),
+    Hard -> HumanStats(killSwitch = hardKillSwitch)
   )
+
   /**
    * Factory method to generate a full GameSettings instance based on mode and difficulty.
    *
