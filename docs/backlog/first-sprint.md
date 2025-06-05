@@ -1,3 +1,9 @@
+---
+layout: default
+title: 1° sprint
+nav_order: 9
+---
+
 # First Sprint Planning – 16/04/2025
 
 Il team si è incontrato in loco per rivedere le specifiche del progetto e 

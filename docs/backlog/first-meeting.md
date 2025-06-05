@@ -1,3 +1,8 @@
+---
+layout: default
+title: Primo incontro
+nav_order: 8
+---
 # Primo Meeting – 14/04/2025
 
 Il team si è incontrato in loco per discutere e definire le specifiche del
