@@ -51,9 +51,9 @@ definire i task del **primo sprint**.
 - Prima versione dello stato di gioco
 
 ### Lorenzo Leoni
-- Sviluppo delle **interfacce comuni**
-- Implementazioni per l’**AI Player**
-- Sviluppo iniziale di un **input handler**
+- Sviluppo delle interfacce comuni per le varie entità del player
+- Implementazioni basica del PlayerAi
+- Sviluppo iniziale di un semplice **input handler** che gestisce una mossa dell'utente
 
 ### Luca Pasini
 - Sviluppo della **mappa di gioco**
