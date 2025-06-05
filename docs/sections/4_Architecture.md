@@ -21,6 +21,9 @@ e la mappa di gioco.
 stato di gioco sia sempre prevedibile e thread-safe, poiché le modifiche producono nuove istanze anziché alterare 
 quelle esistenti.
 
+- Separazione chiara delle responsabilità.
+- Possibilità di testare ogni componente in modo isolato.
+- Flessibilità nell'aggiunta di nuove viste o modalità di input.
 
 ### View:
 La View è responsabile della visualizzazione delle informazioni al giocatore.	L'interfaccia è implementata tramite
@@ -32,6 +35,15 @@ sostanziali alla logica di gioco.
 Il Controller ha il compito di gestire l'interazione dell'utente, interpretare gli input e invocare i metodi appropriati
 sul Model, funge da punto centrale per il ciclo di gioco, orchestrando le azioni di entrambi i giocatori.
 
+```mermaid
+stateDiagram
+[*] --> Controller: Game Starts
+Controller --> View: Render game turn
+View --> View: Render the turn and wait for userInput
+View --> Controller: Send userInput
+Controller--> Model: Update Model
+Model --> Controller: Recive Updated Data
+```
 
 ## Architettura Complessiva: Vantaggi
 L'adozione del pattern MVC e dei principi di programmazione funzionale offre diversi vantaggi chiave:
