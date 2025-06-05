@@ -21,7 +21,7 @@ class PlayerAIScalaTest extends AnyFunSuite with Matchers with BeforeAndAfter:
 
   before {
     player = PlayerAI.fromSettings
-    worldState = createWorldState(createWorldMap(easyInfectionPower), PlayerAI.fromStats, PlayerHuman.fromStats, 0)
+    worldState = createWorldState(createWorldMap(EasyInfectionPower), PlayerAI.fromStats, PlayerHuman.fromStats, 0)
   }
 
 
@@ -34,14 +34,14 @@ class PlayerAIScalaTest extends AnyFunSuite with Matchers with BeforeAndAfter:
     val normalPlayer = PlayerAI.fromSettings(using normalSettings)
     val hardPlayer = PlayerAI.fromSettings(using hardSettings)
 
-    easyPlayer.infectionPower shouldBe easyInfectionPower
-    easyPlayer.sabotagePower shouldBe easySabotagePower
+    easyPlayer.infectionPower shouldBe EasyInfectionPower
+    easyPlayer.sabotagePower shouldBe EasySabotagePower
 
-    normalPlayer.infectionPower shouldBe normalInfectionPower
-    normalPlayer.sabotagePower shouldBe normalSabotagePower
+    normalPlayer.infectionPower shouldBe NormalInfectionPower
+    normalPlayer.sabotagePower shouldBe NormalSabotagePower
 
-    hardPlayer.infectionPower shouldBe hardInfectionPower
-    hardPlayer.sabotagePower shouldBe hardSabotagePower
+    hardPlayer.infectionPower shouldBe HardInfectionPower
+    hardPlayer.sabotagePower shouldBe HardSabotagePower
   }
 
   test("PlayerAI fromStats constructor") {
@@ -64,8 +64,8 @@ class PlayerAIScalaTest extends AnyFunSuite with Matchers with BeforeAndAfter:
     player.executedActions shouldBe empty
     player.conqueredCities shouldBe empty
     player.sabotagedCities shouldBe empty
-    player.infectionPower shouldBe easyInfectionPower
-    player.sabotagePower shouldBe easySabotagePower
+    player.infectionPower shouldBe EasyInfectionPower
+    player.sabotagePower shouldBe EasySabotagePower
   }
 
   test("getPossibleAction returns all actions when no abilities unlocked") {

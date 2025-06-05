@@ -13,9 +13,9 @@ class GameDifficultyTest extends AnyFunSuite with Matchers {
     val normalSettings = forSettings(Singleplayer, Normal)
     val hardSettings = forSettings(Singleplayer, Hard)
 
-    easySettings.ai shouldBe AIStats(infectionPower = easyInfectionPower, sabotagePower = easySabotagePower)
-    normalSettings.ai shouldBe AIStats(infectionPower = normalInfectionPower, sabotagePower = normalSabotagePower)
-    hardSettings.ai shouldBe AIStats(infectionPower = hardInfectionPower, sabotagePower = hardSabotagePower)
+    easySettings.ai shouldBe AIStats(infectionPower = EasyInfectionPower, sabotagePower = EasySabotagePower)
+    normalSettings.ai shouldBe AIStats(infectionPower = NormalInfectionPower, sabotagePower = NormalSabotagePower)
+    hardSettings.ai shouldBe AIStats(infectionPower = HardInfectionPower, sabotagePower = HardSabotagePower)
   }
 
   test("HumanStats are correctly returned for each difficulty") {
@@ -23,20 +23,20 @@ class GameDifficultyTest extends AnyFunSuite with Matchers {
     val normalSettings = forSettings(Singleplayer, Normal)
     val hardSettings = forSettings(Singleplayer, Hard)
 
-    easySettings.human shouldBe HumanStats(killSwitch = easyKillSwitch)
-    normalSettings.human shouldBe HumanStats(killSwitch = normalKillSwitch)
-    hardSettings.human shouldBe HumanStats(killSwitch = hardKillSwitch)
+    easySettings.human shouldBe HumanStats(killSwitch = EasyKillSwitch)
+    normalSettings.human shouldBe HumanStats(killSwitch = NormalKillSwitch)
+    hardSettings.human shouldBe HumanStats(killSwitch = HardKillSwitch)
   }
 
   test("Default AIStats fallback is Normal") {
     val fakeDifficulty = null.asInstanceOf[Difficulty]
     val fallbackSettings = forSettings(Singleplayer, fakeDifficulty)
-    fallbackSettings.ai shouldBe AIStats(infectionPower = normalInfectionPower, sabotagePower = normalSabotagePower)
+    fallbackSettings.ai shouldBe AIStats(infectionPower = NormalInfectionPower, sabotagePower = NormalSabotagePower)
   }
 
   test("Default HumanStats fallback is Normal") {
     val fakeDifficulty = null.asInstanceOf[Difficulty]
     val fallbackSettings = forSettings(Singleplayer, fakeDifficulty)
-    fallbackSettings.human shouldBe HumanStats(killSwitch = normalKillSwitch)
+    fallbackSettings.human shouldBe HumanStats(killSwitch = NormalKillSwitch)
   }
 }

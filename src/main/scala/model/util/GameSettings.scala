@@ -4,19 +4,19 @@ object GameSettings:
 
   object DifficultyConstants:
     // AI Stats per difficulty
-    val easyInfectionPower = 10
-    val easySabotagePower = 50
+    val EasyInfectionPower = 10
+    val EasySabotagePower = 50
 
-    val normalInfectionPower = 6
-    val normalSabotagePower = 40
+    val NormalInfectionPower = 6
+    val NormalSabotagePower = 40
 
-    val hardInfectionPower = 3
-    val hardSabotagePower = 30
+    val HardInfectionPower = 3
+    val HardSabotagePower = 30
 
     // Human Stats per difficulty
-    val easyKillSwitch = 0
-    val normalKillSwitch = 5
-    val hardKillSwitch = 20
+    val EasyKillSwitch = 0
+    val NormalKillSwitch = 5
+    val HardKillSwitch = 20
 
   enum Difficulty:
     case Easy, Normal, Hard
@@ -64,15 +64,15 @@ object GameSettings:
   import DifficultyConstants._
 
   private val aiConfigs: Map[Difficulty, AIStats] = Map(
-    Easy -> AIStats(infectionPower = easyInfectionPower, sabotagePower = easySabotagePower),
-    Normal -> AIStats(infectionPower = normalInfectionPower, sabotagePower = normalSabotagePower),
-    Hard -> AIStats(infectionPower = hardInfectionPower, sabotagePower = hardSabotagePower)
+    Easy -> AIStats(infectionPower = EasyInfectionPower, sabotagePower = EasySabotagePower),
+    Normal -> AIStats(infectionPower = NormalInfectionPower, sabotagePower = NormalSabotagePower),
+    Hard -> AIStats(infectionPower = HardInfectionPower, sabotagePower = HardSabotagePower)
   )
 
   private val humanConfigs: Map[Difficulty, HumanStats] = Map(
-    Easy -> HumanStats(killSwitch = easyKillSwitch),
-    Normal -> HumanStats(killSwitch = normalKillSwitch),
-    Hard -> HumanStats(killSwitch = hardKillSwitch)
+    Easy -> HumanStats(killSwitch = EasyKillSwitch),
+    Normal -> HumanStats(killSwitch = NormalKillSwitch),
+    Hard -> HumanStats(killSwitch = HardKillSwitch)
   )
 
   /**
