@@ -50,7 +50,7 @@ Il giocatore umano deve difendere le città da un'IA ostile tramite azioni strat
 - [Scala 3](https://www.scala-lang.org/download/)
 - [sbt (Scala Build Tool)](https://www.scala-sbt.org/)
 
-### ▶Avviare il gioco
+### Avviare il gioco
 
 ```bash
 git clone https://github.com/yourusername/PPS-25-RiseOfTheMachine.git
@@ -64,7 +64,6 @@ Si può visionare la documentazione ufficiale del progetto al seguente link dell
 👉 [Vai alla Documentazione](https://giammacode.github.io/PPS-25-RiseOfTheMachine/)
 
 ## Componenti del gruppo
-
 - Gianmaria Casamenti – [gianmaria.casamenti@studio.unibo.it](mailto:gianmaria.casamenti@studio.unibo.it)
 - Luca Pasini – [luca.pasini8@studio.unibo.it](mailto:luca.pasini8@studio.unibo.it)
 - Lorenzo Leoni – [lorenzo.leoni5@studio.unibo.it](mailto:lorenzo.leoni5@studio.unibo.it)
@@ -72,5 +71,9 @@ Si può visionare la documentazione ufficiale del progetto al seguente link dell
 [![Gianmaria](https://github.com/GiammaCode.png?size=80)](https://github.com/GiammaCode)
 [![Luca](https://github.com/Paso2000.png?size=80)](https://github.com/Paso2000)
 [![Lorenzo](https://github.com/LoryBug.png?size=80)](https://github.com/LoryBug)
+
+## Licenza
+Distribuito sotto licenza **MIT** – vedi il file [LICENSE](LICENSE) per i dettagli.
+
 
 
