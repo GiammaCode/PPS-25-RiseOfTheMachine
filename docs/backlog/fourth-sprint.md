@@ -6,7 +6,9 @@ nav_order: 12
 
 # Fourth Sprint Planning – 22/05/2025
 
-##
+Il team si è incontrato in loco per rivedere i risultati del secondo sprint e pianificare le attività successive.  
+
+**Durata dell'incontro:** circa 2 ore
 ---
 
 ## Obiettivi Sprint
