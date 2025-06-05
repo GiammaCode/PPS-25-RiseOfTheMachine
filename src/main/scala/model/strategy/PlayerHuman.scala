@@ -5,7 +5,7 @@ import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.WorldState
 import model.strategy.ExecuteActionResult.ExecuteActionResult
 import model.strategy.HumanAction
-import model.util.GameSettings.{GameSettings, HumanStats}
+import model.util.GameSettings.{Difficulty, GameSettings, HumanStats}
 
 trait PlayerHuman extends PlayerEntity:
   def killSwitch: Int
@@ -80,6 +80,11 @@ private case class PlayerHumanImpl(
         |------------------------""".stripMargin
 
   def decideActionByStrategy(worldState: WorldState): HumanAction =
+    given ActionProbabilities = worldState.difficulty match
+      case Difficulty.Easy => ActionProbabilities(70, 30, 0)
+      case Difficulty.Normal => ActionProbabilities(33, 33, 34)
+      case Difficulty.Hard => ActionProbabilities(40, 100, 100)
+
     SmartHumanStrategy.decideAction(worldState)
 
   private def result(player: PlayerHumanImpl, city: Option[List[City]], message: String): ExecuteActionResult[Self] =
