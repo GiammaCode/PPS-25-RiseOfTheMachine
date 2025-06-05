@@ -23,9 +23,9 @@ class GameDifficultyTest extends AnyFunSuite with Matchers {
     val normalSettings = forSettings(Singleplayer, Normal)
     val hardSettings = forSettings(Singleplayer, Hard)
 
-    easySettings.human shouldBe HumanStats(killSwitch = EasyKillSwitch)
-    normalSettings.human shouldBe HumanStats(killSwitch = NormalKillSwitch)
-    hardSettings.human shouldBe HumanStats(killSwitch = HardKillSwitch)
+    easySettings.human shouldBe HumanStats(killSwitch = EasyKillSwitch, actionsWeight =  EasyModeProbabilities)
+    normalSettings.human shouldBe HumanStats(killSwitch = NormalKillSwitch, actionsWeight = NormalModeProbabilities)
+    hardSettings.human shouldBe HumanStats(killSwitch = HardKillSwitch, actionsWeight = HardModeProbabilities)
   }
 
   test("Default AIStats fallback is Normal") {
@@ -37,6 +37,6 @@ class GameDifficultyTest extends AnyFunSuite with Matchers {
   test("Default HumanStats fallback is Normal") {
     val fakeDifficulty = null.asInstanceOf[Difficulty]
     val fallbackSettings = forSettings(Singleplayer, fakeDifficulty)
-    fallbackSettings.human shouldBe HumanStats(killSwitch = NormalKillSwitch)
+    fallbackSettings.human shouldBe HumanStats(killSwitch = NormalKillSwitch, actionsWeight = NormalModeProbabilities)
   }
 }

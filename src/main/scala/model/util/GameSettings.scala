@@ -21,9 +21,9 @@ object GameSettings:
     val HardKillSwitch = 20
 
     // Human actions weight
-    val EasyModeProbabilities = ActionProbabilities(70, 30, 0)
-    val NormalModeProbabilities = ActionProbabilities(33, 33, 34)
-    val HardModeProbabilities = ActionProbabilities(40, 100, 100)
+    val EasyModeProbabilities: ActionProbabilities = ActionProbabilities(70, 30, 0)
+    val NormalModeProbabilities: ActionProbabilities = ActionProbabilities(33, 33, 34)
+    val HardModeProbabilities: ActionProbabilities = ActionProbabilities(40, 100, 100)
 
   enum Difficulty:
     case Easy, Normal, Hard
