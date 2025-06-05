@@ -23,3 +23,13 @@ Questa separazione consente un'elevata manutenibilità, testabilità e la possib
 - Separazione chiara delle responsabilità.
 - Possibilità di testare ogni componente in modo isolato.
 - Flessibilità nell'aggiunta di nuove viste o modalità di input.
+
+
+```mermaid
+stateDiagram
+[*] --> Controller: Game Starts
+Controller --> View: Render game turn
+View --> View: Render the turn and wait for userInput
+View --> Controller: Send userInput
+Controller--> Model: Update Model
+Model --> Controller: Recive Updated Data
