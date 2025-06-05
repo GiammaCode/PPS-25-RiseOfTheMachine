@@ -38,8 +38,7 @@ object GameController:
       then State ( gs =>
           val currentWorldState = gs.worldState
           val actionResult = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
-          (gs.copy(worldState = currentWorldState.updatePlayer(actionResult.getPlayer).updateMap(actionResult.getCities)), ())
-          )
+          (gs.copy(worldState = currentWorldState.updatePlayer(actionResult.getPlayer).updateMap(actionResult.getCities)), ()))
       else State(gs => (gs, ())
     )
 

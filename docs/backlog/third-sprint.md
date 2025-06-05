@@ -46,7 +46,7 @@ Durante l'incontro è stato deciso il rilascio della seconda release: **V2.0.0**
 ### Lorenzo Leoni
 
 - Aggiunta del supporto multiplayer all'**InputHandler** e creazione delle **turnAction** generiche
-- Introduzione di `GameSettings` al posto delle classi `GameDifficulty` e `GameMode`
+- Introduzione di `GameSettings` per la gestione della difficoltà e dei GameMode.
 - Aggiunta del supporto a **ScalaTest** e generazione del **fat JAR**
 
 ### Luca Pasini

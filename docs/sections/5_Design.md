@@ -51,7 +51,7 @@ end
 
 ## Design del Model
 Il model rappresenta la logica di gioco, le sue regole, lo stato e l'evoluzione complessiva. Il suo design è 
-fortemente incentrato sui principi della programmazione funzionale e  sull’immutabilità, garantendo prevedibilità e 
+fortemente incentrato sui principi della programmazione funzionale e sull’immutabilità, garantendo prevedibilità e 
 consistenza dello stato di gioco. Ogni modifica allo stato o una sua componente restituisce una nuova istanza 
 preservando anche la lista degli stati precedenti.
 
@@ -73,7 +73,7 @@ degli elementi di gioco.
 alla formattazione degli elementi stilizzati come menù, blocchi informativi e titoli in ASCII art.
 
 
-Questo design supporta l’usabilità fornendo un’interfaccia chiara e interattica.
+Questo design supporta l’usabilità fornendo un’interfaccia chiara e interattiva.
 
 ## Design del Controller
 Il GameController rappresenta il fulcro della logica applicativa, responsabile della gestione dell’intero ciclo di gioco.

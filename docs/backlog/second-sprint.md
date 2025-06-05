@@ -38,7 +38,9 @@ Tutto questo tralasciando piccoli dettagli che verranno trattati nelle prossime 
 
 
 ### Lorenzo Leoni
-
+- Gestione dell'effetto delle azioni da parte del PlayerAi.
+- Creazione delle abilità sbloccabili dal giocatore-
+- Aggiunta dei controlli all'interno dell'inputHandler per trasformare input in azioni valide e gestire tutte le azioni.
 
 ### Luca Pasini
 

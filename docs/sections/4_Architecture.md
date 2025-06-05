@@ -13,7 +13,6 @@ delle interazioni. Questo pattern rientra tra i principi architetturali che defi
 loro confini, contratti e ruoli.
 
 
-**Pattern Architetturale:** MVC
 ### Model:
 Il Model rappresenta i fondamenti della logica di gioco, includendo le regole, le entità dei giocatori (IA e Umanità)
 e la mappa di gioco.
@@ -21,9 +20,6 @@ e la mappa di gioco.
 stato di gioco sia sempre prevedibile e thread-safe, poiché le modifiche producono nuove istanze anziché alterare 
 quelle esistenti.
 
-- Separazione chiara delle responsabilità.
-- Possibilità di testare ogni componente in modo isolato.
-- Flessibilità nell'aggiunta di nuove viste o modalità di input.
 
 ### View:
 La View è responsabile della visualizzazione delle informazioni al giocatore.	L'interfaccia è implementata tramite
@@ -47,11 +43,11 @@ Model --> Controller: Recive Updated Data
 
 ## Architettura Complessiva: Vantaggi
 L'adozione del pattern MVC e dei principi di programmazione funzionale offre diversi vantaggi chiave:
-1) **Separazione Chiara delle Responsabilità**: I diversi aspetti del sistema (logica di business, presentazione, 
-interazione) sono distinti e gestiti da componenti dedicati, riflettendo il principio di Separation of Concerns.
-2) **Elevata Manutenibilità**: La chiara divisione e l'uso di principi di immutabilità riducono gli effetti collaterali,
+- **Separazione Chiara delle Responsabilità**: I diversi aspetti del sistema (logica di business, presentazione, 
+interazione) sono distinti e gestiti da componenti dedicati, riflettendo il principio di Separation of Concerns. 
+- **Elevata Manutenibilità**: La chiara divisione e l'uso di principi di immutabilità riducono gli effetti collaterali,
 rendendo il codice più prevedibile e facile da modificare o correggere in futuro. 
-3) **Flessibilità e Estendibilità**: Il design modulare consente di aggiungere facilmente nuove viste (es. una GUI), 
+- **Flessibilità e Estendibilità**: Il design modulare consente di aggiungere facilmente nuove viste (es. una GUI), 
 nuove modalità di input, o nuove strategie e abilità di gioco senza alterare la logica di base del Model. 
-4) **Testabilità Migliorata**: Ogni componente può essere testato in isolamento, facilitando l'identificazione e
+- **Testabilità Migliorata**: Ogni componente può essere testato in isolamento, facilitando l'identificazione e
 la correzione dei bug. Il progetto include test automatizzati per i moduli di Model, View e Controller.
