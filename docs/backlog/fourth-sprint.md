@@ -36,6 +36,8 @@ Rilasciare la versione di gioco finale, soddisfacendo tutte le richieste del com
 - Sviluppo di una libreria di formattazione grafica
 
 ### Lorenzo Leoni
+- Bilanciamento dei valori di gioco del player in base alla difficoltà.
+- Creazione di un tipo apposito per la gestione del risultato delle azioni.
 
 
 ### Luca Pasini
