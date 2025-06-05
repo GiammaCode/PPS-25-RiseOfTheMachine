@@ -28,7 +28,6 @@ trait PlayerHuman extends PlayerEntity:
   override def toString: String
 
 object PlayerHuman:
-
   def fromStats(using stats: HumanStats): PlayerHuman =
     PlayerHumanImpl(killSwitch = stats.killSwitch)
 
@@ -43,6 +42,14 @@ private case class PlayerHumanImpl(
                                     executedActions: List[HumanAction] = List.empty
                                   ) extends PlayerHuman:
 
+  private val CityDefenseBoost = 20
+  private val GlobalDefenseBoost = 2
+  private val KillSwitchIncrement = 10
+
+  private val EasyModeProbabilities = ActionProbabilities(70, 30, 0)
+  private val NormalModeProbabilities = ActionProbabilities(33, 33, 34)
+  private val HardModeProbabilities = ActionProbabilities(40, 100, 100)
+
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
 
@@ -52,17 +59,17 @@ private case class PlayerHumanImpl(
     case CityDefense(targets) =>
       val updated = withDefendedCities(targets.toSet).addAction(action)
       val defendedCities: List[City] = targets.flatMap(cityName =>
-        worldMap.getCityByName(cityName).map(_.defenseCity(20))
+        worldMap.getCityByName(cityName).map(_.defenseCity(CityDefenseBoost))
       )
       result(updated, Some(defendedCities), s"CityDefense on: ${targets.mkString(", ")}")
 
     case GlobalDefense(targets) =>
       val updated = withDefendedCities(defendedCities).addAction(action)
-      val updatedCities = targets.flatMap(worldMap.getCityByName).map(_.defenseCity(2))
+      val updatedCities = targets.flatMap(worldMap.getCityByName).map(_.defenseCity(GlobalDefenseBoost))
       result(updated, Some(updatedCities), "GlobalDefense executed")
 
     case DevelopKillSwitch =>
-      val updated = copy(killSwitch = killSwitch + 10).addAction(action)
+      val updated = copy(killSwitch = killSwitch + KillSwitchIncrement).addAction(action)
       result(updated, None, "KillSwitch progress increased")
 
   override def toString: String =
@@ -81,9 +88,9 @@ private case class PlayerHumanImpl(
 
   def decideActionByStrategy(worldState: WorldState): HumanAction =
     given ActionProbabilities = worldState.difficulty match
-      case Difficulty.Easy => ActionProbabilities(70, 30, 0)
-      case Difficulty.Normal => ActionProbabilities(33, 33, 34)
-      case Difficulty.Hard => ActionProbabilities(40, 100, 100)
+      case Difficulty.Easy => EasyModeProbabilities
+      case Difficulty.Normal => NormalModeProbabilities
+      case Difficulty.Hard => HardModeProbabilities
 
     SmartHumanStrategy.decideAction(worldState)
 
