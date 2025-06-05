@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Gianmaria Implementazione
-nav_order: 12
+nav_order: 13
 ---
 Durante l'implementazione del progetto *Rise of the Machine*, mi sono occupato della progettazione e sviluppo di componenti chiave sia lato modello che lato vista, con particolare attenzione alla coerenza del sistema e all’estensibilità del codice.
 
