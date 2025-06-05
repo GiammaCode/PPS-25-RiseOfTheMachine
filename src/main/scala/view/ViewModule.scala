@@ -22,7 +22,8 @@ object ViewModule:
     def apply(aiInput: (Int, String), humanInput: Option[(Int, String)]): GameTurnInput = (aiInput, humanInput)
 
     extension (input: GameTurnInput)
-      def aiInput: (Int, String) = input._1
+      def aiInput_action: Int = input._1._1
+      def aiInput_city: String = input._1._2
       def humanInput: Option[(Int, String)] = input._2
 
   /**

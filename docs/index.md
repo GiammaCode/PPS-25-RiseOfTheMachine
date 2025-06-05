@@ -32,13 +32,13 @@ Campus of Cesena – Italy
 
 ## **Index**
 
-- [1️⃣ Introduction](sections/1_Introduction.md)
-- [2️⃣ Development](sections/2_Development.md)
-- [3️⃣ Requirements](sections/3_Requirements.md)
-- [4️⃣ Architecture](sections/4_Architecture.md)
+- [1️⃣ Introduzione](sections/1_Introduction.md)
+- [2️⃣ Sviluppo](sections/2_Development.md)
+- [3️⃣ Requisiti](sections/3_Requirements.md)
+- [4️⃣ Architettura](sections/4_Architecture.md)
 - [5️⃣ Design](sections/5_Design.md)
-- [6️⃣ Implementation](sections/6_Implementation.md)
-- [7️⃣ Retrospective](sections/7_Retrospective.md)
+- [6️⃣ Implementazione](sections/6_Implementation.md)
+- [7️⃣ Retrospettiva](sections/7_Retrospective.md)
 
 ---
 
@@ -48,3 +48,4 @@ Campus of Cesena – Italy
 - [First Sprint](backlog/first-sprint.md)
 - [Second Sprint](backlog/second-sprint.md)
 - [Third Sprint](backlog/third-sprint.md)
+- [Fourth Sprint](backlog/fourth-sprint.md)
