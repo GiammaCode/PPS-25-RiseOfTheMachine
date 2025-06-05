@@ -68,12 +68,9 @@ object WorldMapModule:
   object DeterministicMapModule extends CreateModuleType:
     override def createMap(size: Int): WorldMap =
 
-      def allTiles: Set[(Int, Int)] =
-        (for x <- 0 until size; y <- 0 until size yield (x, y)).toSet
-
-      def expandCity(start: (Int, Int), available: Set[(Int, Int)], desiredSize: Int): Set[(Int, Int)] =
+      def expandCity(start: Coord, available: Set[Coord], desiredSize: Int): Set[Coord] =
         @tailrec
-        def expandLoop(frontier: List[(Int, Int)], visited: Set[(Int, Int)]): Set[(Int, Int)] =
+        def expandLoop(frontier: List[Coord], visited: Set[Coord]): Set[Coord] =
           if visited.size >= desiredSize || frontier.isEmpty then visited
           else
             val next = frontier.head
@@ -83,7 +80,7 @@ object WorldMapModule:
         expandLoop(List(start), Set(start)).intersect(available)
 
       @tailrec
-      def createMapLoop(index: Int, available: Set[(Int, Int)], acc: Set[(City, Set[(Int, Int)])]): Set[(City, Set[(Int, Int)])] =
+      def createMapLoop(index: Int, available: Set[Coord], acc: WorldMap): WorldMap =
         if available.isEmpty then acc
         else
           val isCapital = index < 5
@@ -95,7 +92,7 @@ object WorldMapModule:
           if tiles.size < 0 then createMapLoop(index + 1, available -- tiles, acc)
           else createMapLoop(index + 1, available -- tiles, acc + (city -> tiles))
 
-      createMapLoop(0, allTiles, Set.empty)
+      createMapLoop(0, allCoords(size), Set.empty)
 
   /**
    * Implementation of [[CreateModuleType]] using randomized logic and a state monad.
@@ -138,15 +135,16 @@ object WorldMapModule:
       expand(List(start), Set(start))
     override def createMap(size: Int): WorldMap =
 
-        val allCoords: Set[Coord] =
-        (for
-          x <- 0 until size
-          y <- 0 until size
-        yield (x, y)).toSet
-
-        val fullMaps: LazyList[WorldMap] = placeCities(size, allCoords)
+        val fullMaps: LazyList[WorldMap] = placeCities(size, allCoords(size))
 
         fullMaps.find(m => m.flatMap(_._2).size == size * size ).get
+
+  private def allCoords(size: Int) = {
+    (for
+      x <- 0 until size
+      y <- 0 until size
+    yield (x, y)).toSet
+  }
 
   private def validNeighbors(seeds: List[Coord], size: Int, blocked: Set[Coord]): List[Coord] =
       for
@@ -216,7 +214,7 @@ object WorldMapModule:
      * @param f predicate function for filtering (City, TileSet) pairs
      * @return Option[String] of the city name if match found
      */
-    def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
+    def findInMap(f: (City, Set[Coord]) => Boolean): Option[String] =
       worldMap.find(f.tupled).flatMap((city, coords) => coords.headOption.map(_ => city.getName))
 
     /**

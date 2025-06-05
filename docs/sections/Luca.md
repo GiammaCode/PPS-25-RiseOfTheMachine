@@ -27,28 +27,39 @@ Il modulo `CityModule` rappresenta la logica relativa alla gestione delle città
 
 ## Diagramma UML
 
-```plantuml
-@startuml
-package model.map {
-  enum Owner {
-    AI
-    HUMAN
+```mermaid
+classDiagram
+  direction TB
+
+  %% Enumerations
+  class Owner {
+    <<enum>>
+    +AI
+    +HUMAN
   }
 
-  interface CityInterface {
+  %% Traits and objects
+  class CityInterface {
+    <<trait>>
     +type City
     +createCity(name: String, size: Int, isCapital: Boolean): City
-    +getName(city: City): String
-    +getSize(city: City): Int
-    +getOwner(city: City): Owner
-    +getDefense(city: City): Int
-    +isCapital(city: City): Boolean
-    +infectCity(city: City): City
-    +sabotateCity(city: City, playerAttack: Int): City
-    +defenseCity(city: City): City
+    +getName(): String
+    +getSize(): Int
+    +getOwner(): Owner
+    +getDefense(): Int
+    +isCapital(): Boolean
+    +infectCity(): City
+    +sabotateCity(playerAttack: Int): City
+    +defenseCity(defenseImprove: Int): City
   }
 
-  class CityImplImpl {
+  class CityImpl {
+    <<object>>
+    +createCity(name: String, size: Int, isCapital: Boolean): City
+  }
+
+  %% Data class
+  class CityImplData {
     -name: String
     -size: Int
     -owner: Owner
@@ -56,13 +67,11 @@ package model.map {
     -defense: Int
   }
 
-  object CityImpl {
-    +createCity(name: String, size: Int, isCapital: Boolean): City
-  }
+  %% Relationships
+  CityImpl --> CityInterface
+  CityImplData ..|> CityInterface : implements
+  CityImplData --> Owner
 
-  CityImplImpl ..|> CityInterface
-}
-@enduml
 ```
 
 
@@ -90,29 +99,53 @@ Il modulo `WorldMapModule` definisce la rappresentazione e le logiche di costruz
 
 ## Diagramma UML
 
-```plantuml
-@startuml
-package model.map {
+```mermaid
+classDiagram
+    class WorldMapModule {
+        <<object>>
+        +createWorldMap(size: Int): WorldMap
+    }
 
-  class WorldMap <<opaque>>
+    class CreateModuleType {
+        <<trait>>
+        +createMap(size: Int): WorldMap
+    }
 
-  interface CreateModuleType {
-    +createMap(size: Int): WorldMap
-  }
+    class DeterministicMapModule {
+        <<object>>
+        +createMap(size: Int): WorldMap
+    }
 
-  object DeterministicMapModule {
-    +createMap(size: Int): WorldMap
-  }
+    class UndeterministicMapModule {
+        <<object>>
+        +createMap(size: Int): WorldMap
+    }
 
-  object UndeterministicMapModule {
-    +createMap(size: Int): WorldMap
-  }
+    class WorldMap {
+        <<opaque type>>
+        type = Set[(City, Set[(Int, Int)])]
+    }
 
-  WorldMapModule --> CreateModuleType
-  DeterministicMapModule ..|> CreateModuleType
-  UndeterministicMapModule ..|> CreateModuleType
-}
-@enduml
+    class WorldMap~extension~ {
+        +getSizeOfTheMap(): Int
+        +getCityByName(name: String): Option[City]
+        +numberOfCityInfected(): Int
+        +numberOfCity(): Int
+        +findInMap(f): Option[String]
+        +aiCities: Set[City]
+        +humanCities: Set[City]
+        +capitalConqueredCounter(): Int
+        +getAdjacentCities: Set[City]
+        +changeACityOfTheMap(city: City): WorldMap
+    }
+
+    WorldMapModule --> CreateModuleType : uses
+    WorldMapModule --> DeterministicMapModule : implements
+    WorldMapModule --> UndeterministicMapModule : implements
+    WorldMapModule --> WorldMap : defines
+    WorldMap --> "1" WorldMap~extension~ : extension
+    DeterministicMapModule ..|> CreateModuleType
+    UndeterministicMapModule ..|> CreateModuleType
 ```
 
 # `GameController`
@@ -141,25 +174,51 @@ Il modulo `GameController` funge da punto centrale per la gestione del ciclo di 
 ## Diagramma UML
 
 ```plantuml
-@startuml
-package controller {
+classDiagram
+    class GameController {
+        <<object>>
+        +buildGameState(): GameState
+        +gameTurn(): State[GameState, Unit]
+    }
 
-  object GameController {
-    +apply(): GameState
-  }
+    class GameStateImpl {
+        +worldState: WorldState
+    }
 
-  class GameState {
-    -worldState: WorldState
-    -view: GameView
-    +gameTurn(): State[GameState, Unit]
-  }
+    class GameState {
+        <<opaque type>>
+        type = GameStateImpl
+    }
 
-  GameController --> GameState
+    class TurnResult {
+        -playerAction: AiAction
+        -playerProb: Int
+        -humanAction: Option~HumanAction~
+    }
 
-  GameState --> model.map.WorldState.WorldState
-  GameState --> view.ViewModule.GameView
-}
-@enduml
+    class AiAction
+    class HumanAction
+    class State~S, A~
+    class WorldState
+    class GameSettings
+    class CLIView
+
+    GameController --> GameState : defines
+    GameController --> GameStateImpl : wraps
+    GameController --> TurnResult : uses
+    GameController --> WorldState : uses
+    GameController --> State : functional core
+    GameController --> CLIView : renders
+    GameController --> GameSettings : uses
+    GameController --> AiAction : uses
+    GameController --> HumanAction : uses
+
+    GameStateImpl --> WorldState : contains
+    GameState --> GameStateImpl : opaque
+    GameController --> "renderTurn()" : invokes
+    GameController --> "doPlayerAction()" : invokes
+    GameController --> "doHumanAction()" : invokes
+
 ```
 
 
