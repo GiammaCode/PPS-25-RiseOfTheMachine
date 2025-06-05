@@ -83,7 +83,8 @@ private case class PlayerHumanImpl(
   /**
    * Applies the given action to the player and the world map, producing a result.
    */
-  override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] = action match
+  override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] =
+    action match
     case CityDefense(targets) =>
       val updated = withDefendedCities(targets.toSet).addAction(action)
       val defendedCities: List[City] = targets.flatMap(cityName =>
