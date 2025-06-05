@@ -42,9 +42,9 @@ Tutto questo tralasciando piccoli dettagli che verranno trattati nelle prossime 
 
 ### Luca Pasini
 
-    - Sviluppo del controller con relativo turno che effettivamente svolge e azioni di AI e Human
-    - Inserimento di worldState nel controller, utilizzandolo per modificare lo Stato del gioco
-    - Aggiornamento degli algoritmi di crezione della mappa con relativi given e tests
+- Sviluppo del controller con relativo turno che effettivamente svolge e azioni di AI e Human
+- Inserimento di worldState nel controller, utilizzandolo per modificare lo Stato del gioco
+- Aggiornamento degli algoritmi di crezione della mappa con relativi given e tests
 
 ---
 

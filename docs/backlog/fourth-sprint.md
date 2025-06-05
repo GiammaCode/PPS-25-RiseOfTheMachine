@@ -27,7 +27,11 @@ Rilasciare la versione di gioco finale, soddisfacendo tutte le richieste del com
 
 
 ### Gianmaria Casamenti
-
+- Sviluppo di un sistema piu efficente della Strategy del player
+- Integrazione della strategy all'interno di HumanPlayer 
+- Aggiunta del sistema di azioni scelte tramite probabilità pesata (given - using)
+- Sviluppo finale della view su terminale
+- Sviluppo di una libreria di formattazione grafica
 
 ### Lorenzo Leoni
 
