@@ -43,6 +43,7 @@ Rilasciare la versione di gioco finale, soddisfacendo tutte le richieste del com
 ### Luca Pasini
 - inserimento della gestione della fine della partita in controller
 - Inserimento del vero e prorpio main che lancia il "loop delle partite" permettendo di uscire dal gioco solo con il tasto exit
+- Modifica profonda dell'algoritmo di creazione della mappa undeterministic
 
 ---
 
