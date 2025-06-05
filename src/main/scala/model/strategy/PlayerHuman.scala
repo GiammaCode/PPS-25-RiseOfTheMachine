@@ -4,37 +4,65 @@ import model.map.CityModule.CityImpl.City
 import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.WorldState
 import model.strategy.ExecuteActionResult.ExecuteActionResult
-import model.strategy.HumanAction
 import model.util.GameSettings.{Difficulty, GameSettings, HumanStats}
 
+/**
+ * Represents the human-controlled player in the strategy model.
+ * Extends the common PlayerEntity interface.
+ */
 trait PlayerHuman extends PlayerEntity:
+  /** Current progress of the kill switch development. */
   def killSwitch: Int
 
+  /** Set of cities currently defended by the player. */
   def defendedCities: Set[String]
 
+  /** Set of cities conquered by the player. */
   def conqueredCities: Set[String]
-  
+
+  /** Returns the list of valid actions the player can take. */
   def getPossibleAction: List[HumanAction]
 
+  /** Returns the list of actions already executed. */
   def executedActions: List[HumanAction]
 
+  /** Decides an action using the SmartHumanStrategy based on world state. */
   def decideActionByStrategy(worldState: WorldState): HumanAction
 
   override type ValidAction = HumanAction
   override type Self = PlayerHuman
 
+  /** Executes a given action, modifying the player state. */
   override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self]
 
   override def toString: String
 
+/**
+ * Companion object for PlayerHuman.
+ * Provides factory methods from settings or stats.
+ */
 object PlayerHuman:
+  /**
+   * Creates a PlayerHuman instance from predefined human stats.
+   */
   def fromStats(using stats: HumanStats): PlayerHuman =
     PlayerHumanImpl(killSwitch = stats.killSwitch)
 
+  /**
+   * Creates a PlayerHuman instance from game settings.
+   */
   def fromSettings(using settings: GameSettings): PlayerHuman =
     PlayerHumanImpl(killSwitch = settings.human.killSwitch)
 
 
+/**
+ * Concrete implementation of the PlayerHuman trait.
+ *
+ * @param killSwitch      current progress of the kill switch
+ * @param defendedCities  cities currently defended
+ * @param conqueredCities cities conquered by the player
+ * @param executedActions list of executed actions
+ */
 private case class PlayerHumanImpl(
                                     killSwitch: Int = 0,
                                     defendedCities: Set[String] = Set.empty,
@@ -55,6 +83,9 @@ private case class PlayerHumanImpl(
 
   override def getPossibleAction: List[HumanAction] = HumanAction.allActions
 
+  /**
+   * Applies the given action to the player and the world map, producing a result.
+   */
   override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] = action match
     case CityDefense(targets) =>
       val updated = withDefendedCities(targets.toSet).addAction(action)
@@ -86,6 +117,9 @@ private case class PlayerHumanImpl(
         |${formatList("Executed Actions", executedActions)}
         |------------------------""".stripMargin
 
+  /**
+   * Decides an action based on the current difficulty and game state using SmartHumanStrategy.
+   */
   def decideActionByStrategy(worldState: WorldState): HumanAction =
     given ActionProbabilities = worldState.difficulty match
       case Difficulty.Easy => EasyModeProbabilities
