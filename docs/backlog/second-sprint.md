@@ -35,7 +35,9 @@ Tutto questo tralasciando piccoli dettagli che verranno trattati nelle prossime 
 
 
 ### Gianmaria Casamenti
-
+- Aggiornamento e rifattorizzazione del codice inerente all'entità human player
+- Sviluppo della view funzionante Mappa e azioni con turni
+- Aggiornamento e rifattorizzazione del codice inerente allo stato di gioco
 
 ### Lorenzo Leoni
 - Gestione dell'effetto delle azioni da parte del PlayerAi.
@@ -56,6 +58,8 @@ Si è deciso di chiudere prima la sprint perché il risultato della sprint era s
 ore di lavoro del team 
 
 ### Risultati ottenuti:
-La release simula un serie di turni di gioco che modificano lo stato del gioco e quindi la mappa
+Il team ha raggiunto tutti gli obiettivi previsti.
+Il sistema attualmente simula un serie di turni di gioco che modificano lo stato del gioco e quindi la mappa, rendondolo
+il core del gioco funzionante e usabile.
 
 

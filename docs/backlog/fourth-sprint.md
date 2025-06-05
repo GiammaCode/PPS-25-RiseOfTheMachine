@@ -37,16 +37,16 @@ Rilasciare la versione di gioco finale, soddisfacendo tutte le richieste del com
 
 
 ### Luca Pasini
-    - inserimento della gestione della fine della partita in controller
-    - Inserimento del vero e prorpio main che lancia il "loop delle partite" permettendo di uscire dal gioco solo con il tasto exit
-    
+- inserimento della gestione della fine della partita in controller
+- Inserimento del vero e prorpio main che lancia il "loop delle partite" permettendo di uscire dal gioco solo con il tasto exit
 
 ---
 
 ## Sprint Review – 07/06/2025
-- Bilanciamento dei valori di gioco del player in base alla difficoltà.
-- Creazione di un tipo apposito per la gestione del risultato delle azioni.
 
 ### Risultati ottenuti:
+Il team ha raggiunto tutti gli obiettivi previsti completando cosi il progetto.  
+Il sistema risulta attualmente **giocabile** e terminato con una corretta bilanciatura.
+Ci si può ritenere soddisfatti del risultato ottenuto.
 
 
