@@ -44,7 +44,7 @@ object WorldMapModule:
    * - Set of coordinates (tiles) associated with the city
    */
 
-  type Coord = (Int, Int)
+  private type Coord = (Int, Int)
 
   opaque type WorldMap = Set[(City, Set[Coord])]
 
@@ -103,20 +103,20 @@ object WorldMapModule:
    */
   object UndeterministicMapModule extends CreateModuleType:
 
-    private def placeCities(size: Int, remaining: Set[Coord], n: Int = 0, acc: WorldMap = Set.empty,remainingCapitals: Int = 5): LazyList[WorldMap] =
-      if remaining.isEmpty then LazyList(acc)
+    private def placeCities(size: Int, remaining: Set[Coord], letterOffset: Int = 0, cityPlaced: WorldMap = Set.empty, remainingCapitals: Int = 5): LazyList[WorldMap] =
+      if remaining.isEmpty then LazyList(cityPlaced)
       else
         for
           start <- LazyList.from(remaining)
           isCapital = remainingCapitals > 0 && doesTheActionGoesRight(50)
           tiles = growCity(start, isCapital, remaining, size)
-          city = createCity(letterAt(n, isCapital), tiles.size, isCapital)
-          updatedAcc = acc + (city -> tiles)
+          city = createCity(letterAt(letterOffset, isCapital), tiles.size, isCapital)
+          updatedAcc = cityPlaced + (city -> tiles)
           updatedRemaining = remaining -- tiles
           result <- placeCities(
             size,
             updatedRemaining,
-            n + 1, updatedAcc,
+            letterOffset + 1, updatedAcc,
             if isCapital then remainingCapitals - 1 else remainingCapitals)
 
         yield result
