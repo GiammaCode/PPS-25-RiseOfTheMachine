@@ -7,10 +7,11 @@ import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
 class WorldMapModuleScalaTests extends AnyFunSuite with Matchers:
-  val map: WorldMap = createWorldMap(5)(using DeterministicMapModule)
+  val mapSize = 5
+
+  val map: WorldMap = createWorldMap(mapSize)(using DeterministicMapModule)
 
   test("create deterministic world map with expected size"):
-    val mapSize = 5
     map.getSizeOfTheMap shouldBe mapSize
 
   test("numberOfCity returns the correct number of cities"):
