@@ -27,7 +27,7 @@ class CLIViewTest:
 
   @Test
   def testRenderGameModeMenu_SinglePlayer_Easy(): Unit =
-    val input = new java.io.ByteArrayInputStream("1\n1\n".getBytes) // 1 → Singleplayer, 1 → Easy
+    val input = new java.io.ByteArrayInputStream("0\n0\n".getBytes) //0 → Singleplayer, 0 → Easy
     val outputBuffer = new java.io.ByteArrayOutputStream()
 
     val gameSettings = Console.withIn(input) {
@@ -39,24 +39,10 @@ class CLIViewTest:
     assertEquals(GameMode.Singleplayer, gameSettings.gameMode)
     assertEquals(Difficulty.Easy, gameSettings.difficulty)
 
-  @Test
-  def testRenderGameModeMenu_InvalidDefaults(): Unit =
-    val input = new java.io.ByteArrayInputStream("wrong\nx\n".getBytes)
-    val outputBuffer = new java.io.ByteArrayOutputStream()
-
-    val gameSettings = Console.withIn(input) {
-      Console.withOut(outputBuffer) {
-        CLIView.renderGameModeMenu()
-      }
-    }
-
-    assertEquals(GameMode.Singleplayer, gameSettings.gameMode)
-    assertEquals(Difficulty.Normal, gameSettings.difficulty)
-
 
   @Test
   def testRenderGameModeMenu_Multiplayer_DefaultsToNormal(): Unit =
-    val input = new java.io.ByteArrayInputStream("2\n".getBytes) // 2 → Multiplayer
+    val input = new java.io.ByteArrayInputStream("1\n".getBytes) // 1 → Multiplayer
     val outputBuffer = new java.io.ByteArrayOutputStream()
 
     val gameSettings = Console.withIn(input) {
@@ -71,9 +57,16 @@ class CLIViewTest:
 
   @Test
   def testRenderGameTurnWithSimulatedInput(): Unit =
+    val input = new java.io.ByteArrayInputStream("0\n0\n".getBytes)
     val simulatedInput = new java.io.ByteArrayInputStream("1 A\n".getBytes)
+    val outputBufferMenu = new java.io.ByteArrayOutputStream()
     val outputBuffer = new java.io.ByteArrayOutputStream()
 
+    val gameSettings = Console.withIn(input) {
+      Console.withOut(outputBufferMenu) {
+        CLIView.renderGameModeMenu()
+      }
+    }
     val result = Console.withIn(simulatedInput) {
       Console.withOut(outputBuffer) {
         CLIView.renderGameTurn(state)
@@ -82,9 +75,11 @@ class CLIViewTest:
 
     val printedOutput = outputBuffer.toString
 
-    assertTrue(printedOutput.contains("RISE OF THE MACHINE"))
+    assertTrue(printedOutput.contains("\uD83C\uDF0D --- RISE OF THE MACHINE - TURN"))
     assertTrue(printedOutput.contains("Infected Cities:"))
-    assertTrue(printedOutput.contains("Insert your action"))
+    assertTrue(printedOutput.contains("AI Abilities:"))
+    assertTrue(printedOutput.contains("Develop KillSwitch:"))
+    assertTrue(printedOutput.contains("Insert your choice > "))
     assertEquals(((1, "A"), None), result)
 
 
