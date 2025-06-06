@@ -11,14 +11,19 @@ import org.scalatest.matchers.should.Matchers
 import scala.language.postfixOps
 
 class SmartHumanStrategyFlatSpec extends AnyFlatSpec with Matchers:
+  val MapSize: Int = 8
+  val EasyActionProbs: ActionProbabilities = ActionProbabilities(70, 30, 0)
+  val NormalActionProbs: ActionProbabilities = ActionProbabilities(33, 33, 34)
+  val HardActionProbs: ActionProbabilities = ActionProbabilities(50, 20, 30)
+  val ForceActionProbs: ActionProbabilities = ActionProbabilities(100, 0, 0)
 
   "SmartHumanStrategy in Easy mode" should "choose only CityDefense or GlobalDefense" in {
     given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Easy)
-    given ActionProbabilities = ActionProbabilities(70, 30, 0)
+    given ActionProbabilities = EasyActionProbs
 
     val human = PlayerHuman.fromSettings
     val ai = PlayerAI.fromSettings
-    val map = createWorldMap(5)
+    val map = createWorldMap(MapSize)
     val state = createWorldState(map, ai, human, 0)
 
     val action = SmartHumanStrategy.decideAction(state)
@@ -29,11 +34,11 @@ class SmartHumanStrategyFlatSpec extends AnyFlatSpec with Matchers:
 
   "SmartHumanStrategy in Normal mode" should "choose any valid HumanAction based on probabilities" in {
     given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Normal)
-    given ActionProbabilities = ActionProbabilities(33, 33, 34)
+    given ActionProbabilities = NormalActionProbs
 
     val human = PlayerHuman.fromSettings
     val ai = PlayerAI.fromSettings
-    val map = createWorldMap(5)
+    val map = createWorldMap(MapSize)
     val state = createWorldState(map, ai, human, 0)
 
     val action = SmartHumanStrategy.decideAction(state)
@@ -42,11 +47,11 @@ class SmartHumanStrategyFlatSpec extends AnyFlatSpec with Matchers:
 
   "SmartHumanStrategy in Hard mode" should "choose actions targeting the highest-risk cities" in {
     given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Hard)
-    given ActionProbabilities = ActionProbabilities(50, 20, 30)
+    given ActionProbabilities = HardActionProbs
 
     val human = PlayerHuman.fromSettings
     val ai = PlayerAI.fromSettings
-    val map = createWorldMap(5)
+    val map = createWorldMap(MapSize)
     val state = createWorldState(map, ai, human, 0)
 
     val action = SmartHumanStrategy.decideAction(state)
@@ -55,7 +60,7 @@ class SmartHumanStrategyFlatSpec extends AnyFlatSpec with Matchers:
 
   "SmartHumanStrategy" should "prefer high-risk cities more in Hard than in Normal mode" in {
     given DeterministicMap: CreateModuleType = DeterministicMapModule
-    val map = createWorldMap(8)
+    val map = createWorldMap(MapSize)
 
     def runWithDifficulty(diff: Difficulty, probs: ActionProbabilities) =
       given GameSettings = forSettings(GameMode.Singleplayer, diff)
@@ -66,8 +71,8 @@ class SmartHumanStrategyFlatSpec extends AnyFlatSpec with Matchers:
       val state = createWorldState(map, ai, human, 0)
       SmartHumanStrategy.decideAction(state)
 
-    val normalAction = runWithDifficulty(Difficulty.Normal, ActionProbabilities(100, 0, 0))
-    val hardAction = runWithDifficulty(Difficulty.Hard, ActionProbabilities(100, 0, 0))
+    val normalAction = runWithDifficulty(Difficulty.Normal, ForceActionProbs)
+    val hardAction = runWithDifficulty(Difficulty.Hard, ForceActionProbs)
 
     normalAction shouldBe a[CityDefense]
 

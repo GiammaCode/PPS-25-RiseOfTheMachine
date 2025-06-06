@@ -13,6 +13,9 @@ class WorldStateTest:
   var ai: PlayerAI = _
   var worldMap: WorldMap = _
 
+  val MapSize: Int = 5
+  val SecureEvent: Int = 100
+
   given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Normal)
 
 
@@ -20,7 +23,7 @@ class WorldStateTest:
   def init(): Unit =
     human = PlayerHuman.fromSettings
     ai = PlayerAI.fromSettings
-    worldMap = createWorldMap(5)
+    worldMap = createWorldMap(MapSize)
 
   @Test
   def testWorldStateCreation(): Unit =
@@ -64,4 +67,4 @@ class WorldStateTest:
     assertEquals("Sabotage probability is wrong", expectedSabotage, sabotageProbability)
 
     val evolveProbability = state.probabilityByCityandAction(cityName, Evolve)
-    assertEquals( 100, evolveProbability)
+    assertEquals( SecureEvent, evolveProbability)
