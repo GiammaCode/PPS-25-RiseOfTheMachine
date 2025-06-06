@@ -106,14 +106,14 @@ object WorldMapModule:
         for
           start <- LazyList.from(remaining)
           isCapital = remainingCapitals > 0 && doesTheActionGoesRight(50)
-          tiles = growCity(start, isCapital, remaining, size)
+          tiles = growCity(start, randomMaxSize(isCapital), remaining, size)
           city = createCity(letterAt(letterOffset, isCapital), tiles.size, isCapital)
-          updatedAcc = cityPlaced + (city -> tiles)
+          updateCityPlaced = cityPlaced + (city -> tiles)
           updatedRemaining = remaining -- tiles
           result <- placeCities(
             size,
             updatedRemaining,
-            letterOffset + 1, updatedAcc,
+            letterOffset + 1, updateCityPlaced,
             if isCapital then remainingCapitals - 1 else remainingCapitals)
 
         yield result
@@ -121,10 +121,10 @@ object WorldMapModule:
     private def randomMaxSize(isCapital: Boolean): Int =
       3 + Random.nextInt(3) + (if isCapital then 4 else 0)
 
-    private def growCity(start: Coord, isCapital :Boolean,available: Set[Coord], mapSize: Int): Set[Coord] =
+    private def growCity(start: Coord, maxSize :Int,available: Set[Coord], mapSize: Int): Set[Coord] =
       @tailrec
       def expand(frontier: List[Coord], built: Set[Coord]): Set[Coord] =
-        if built.size >= randomMaxSize(isCapital) || frontier.isEmpty then built
+        if built.size >= maxSize || frontier.isEmpty then built
         else
           val next = frontier.head
           val neighbors = adjacentTo(built,mapSize).filter(c =>
