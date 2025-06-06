@@ -32,6 +32,7 @@ Le azioni disponibili e l’interazione con il mondo sono modellate in modo espl
   - Ogni executeAction produce un ExecuteActionResult, incapsulando il risultato e i cambiamenti sul mondo.
 
 ### Funzionalità principali
+
 | Funzionalità             | Descrizione                                                                |
 |--------------------------| -------------------------------------------------------------------------- |
 | `killSwitch`             | Tiene traccia del progresso nello sviluppo di una super arma (kill switch) |
