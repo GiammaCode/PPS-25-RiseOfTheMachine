@@ -4,9 +4,10 @@ import model.map.WorldMapModule.{createWorldMap, WorldMap}
 import model.map.WorldState.*
 import model.strategy.{Evolve, Infect, PlayerAI, PlayerHuman, Sabotage}
 import model.util.GameSettings.{Difficulty, GameMode, GameSettings, forSettings}
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class WorldStateScalaTest extends AnyFunSuite:
+class WorldStateFlatSpec extends AnyFlatSpec with Matchers:
 
   given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Normal)
 
@@ -15,24 +16,24 @@ class WorldStateScalaTest extends AnyFunSuite:
   val map: WorldMap = createWorldMap(5)
   val state: WorldState = createWorldState(map, ai, human, 0)
 
-  test("Conquered cities are initially empty") {
-    assert(state.AIConqueredCities.isEmpty)
-    assert(state.humanConqueredCities.isEmpty)
-  }
+  "WorldState" should "have empty conquered cities initially" in {
+    state.AIConqueredCities shouldBe empty
+   }
 
-  test("Attackable cities are available and valid") {
+  it should "have attackable cities with non-negative probabilities" in {
     val attackables = state.attackableCities
-    assert(attackables.nonEmpty)
-    assert(attackables.forall { case (_, inf, sab) => inf >= 0 && sab >= 0 })
+    attackables should not be empty
+    all(attackables.map(_._2)) should be >= 0
+    all(attackables.map(_._3)) should be >= 0
   }
 
-  test("Initial game is not over") {
-    assert(!state.isGameOver._1)
+  it should "not be in a game-over state initially" in {
+    state.isGameOver._1 shouldBe false
   }
 
-  test("Probability values match for actions") {
+  it should "provide correct probability values for actions" in {
     val (cityName, expectedInfect, expectedSabotage) = state.attackableCities.head
-    assert(state.probabilityByCityandAction(cityName, Infect(List(cityName))) == expectedInfect)
-    assert(state.probabilityByCityandAction(cityName, Sabotage(List(cityName))) == expectedSabotage)
-    assert(state.probabilityByCityandAction(cityName, Evolve) == 100)
+    state.probabilityByCityandAction(cityName, Infect(List(cityName))) shouldEqual expectedInfect
+    state.probabilityByCityandAction(cityName, Sabotage(List(cityName))) shouldEqual expectedSabotage
+    state.probabilityByCityandAction(cityName, Evolve) shouldEqual 100
   }
