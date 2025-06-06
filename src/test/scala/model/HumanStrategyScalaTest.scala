@@ -59,8 +59,7 @@ class SmartHumanStrategyFlatSpec extends AnyFlatSpec with Matchers:
   }
 
   "SmartHumanStrategy" should "prefer high-risk cities more in Hard than in Normal mode" in {
-    given DeterministicMap: CreateModuleType = DeterministicMapModule
-    val map = createWorldMap(MapSize)
+    val map = createWorldMap(MapSize)(using DeterministicMapModule)
 
     def runWithDifficulty(diff: Difficulty, probs: ActionProbabilities) =
       given GameSettings = forSettings(GameMode.Singleplayer, diff)
