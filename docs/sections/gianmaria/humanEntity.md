@@ -17,7 +17,7 @@ Le azioni disponibili e l’interazione con il mondo sono modellate in modo espl
 ### Aspetti implementativi
 - Pattern usati:
   - Trait + Impl + Companion Object:Uso del trait PlayerHuman con una implementazione concreta 
-  PlayerHumanImpl e un companion object per factory methods (fromStats, fromSettings).
+  PlayerHumanImpl e un companion object per factory methods (fromSettings).
 
   - Strategy Pattern: decideActionByStrategy(worldState) usa SmartHumanStrategy, 
   permettendo comportamenti dinamici configurabili.
@@ -118,15 +118,11 @@ con logiche di scelta influenzate dalla difficoltà del gioco (Easy, Normal, Har
 - **Aspetti implementativi `SmartHumanStrategy`**:
 
   - La decisione viene determinata dalla funzione `decideAction(state: WorldState)`, che sceglie tra tre varianti:
-    - **Easy** → difensiva e passiva (priorità alla CityDefense e GlobalDefense)
-    - **Normal** → scelta casuale tra tutte le azioni disponibili
-    - **Hard** → priorità alle città più a rischio e azioni più aggressive
-    
-  - Le azioni disponibili sono definite nel sealed trait `HumanAction`, che include:
-    - `CityDefense`
-    - `GlobalDefense`
-    - `DevelopKillSwitch`
-    
+    - **Easy** → difensiva e passiva (stessa priorità CityDefense e GlobalDefense, no KillswitchDevelopment)
+    - **Normal** → scelta casuale tra tutte le azioni disponibili (Stessa priorità tutte e 3 le azioni)
+    - **Hard** → priorità alle città più a rischio e azioni più aggressive (maggiori probabilità CityDefense)
+  
+  
   - Il modulo `PlayerHuman` utilizza `SmartHumanStrategy` come strategia di default. 
 
 
@@ -210,4 +206,53 @@ classDiagram
   HumanAction <|-- DevelopKillSwitch
 ```
 
+## ActionProbabilities
+Il tipo ActionProbabilities rappresenta un punto di forza chiave dell’architettura strategica del giocatore umano.
+È una struttura semplice ma altamente espressiva, che consente di assegnare pesi relativi (priorità) alle tre azioni
+fondamentali: CityDefense, GlobalDefense e DevelopKillSwitch.
 
+**Benefici chiave**: 
+
+- Controllo del comportamento strategico :le strategie non sono hardcoded: possono essere adattate dinamicamente
+in base alla difficoltà (Easy, Normal, Hard) e alla configurazione del gioco. Questo consente un bilanciamento fine 
+del comportamento umano simulato.
+
+- Random ma prevedibile: grazie alla selezione pesata (weighted random), si ottiene un comportamento pseudo-randomico 
+ma controllabile, fondamentale in giochi strategici dove l’IA non deve essere totalmente deterministica né
+totalmente imprevedibile.
+
+- Testing mirato e robusto: in fase di test (SmartHumanStrategyFlatSpec.scala), ActionProbabilities si è
+rivelato essenziale per:
+  - Forzare la strategia a non eseguire certe azioni (es. peso 0 a DevelopKillSwitch);
+
+  - Verificare comportamenti in modalità differenti senza bisogno di mock complessi;
+
+  - Confrontare strategie a parità di pesi, ma con logica decisionale differente
+  (es. confronti tra Normal e Hard in targeting delle città ad alto rischio).
+
+### Esempio tratto dai test
+```scala
+"SmartHumanStrategy" should "prefer high-risk cities more in Hard than in Normal mode" in {
+given DeterministicMap: CreateModuleType = DeterministicMapModule
+val map = createWorldMap(8)
+
+    def runWithDifficulty(diff: Difficulty, probs: ActionProbabilities) =
+      given GameSettings = forSettings(GameMode.Singleplayer, diff)
+      given ActionProbabilities = probs
+
+      val human = PlayerHuman.fromSettings
+      val ai = PlayerAI.fromSettings
+      val state = createWorldState(map, ai, human, 0)
+      SmartHumanStrategy.decideAction(state)
+
+    val normalAction = runWithDifficulty(Difficulty.Normal, ActionProbabilities(100, 0, 0))
+    val hardAction = runWithDifficulty(Difficulty.Hard, ActionProbabilities(100, 0, 0))
+
+    normalAction shouldBe a[CityDefense]
+
+    hardAction match
+      case CityDefense(targets) =>
+        targets should contain ("C") // C is the city with highest risk in DeterministicMap (size = 8)
+      case _ => fail("Expected CityDefense targeting high-risk city")
+}
+```
