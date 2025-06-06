@@ -99,8 +99,21 @@ object CityModule:
 
     opaque type City = CityImpl
 
-    def createCity(name: String, size: Int, isCapital: Boolean): City =
-      CityImpl(name, size, Owner.HUMAN, isCapital, 40)
+
+
+    /** Base defense of the city. */
+
+    private val baseDefense = 40
+
+    /** Moltiplicator choose for getting the righe defense of the city based on how big it is */
+
+    private val defenseMoltiplicator = 5
+
+
+
+    def createCity(name: String, size: Int, isCapital: Boolean): City = {
+      CityImpl(name, size, Owner.HUMAN, isCapital, baseDefense)
+    }
 
     extension (city: City)
 
@@ -119,7 +132,9 @@ object CityModule:
        *
        * @return the computed defense value
        */
-      def getDefense: Int = city.defense + (city.size * 5)
+      def getDefense: Int = {
+        city.defense + (city.size * defenseMoltiplicator)
+      }
 
       /** Indicates whether this city is a capital. */
       def isCapital: Boolean = city.isCapital
