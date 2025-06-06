@@ -14,10 +14,10 @@ trait PlayerHuman extends PlayerEntity:
   /** Current progress of the kill switch development. */
   def killSwitch: Int
 
-  /** Set of cities currently defended by the player. */
+  /** Get of cities currently defended by the player. */
   def defendedCities: Set[String]
 
-  /** Set of cities conquered by the player. */
+  /** Get of cities conquered by the player. */
   def conqueredCities: Set[String]
 
   /** Returns the list of valid actions the player can take. */
