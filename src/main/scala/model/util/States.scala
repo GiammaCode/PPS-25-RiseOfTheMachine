@@ -24,7 +24,7 @@ object States:
         State { s =>
           val (s2, a) = m.run(s)
           if p(a) then (s2, a)
-          else throw MatchError(s"State.withFilter failed: value $a did not satisfy predicate.")
+          else throw MatchError("State withFilter failed")
         }
 
     given stateMonad[S]: Monad[[A] =>> State[S, A]] with

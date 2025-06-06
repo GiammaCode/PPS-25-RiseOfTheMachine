@@ -2,7 +2,7 @@ package controller
 
 import controller.InputHandler.CityContext
 import controller.InputHandling.InputHandlingError
-import model.map.WorldMapModule.createWorldMap
+import model.map.WorldMapModule.{CreateModuleType, createWorldMap}
 import model.map.WorldState.{WorldState, createWorldState}
 import model.strategy
 import model.strategy.*
@@ -21,18 +21,20 @@ object GameController:
                                  humanAction: Option[HumanAction])
 
   opaque type GameState = GameStateImpl
+  def buildGameState(using settings: GameSettings, mapModule: CreateModuleType): GameState =
+    GameStateImpl(
+      createWorldState(
+        createWorldMap(8)(using mapModule),
+        PlayerAI.fromStats,
+        PlayerHuman.fromStats,
+        0
+      )
+    )
 
-  import model.map.WorldMapModule.given
-
-  def buildGameState(using GameSettings): GameState =
-  GameStateImpl(
-      createWorldState(createWorldMap(8),
-      PlayerAI.fromStats,
-      PlayerHuman.fromStats, 0))
 
   import model.util.States.State.State
 
-  private def doPlayerAction(action: AiAction, prob: Int): State[GameState, Unit] =
+  private[controller] def doPlayerAction(action: AiAction, prob: Int): State[GameState, Unit] =
     import model.util.Util.doesTheActionGoesRight
     if doesTheActionGoesRight(prob)
       then State ( gs =>
@@ -43,7 +45,7 @@ object GameController:
     )
 
 
-  private def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] = State (gs =>
+  private[controller] def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] = State (gs =>
     val currentWorldState = gs.worldState
     val action = maybeAction.getOrElse(gs.worldState.playerHuman.decideActionByStrategy(currentWorldState))
     val actionResult = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
