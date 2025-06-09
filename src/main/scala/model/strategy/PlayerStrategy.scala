@@ -94,7 +94,7 @@ object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
       .sortBy { case (_, infect, sabotage) => -(infect + sabotage) }
       .map(_._1)
 
-  /**
+   /**
    * Filters out cities that are already defended by the human player.
    *
    * @param cities list of candidate city names

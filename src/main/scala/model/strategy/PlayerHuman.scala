@@ -43,7 +43,7 @@ trait PlayerHuman extends PlayerEntity:
  */
 object PlayerHuman:
 
-  @deprecated
+  @deprecated("this method will be removed, user fromSetting instead, RotM 3.0")
   def fromStats(using stats: HumanStats): PlayerHuman =
     PlayerHumanImpl(killSwitch = stats.killSwitch)
 
