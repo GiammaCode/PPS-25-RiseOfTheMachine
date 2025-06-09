@@ -1,0 +1,423 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          model\map\CityModule.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package model.map
+</span>2 <span style=''>
+</span>3 <span style=''>import model.util.Util.*
+</span>4 <span style=''>
+</span>5 <span style=''>/**
+</span>6 <span style=''> * The CityModule contains definitions and behavior for cities in the game,
+</span>7 <span style=''> * including creation, properties, and operations such as infection and sabotage.
+</span>8 <span style=''> */
+</span>9 <span style=''>object CityModule:
+</span>10 <span style=''>
+</span>11 <span style=''>  /**
+</span>12 <span style=''>   * Represents the ownership of a city, either controlled by AI or a human player.
+</span>13 <span style=''>   */
+</span>14 <span style=''>  enum Owner:
+</span>15 <span style=''>    case AI, HUMAN
+</span>16 <span style=''>
+</span>17 <span style=''>  /**
+</span>18 <span style=''>   * Abstract interface defining the behavior of a City.
+</span>19 <span style=''>   */
+</span>20 <span style=''>  trait CityInterface:
+</span>21 <span style=''>
+</span>22 <span style=''>    /** Opaque type representing a City entity */
+</span>23 <span style=''>    type City
+</span>24 <span style=''>
+</span>25 <span style=''>    /**
+</span>26 <span style=''>     * Creates a new city instance.
+</span>27 <span style=''>     *
+</span>28 <span style=''>     * @param name the name of the city
+</span>29 <span style=''>     * @param size the size of the city
+</span>30 <span style=''>     * @param isCapital whether the city is a capital
+</span>31 <span style=''>     * @return a new City instance
+</span>32 <span style=''>     */
+</span>33 <span style=''>    def createCity(name: String, size: Int, isCapital: Boolean): City
+</span>34 <span style=''>
+</span>35 <span style=''>    extension (city: City)
+</span>36 <span style=''>
+</span>37 <span style=''>      /** @return the name of the city */
+</span>38 <span style=''>      def getName: String
+</span>39 <span style=''>
+</span>40 <span style=''>      /** @return the size of the city */
+</span>41 <span style=''>      def getSize: Int
+</span>42 <span style=''>
+</span>43 <span style=''>      /** @return the current owner of the city */
+</span>44 <span style=''>      def getOwner: Owner
+</span>45 <span style=''>
+</span>46 <span style=''>      /**
+</span>47 <span style=''>       * Computes and returns the defense level of the city.
+</span>48 <span style=''>       * Base defense is increased by 5 per size unit.
+</span>49 <span style=''>       *
+</span>50 <span style=''>       * @return the defense value
+</span>51 <span style=''>       */
+</span>52 <span style=''>      def getDefense: Int
+</span>53 <span style=''>
+</span>54 <span style=''>      /** @return true if the city is a capital */
+</span>55 <span style=''>      def isCapital: Boolean
+</span>56 <span style=''>
+</span>57 <span style=''>      /**
+</span>58 <span style=''>       * Infects the city, changing its ownership to AI.
+</span>59 <span style=''>       *
+</span>60 <span style=''>       * @return a new City instance with AI ownership
+</span>61 <span style=''>       */
+</span>62 <span style=''>      def infectCity(): City
+</span>63 <span style=''>
+</span>64 <span style=''>      /**
+</span>65 <span style=''>       * Sabotages the city, decreasing its defense.
+</span>66 <span style=''>       *
+</span>67 <span style=''>       * @return a new City instance with reduced defense
+</span>68 <span style=''>       */
+</span>69 <span style=''>      def sabotateCity(playerAttack: Int): City
+</span>70 <span style=''>
+</span>71 <span style=''>      /**
+</span>72 <span style=''>       * Defend the city, increasing its defense.
+</span>73 <span style=''>       *
+</span>74 <span style=''>       * @return a new City instance with augmented defense
+</span>75 <span style=''>       */
+</span>76 <span style=''>
+</span>77 <span style=''>      def defenseCity(defenseImprove: Int): City
+</span>78 <span style=''>
+</span>79 <span style=''>
+</span>80 <span style=''>  /**
+</span>81 <span style=''>   * Implementation of the CityInterface.
+</span>82 <span style=''>   */
+</span>83 <span style=''>  object CityImpl extends CityInterface:
+</span>84 <span style=''>
+</span>85 <span style=''>    /**
+</span>86 <span style=''>     * Internal representation of a City.
+</span>87 <span style=''>     *
+</span>88 <span style=''>     * @param name the name of the city
+</span>89 <span style=''>     * @param size the size of the city
+</span>90 <span style=''>     * @param owner the owner of the city
+</span>91 <span style=''>     * @param isCapital flag indicating if it is a capital city
+</span>92 <span style=''>     * @param defense the base defense value of the city
+</span>93 <span style=''>     */
+</span>94 <span style=''>    private case class CityImpl(name: String,
+</span>95 <span style=''>                                size: Int,
+</span>96 <span style=''>                                owner: Owner,
+</span>97 <span style=''>                                isCapital: Boolean,
+</span>98 <span style=''>                                defense: Int)
+</span>99 <span style=''>
+</span>100 <span style=''>    opaque type City = CityImpl
+</span>101 <span style=''>
+</span>102 <span style=''>
+</span>103 <span style=''>
+</span>104 <span style=''>    /** Base defense of the city. */
+</span>105 <span style=''>
+</span>106 <span style=''>    private val baseDefense = 40
+</span>107 <span style=''>
+</span>108 <span style=''>    /** Moltiplicator choose for getting the righe defense of the city based on how big it is */
+</span>109 <span style=''>
+</span>110 <span style=''>    private val defenseMoltiplicator = 5
+</span>111 <span style=''>
+</span>112 <span style=''>
+</span>113 <span style=''>
+</span>114 <span style=''>    </span><span style='background: #AEF1AE'>def createCity</span><span style=''>(name: String, size: Int, isCapital: Boolean): City = {
+</span>115 <span style=''>      CityImpl(name, size, Owner.HUMAN, isCapital, baseDefense)
+</span>116 <span style=''>    }
+</span>117 <span style=''>
+</span>118 <span style=''>    extension (city: City)
+</span>119 <span style=''>
+</span>120 <span style=''>      /** Returns the name of the city. */
+</span>121 <span style=''>      </span><span style='background: #AEF1AE'>def getName</span><span style=''>: String = city.name
+</span>122 <span style=''>
+</span>123 <span style=''>      /** Returns the size of the city. */
+</span>124 <span style=''>      </span><span style='background: #AEF1AE'>def getSize</span><span style=''>: Int = city.size
+</span>125 <span style=''>
+</span>126 <span style=''>      /** Returns the current owner of the city (AI or HUMAN). */
+</span>127 <span style=''>      </span><span style='background: #AEF1AE'>def getOwner</span><span style=''>: Owner = city.owner
+</span>128 <span style=''>
+</span>129 <span style=''>      /**
+</span>130 <span style=''>       * Calculates the total defense of the city.
+</span>131 <span style=''>       * Base defense is increased by 5 per unit of city size.
+</span>132 <span style=''>       *
+</span>133 <span style=''>       * @return the computed defense value
+</span>134 <span style=''>       */
+</span>135 <span style=''>      </span><span style='background: #AEF1AE'>def getDefense</span><span style=''>: Int = {
+</span>136 <span style=''>        city.defense + (city.size * defenseMoltiplicator)
+</span>137 <span style=''>      }
+</span>138 <span style=''>
+</span>139 <span style=''>      /** Indicates whether this city is a capital. */
+</span>140 <span style=''>      </span><span style='background: #AEF1AE'>def isCapital</span><span style=''>: Boolean = city.isCapital
+</span>141 <span style=''>
+</span>142 <span style=''>      /**
+</span>143 <span style=''>       * Infects the city, transferring ownership to the AI.
+</span>144 <span style=''>       *
+</span>145 <span style=''>       * @return a new city instance with AI ownership
+</span>146 <span style=''>       */
+</span>147 <span style=''>      </span><span style='background: #AEF1AE'>def infectCity</span><span style=''>(): City =
+</span>148 <span style=''>        city.copy(owner = Owner.AI)
+</span>149 <span style=''>
+</span>150 <span style=''>      /**
+</span>151 <span style=''>       * Sabotages the city, reducing its defense by 20 points.
+</span>152 <span style=''>       *
+</span>153 <span style=''>       * @return a new city instance with reduced defense
+</span>154 <span style=''>       */
+</span>155 <span style=''>      </span><span style='background: #AEF1AE'>def sabotateCity</span><span style=''>(playerAttack:Int): City =
+</span>156 <span style=''>        city.copy(defense = city.defense - playerAttack)
+</span>157 <span style=''>      
+</span>158 <span style=''>
+</span>159 <span style=''>      /**
+</span>160 <span style=''>       * Defenses the city, improving its defense by 20 points.
+</span>161 <span style=''>       *
+</span>162 <span style=''>       * @return a new city instance with improved defense
+</span>163 <span style=''>       */
+</span>164 <span style=''>      </span><span style='background: #AEF1AE'>def defenseCity</span><span style=''>(defenseImprove: Int): City =
+</span>165 <span style=''>        city.copy(defense = city.defense + defenseImprove)
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          139
+        </td>
+        <td>
+          2902
+          -
+          2916
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          createCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def createCity
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          140
+        </td>
+        <td>
+          3127
+          -
+          3138
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          getName
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def getName
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          141
+        </td>
+        <td>
+          3212
+          -
+          3223
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          getSize
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def getSize
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          142
+        </td>
+        <td>
+          3317
+          -
+          3329
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          getOwner
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def getOwner
+        </td>
+      </tr><tr>
+        <td>
+          134
+        </td>
+        <td>
+          143
+        </td>
+        <td>
+          3552
+          -
+          3566
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          getDefense
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def getDefense
+        </td>
+      </tr><tr>
+        <td>
+          139
+        </td>
+        <td>
+          144
+        </td>
+        <td>
+          3709
+          -
+          3722
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          isCapital
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def isCapital
+        </td>
+      </tr><tr>
+        <td>
+          146
+        </td>
+        <td>
+          145
+        </td>
+        <td>
+          3908
+          -
+          3922
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          infectCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def infectCity
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          146
+        </td>
+        <td>
+          4135
+          -
+          4151
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          sabotateCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def sabotateCity
+        </td>
+      </tr><tr>
+        <td>
+          163
+        </td>
+        <td>
+          147
+        </td>
+        <td>
+          4410
+          -
+          4425
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          defenseCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def defenseCity
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

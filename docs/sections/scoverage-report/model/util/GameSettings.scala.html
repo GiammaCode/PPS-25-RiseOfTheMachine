@@ -1,0 +1,668 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          model\util\GameSettings.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package model.util
+</span>2 <span style=''>
+</span>3 <span style=''>import model.strategy.ActionProbabilities
+</span>4 <span style=''>
+</span>5 <span style=''>object GameSettings:
+</span>6 <span style=''>
+</span>7 <span style=''>  object DifficultyConstants:
+</span>8 <span style=''>    // AI Stats per difficulty
+</span>9 <span style=''>    val EasyInfectionPower = 10
+</span>10 <span style=''>    val EasySabotagePower = 50
+</span>11 <span style=''>
+</span>12 <span style=''>    val NormalInfectionPower = 6
+</span>13 <span style=''>    val NormalSabotagePower = 40
+</span>14 <span style=''>
+</span>15 <span style=''>    val HardInfectionPower = 3
+</span>16 <span style=''>    val HardSabotagePower = 30
+</span>17 <span style=''>
+</span>18 <span style=''>    // Human Stats per difficulty
+</span>19 <span style=''>    val EasyKillSwitch = 0
+</span>20 <span style=''>    val NormalKillSwitch = 5
+</span>21 <span style=''>    val HardKillSwitch = 20
+</span>22 <span style=''>
+</span>23 <span style=''>    // Human actions weight
+</span>24 <span style=''>    val EasyModeProbabilities: ActionProbabilities = ActionProbabilities(70, 30, 0)
+</span>25 <span style=''>    val NormalModeProbabilities: ActionProbabilities = ActionProbabilities(33, 33, 34)
+</span>26 <span style=''>    val HardModeProbabilities: ActionProbabilities = ActionProbabilities(40, 30, 30)
+</span>27 <span style=''>
+</span>28 <span style=''>  enum Difficulty:
+</span>29 <span style=''>    case Easy, Normal, Hard
+</span>30 <span style=''>
+</span>31 <span style=''>  enum GameMode:
+</span>32 <span style=''>    case Singleplayer, Multiplayer
+</span>33 <span style=''>
+</span>34 <span style=''>  /**
+</span>35 <span style=''>   * Configuration for AI-controlled player behavior.
+</span>36 <span style=''>   *
+</span>37 <span style=''>   * @param infectionPower Chance (as percentage) that the AI can infect a city.
+</span>38 <span style=''>   * @param sabotagePower   Power level of the AI's sabotage action.
+</span>39 <span style=''>   */
+</span>40 <span style=''>  final case class AIStats(
+</span>41 <span style=''>                            infectionPower: Int,
+</span>42 <span style=''>                            sabotagePower: Int
+</span>43 <span style=''>                          )
+</span>44 <span style=''>
+</span>45 <span style=''>  /**
+</span>46 <span style=''>   * Configuration for human-controlled player behavior.
+</span>47 <span style=''>   *
+</span>48 <span style=''>   * @param killSwitch Represents the effectiveness or cooldown of the kill switch feature.
+</span>49 <span style=''>   */
+</span>50 <span style=''>  final case class HumanStats(
+</span>51 <span style=''>                               killSwitch: Int,
+</span>52 <span style=''>                               actionsWeight: ActionProbabilities
+</span>53 <span style=''>                             )
+</span>54 <span style=''>
+</span>55 <span style=''>  /**
+</span>56 <span style=''>   * Aggregates all game configuration settings.
+</span>57 <span style=''>   *
+</span>58 <span style=''>   * @param gameMode   Selected game mode.
+</span>59 <span style=''>   * @param difficulty Selected difficulty level.
+</span>60 <span style=''>   * @param ai         AI player stats based on difficulty.
+</span>61 <span style=''>   * @param human      Human player stats based on difficulty.
+</span>62 <span style=''>   */
+</span>63 <span style=''>  final case class GameSettings(
+</span>64 <span style=''>                                 gameMode: GameMode,
+</span>65 <span style=''>                                 difficulty: Difficulty,
+</span>66 <span style=''>                                 ai: AIStats,
+</span>67 <span style=''>                                 human: HumanStats
+</span>68 <span style=''>                               )
+</span>69 <span style=''>
+</span>70 <span style=''>  import Difficulty._
+</span>71 <span style=''>  import GameMode._
+</span>72 <span style=''>  import DifficultyConstants._
+</span>73 <span style=''>
+</span>74 <span style=''>  private val aiConfigs: Map[Difficulty, AIStats] = </span><span style='background: #F0ADAD'>Map</span><span style='background: #AEF1AE'>(
+</span>75 <span style=''></span><span style='background: #AEF1AE'>    Easy -&gt; AIStats(infectionPower = EasyInfectionPower, sabotagePower = EasySabotagePower),
+</span>76 <span style=''></span><span style='background: #AEF1AE'>    Normal -&gt; AIStats(infectionPower = NormalInfectionPower, sabotagePower = NormalSabotagePower),
+</span>77 <span style=''></span><span style='background: #AEF1AE'>    Hard -&gt; AIStats(infectionPower = HardInfectionPower, sabotagePower = HardSabotagePower)
+</span>78 <span style=''></span><span style='background: #AEF1AE'>  )</span><span style=''>
+</span>79 <span style=''>
+</span>80 <span style=''>  private val humanConfigs: Map[Difficulty, HumanStats] = </span><span style='background: #F0ADAD'>Map</span><span style='background: #AEF1AE'>(
+</span>81 <span style=''></span><span style='background: #AEF1AE'>    Easy -&gt; HumanStats(killSwitch = EasyKillSwitch, actionsWeight = EasyModeProbabilities),
+</span>82 <span style=''></span><span style='background: #AEF1AE'>    Normal -&gt; HumanStats(killSwitch = NormalKillSwitch, actionsWeight = NormalModeProbabilities),
+</span>83 <span style=''></span><span style='background: #AEF1AE'>    Hard -&gt; HumanStats(killSwitch = HardKillSwitch, actionsWeight = HardModeProbabilities)
+</span>84 <span style=''></span><span style='background: #AEF1AE'>  )</span><span style=''>
+</span>85 <span style=''>
+</span>86 <span style=''>  /**
+</span>87 <span style=''>   * Factory method to generate a full GameSettings instance based on mode and difficulty.
+</span>88 <span style=''>   *
+</span>89 <span style=''>   * @param gameMode   The selected game mode.
+</span>90 <span style=''>   * @param difficulty The selected difficulty level.
+</span>91 <span style=''>   * @return A complete GameSettings object containing derived AI and human stats.
+</span>92 <span style=''>   */
+</span>93 <span style=''>  </span><span style='background: #AEF1AE'>def forSettings</span><span style=''>(gameMode: GameMode, difficulty: Difficulty): GameSettings =
+</span>94 <span style=''>    val ai = </span><span style='background: #AEF1AE'>aiConfigs.getOrElse(difficulty, aiConfigs(Normal))</span><span style=''>
+</span>95 <span style=''>    val human = </span><span style='background: #AEF1AE'>humanConfigs.getOrElse(difficulty, humanConfigs(Normal))</span><span style=''>
+</span>96 <span style=''>    GameSettings(gameMode, difficulty, ai, human)
+</span>97 <span style=''>
+</span>98 <span style=''>  /**
+</span>99 <span style=''>   * Given instance to derive GameSettings if GameMode and Difficulty are available in context.
+</span>100 <span style=''>   */
+</span>101 <span style=''>  </span><span style='background: #F0ADAD'>given gameSettings</span><span style=''>(using gameMode: GameMode, difficulty: Difficulty): GameSettings =
+</span>102 <span style=''>  </span><span style='background: #F0ADAD'>forSettings(gameMode, difficulty)</span><span style=''>
+</span>103 <span style=''>
+</span>104 <span style=''>  /**
+</span>105 <span style=''>   * Given instance to extract Difficulty from GameSettings.
+</span>106 <span style=''>   */
+</span>107 <span style=''>  </span><span style='background: #F0ADAD'>given difficulty</span><span style=''>(using settings: GameSettings): Difficulty = settings.difficulty
+</span>108 <span style=''>
+</span>109 <span style=''>  /**
+</span>110 <span style=''>   * Given instance to extract GameMode from GameSettings.
+</span>111 <span style=''>   */
+</span>112 <span style=''>  </span><span style='background: #F0ADAD'>given gameMode</span><span style=''>(using settings: GameSettings): GameMode = settings.gameMode
+</span>113 <span style=''>
+</span>114 <span style=''>  /**
+</span>115 <span style=''>   * Given instance to extract AIStats from GameSettings.
+</span>116 <span style=''>   */
+</span>117 <span style=''>  </span><span style='background: #AEF1AE'>given aiStats</span><span style=''>(using settings: GameSettings): AIStats = settings.ai
+</span>118 <span style=''>
+</span>119 <span style=''>  /**
+</span>120 <span style=''>   * Given instance to extract HumanStats from GameSettings.
+</span>121 <span style=''>   */
+</span>122 <span style=''>  </span><span style='background: #AEF1AE'>given humanStats</span><span style=''>(using settings: GameSettings): HumanStats = settings.human
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          762
+        </td>
+        <td>
+          2317
+          -
+          2613
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Map(\r\n    Easy -&gt; AIStats(infectionPower = EasyInfectionPower, sabotagePower = EasySabotagePower),\r\n    Normal -&gt; AIStats(infectionPower = NormalInfectionPower, sabotagePower = NormalSabotagePower),\r\n    Hard -&gt; AIStats(infectionPower = HardInfectionPower, sabotagePower = HardSabotagePower)\r\n  )
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          763
+        </td>
+        <td>
+          2317
+          -
+          2320
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Map
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          764
+        </td>
+        <td>
+          2327
+          -
+          2414
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          -&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Easy -&gt; AIStats(infectionPower = EasyInfectionPower, sabotagePower = EasySabotagePower)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          765
+        </td>
+        <td>
+          2421
+          -
+          2514
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          -&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Normal -&gt; AIStats(infectionPower = NormalInfectionPower, sabotagePower = NormalSabotagePower)
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          766
+        </td>
+        <td>
+          2521
+          -
+          2608
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          -&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Hard -&gt; AIStats(infectionPower = HardInfectionPower, sabotagePower = HardSabotagePower)
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          768
+        </td>
+        <td>
+          2675
+          -
+          2678
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Map
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          767
+        </td>
+        <td>
+          2675
+          -
+          2968
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Map(\r\n    Easy -&gt; HumanStats(killSwitch = EasyKillSwitch, actionsWeight = EasyModeProbabilities),\r\n    Normal -&gt; HumanStats(killSwitch = NormalKillSwitch, actionsWeight = NormalModeProbabilities),\r\n    Hard -&gt; HumanStats(killSwitch = HardKillSwitch, actionsWeight = HardModeProbabilities)\r\n  )
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          769
+        </td>
+        <td>
+          2685
+          -
+          2771
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          -&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Easy -&gt; HumanStats(killSwitch = EasyKillSwitch, actionsWeight = EasyModeProbabilities)
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          770
+        </td>
+        <td>
+          2778
+          -
+          2870
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          -&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Normal -&gt; HumanStats(killSwitch = NormalKillSwitch, actionsWeight = NormalModeProbabilities)
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          771
+        </td>
+        <td>
+          2877
+          -
+          2963
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          -&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Hard -&gt; HumanStats(killSwitch = HardKillSwitch, actionsWeight = HardModeProbabilities)
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          776
+        </td>
+        <td>
+          3273
+          -
+          3288
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          forSettings
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def forSettings
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          773
+        </td>
+        <td>
+          3395
+          -
+          3412
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          aiConfigs(Normal)
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          772
+        </td>
+        <td>
+          3363
+          -
+          3413
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOrElse
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          aiConfigs.getOrElse(difficulty, aiConfigs(Normal))
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          774
+        </td>
+        <td>
+          3431
+          -
+          3487
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOrElse
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          humanConfigs.getOrElse(difficulty, humanConfigs(Normal))
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          775
+        </td>
+        <td>
+          3466
+          -
+          3486
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          humanConfigs(Normal)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          778
+        </td>
+        <td>
+          3655
+          -
+          3673
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          gameSettings
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          given gameSettings
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          777
+        </td>
+        <td>
+          3743
+          -
+          3776
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          forSettings
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          forSettings(gameMode, difficulty)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          779
+        </td>
+        <td>
+          3858
+          -
+          3874
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          difficulty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          given difficulty
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          780
+        </td>
+        <td>
+          4018
+          -
+          4032
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          gameMode
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          given gameMode
+        </td>
+      </tr><tr>
+        <td>
+          116
+        </td>
+        <td>
+          781
+        </td>
+        <td>
+          4171
+          -
+          4184
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          aiStats
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          given aiStats
+        </td>
+      </tr><tr>
+        <td>
+          121
+        </td>
+        <td>
+          782
+        </td>
+        <td>
+          4319
+          -
+          4335
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          humanStats
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          given humanStats
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

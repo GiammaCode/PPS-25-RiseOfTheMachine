@@ -1,0 +1,906 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          model\util\States.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>/**
+</span>2 <span style=''> * This module defines a simple Monad typeclass and a custom implementation
+</span>3 <span style=''> * of the State monad for managing stateful computations in a functional style.
+</span>4 <span style=''> */
+</span>5 <span style=''>package model.util
+</span>6 <span style=''>
+</span>7 <span style=''>object States:
+</span>8 <span style=''>
+</span>9 <span style=''>  /**
+</span>10 <span style=''>   * A typeclass representing Monad behavior for any type constructor `M[_]`.
+</span>11 <span style=''>   * A monad must define `unit` and `flatMap`, and optionally `map`.
+</span>12 <span style=''>   */
+</span>13 <span style=''>  trait Monad[M[_]]:
+</span>14 <span style=''>    /**
+</span>15 <span style=''>     * Lifts a value into the monadic context.
+</span>16 <span style=''>     *
+</span>17 <span style=''>     * @param a the value to lift
+</span>18 <span style=''>     * @return a monadic value containing `a`
+</span>19 <span style=''>     */
+</span>20 <span style=''>    def unit[A](a: A): M[A]
+</span>21 <span style=''>
+</span>22 <span style=''>    /**
+</span>23 <span style=''>     * Extension methods available on any monadic value `M[A]`.
+</span>24 <span style=''>     */
+</span>25 <span style=''>    extension [A](m: M[A])
+</span>26 <span style=''>      /**
+</span>27 <span style=''>       * Chains a computation that returns a monadic value.
+</span>28 <span style=''>       *
+</span>29 <span style=''>       * @param f a function from A to M[B]
+</span>30 <span style=''>       * @return the result of applying `f` and flattening
+</span>31 <span style=''>       */
+</span>32 <span style=''>      def flatMap[B](f: A =&gt; M[B]): M[B]
+</span>33 <span style=''>
+</span>34 <span style=''>      /**
+</span>35 <span style=''>       * Transforms the value inside the monad.
+</span>36 <span style=''>       *
+</span>37 <span style=''>       * @param f a function from A to B
+</span>38 <span style=''>       * @return a monad containing the transformed value
+</span>39 <span style=''>       */
+</span>40 <span style=''>      </span><span style='background: #AEF1AE'>def map</span><span style=''>[B](f: A =&gt; B): M[B] = </span><span style='background: #AEF1AE'>m.flatMap(a =&gt; unit(f(a)))</span><span style=''>
+</span>41 <span style=''>
+</span>42 <span style=''>  object Monad:
+</span>43 <span style=''>    /**
+</span>44 <span style=''>     * Combines two monadic values with a binary function.
+</span>45 <span style=''>     *
+</span>46 <span style=''>     * @param m first monadic value
+</span>47 <span style=''>     * @param m2 second monadic value
+</span>48 <span style=''>     * @param f function to combine values from `m` and `m2`
+</span>49 <span style=''>     * @return combined monadic result
+</span>50 <span style=''>     */
+</span>51 <span style=''>    </span><span style='background: #F0ADAD'>private def map2</span><span style=''>[M[_]: Monad, A, B, C](m: M[A], m2: M[B])(f: (A, B) =&gt; C): M[C] =
+</span>52 <span style=''>      </span><span style='background: #F0ADAD'>m.flatMap(a =&gt; m2.map(b =&gt; f(a, b)))</span><span style=''>
+</span>53 <span style=''>
+</span>54 <span style=''>    /**
+</span>55 <span style=''>     * Sequences two monadic computations, discarding the result of the first.
+</span>56 <span style=''>     *
+</span>57 <span style=''>     * @param m first monadic value
+</span>58 <span style=''>     * @param m2 second monadic computation (lazy)
+</span>59 <span style=''>     * @return the result of the second computation
+</span>60 <span style=''>     */
+</span>61 <span style=''>    </span><span style='background: #F0ADAD'>private def seq</span><span style=''>[M[_]: Monad, A, B](m: M[A], m2: =&gt; M[B]): M[B] =
+</span>62 <span style=''>      </span><span style='background: #F0ADAD'>map2(m, m2)((_, b) =&gt; b)</span><span style=''>
+</span>63 <span style=''>
+</span>64 <span style=''>  /**
+</span>65 <span style=''>   * Companion object for the custom `State` monad.
+</span>66 <span style=''>   */
+</span>67 <span style=''>  object State:
+</span>68 <span style=''>
+</span>69 <span style=''>    /**
+</span>70 <span style=''>     * Represents a stateful computation. It takes an input state `S`
+</span>71 <span style=''>     * and returns a new state along with a result of type `A`.
+</span>72 <span style=''>     *
+</span>73 <span style=''>     * @param run the state transformation function
+</span>74 <span style=''>     */
+</span>75 <span style=''>    case class State[S, A](run: S =&gt; (S, A))
+</span>76 <span style=''>
+</span>77 <span style=''>    /**
+</span>78 <span style=''>     * Extension methods for the `State` monad.
+</span>79 <span style=''>     */
+</span>80 <span style=''>    extension [S, A](m: State[S, A])
+</span>81 <span style=''>      /**
+</span>82 <span style=''>       * Runs the stateful computation with an initial state.
+</span>83 <span style=''>       *
+</span>84 <span style=''>       * @param s the initial state
+</span>85 <span style=''>       * @return a tuple containing the new state and result
+</span>86 <span style=''>       */
+</span>87 <span style=''>      </span><span style='background: #AEF1AE'>def apply</span><span style=''>(s: S): (S, A) = m match
+</span>88 <span style=''>        </span><span style='background: #AEF1AE'>case State(run)</span><span style=''> =&gt; </span><span style='background: #AEF1AE'>run(s)</span><span style=''>
+</span>89 <span style=''>
+</span>90 <span style=''>      /**
+</span>91 <span style=''>       * Filters the result of the computation based on a predicate.
+</span>92 <span style=''>       * Throws a `MatchError` if the predicate fails.
+</span>93 <span style=''>       *
+</span>94 <span style=''>       * @param p the predicate to test on the result
+</span>95 <span style=''>       * @return the same computation if it satisfies the predicate
+</span>96 <span style=''>       */
+</span>97 <span style=''>      </span><span style='background: #F0ADAD'>def withFilter</span><span style=''>(p: A =&gt; Boolean): State[S, A] =
+</span>98 <span style=''>        State { s =&gt;
+</span>99 <span style=''>          val </span><span style='background: #F0ADAD'>(s2, a)</span><span style=''> = </span><span style='background: #F0ADAD'>m.run(s)</span><span style=''>
+</span>100 <span style=''>          if </span><span style='background: #F0ADAD'>p(a)</span><span style=''> then </span><span style='background: #F0ADAD'>(s2, a)</span><span style=''>
+</span>101 <span style=''>          else </span><span style='background: #F0ADAD'>throw MatchError(&quot;State withFilter failed&quot;)</span><span style=''>
+</span>102 <span style=''>        }
+</span>103 <span style=''>
+</span>104 <span style=''>    /**
+</span>105 <span style=''>     * Given instance of `Monad` for the `State` type constructor.
+</span>106 <span style=''>     */
+</span>107 <span style=''>    </span><span style='background: #AEF1AE'>given stateMonad</span><span style=''>[S]: Monad[[A] =&gt;&gt; State[S, A]] with
+</span>108 <span style=''>      /**
+</span>109 <span style=''>       * Lifts a value into a `State` that does not modify the input state.
+</span>110 <span style=''>       */
+</span>111 <span style=''>      </span><span style='background: #AEF1AE'>def unit</span><span style=''>[A](a: A): State[S, A] = State(s =&gt; (s, a))
+</span>112 <span style=''>
+</span>113 <span style=''>      /**
+</span>114 <span style=''>       * Chains stateful computations, threading state through each step.
+</span>115 <span style=''>       */
+</span>116 <span style=''>      extension [A](m: State[S, A])
+</span>117 <span style=''>        </span><span style='background: #AEF1AE'>override def flatMap</span><span style=''>[B](f: A =&gt; State[S, B]): State[S, B] =
+</span>118 <span style=''>          State(s =&gt; </span><span style='background: #AEF1AE'>m.apply(s)</span><span style=''> match
+</span>119 <span style=''>            </span><span style='background: #AEF1AE'>case (s2, a)</span><span style=''> =&gt; </span><span style='background: #AEF1AE'>f(a).apply(s2)</span><span style=''>
+</span>120 <span style=''>          )
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          783
+        </td>
+        <td>
+          1151
+          -
+          1177
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          m.flatMap(a =&gt; unit(f(a)))
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          786
+        </td>
+        <td>
+          1171
+          -
+          1175
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          f(a)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          785
+        </td>
+        <td>
+          1166
+          -
+          1176
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          unit
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          unit(f(a))
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          784
+        </td>
+        <td>
+          1151
+          -
+          1160
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          m.flatMap
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          787
+        </td>
+        <td>
+          1121
+          -
+          1128
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def map
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          793
+        </td>
+        <td>
+          1466
+          -
+          1482
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          map2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          private def map2
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          792
+        </td>
+        <td>
+          1582
+          -
+          1589
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          f(a, b)
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          788
+        </td>
+        <td>
+          1555
+          -
+          1591
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          m.flatMap(a =&gt; m2.map(b =&gt; f(a, b)))
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          791
+        </td>
+        <td>
+          1570
+          -
+          1572
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          m2
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          790
+        </td>
+        <td>
+          1570
+          -
+          1590
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          m2.map(b =&gt; f(a, b))
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          789
+        </td>
+        <td>
+          1555
+          -
+          1556
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          m
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          795
+        </td>
+        <td>
+          1847
+          -
+          1862
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          seq
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          private def seq
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          794
+        </td>
+        <td>
+          1919
+          -
+          1943
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          map2(m, m2)((_, b) =&gt; b)
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          798
+        </td>
+        <td>
+          2601
+          -
+          2610
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def apply
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          797
+        </td>
+        <td>
+          2663
+          -
+          2669
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          run(s)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          796
+        </td>
+        <td>
+          2644
+          -
+          2659
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case State(run)
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          806
+        </td>
+        <td>
+          2961
+          -
+          2975
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          withFilter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          def withFilter
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          800
+        </td>
+        <td>
+          3045
+          -
+          3052
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          (s2, a)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          799
+        </td>
+        <td>
+          3055
+          -
+          3063
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          m.run(s)
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          801
+        </td>
+        <td>
+          3078
+          -
+          3082
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          p(a)
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          802
+        </td>
+        <td>
+          3088
+          -
+          3095
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          (s2, a)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          804
+        </td>
+        <td>
+          3118
+          -
+          3155
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          &lt;init&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          MatchError(&quot;State withFilter failed&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          803
+        </td>
+        <td>
+          3112
+          -
+          3155
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          throw
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          throw MatchError(&quot;State withFilter failed&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          805
+        </td>
+        <td>
+          3112
+          -
+          3155
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          throw
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          throw MatchError(&quot;State withFilter failed&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          813
+        </td>
+        <td>
+          3260
+          -
+          3276
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          stateMonad
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          given stateMonad
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          807
+        </td>
+        <td>
+          3419
+          -
+          3427
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          unit
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def unit
+        </td>
+      </tr><tr>
+        <td>
+          116
+        </td>
+        <td>
+          812
+        </td>
+        <td>
+          3616
+          -
+          3636
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def flatMap
+        </td>
+      </tr><tr>
+        <td>
+          117
+        </td>
+        <td>
+          808
+        </td>
+        <td>
+          3698
+          -
+          3708
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          m.apply(s)
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          810
+        </td>
+        <td>
+          3744
+          -
+          3758
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          f(a).apply(s2)
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          809
+        </td>
+        <td>
+          3728
+          -
+          3740
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case (s2, a)
+        </td>
+      </tr><tr>
+        <td>
+          118
+        </td>
+        <td>
+          811
+        </td>
+        <td>
+          3744
+          -
+          3748
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          f(a)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -1,0 +1,217 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          model\strategy\AiAbility.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package model.strategy
+</span>2 <span style=''>
+</span>3 <span style=''>object AiAbilityValues:
+</span>4 <span style=''>  val ImprovedInfectionBonusPerc: Int = 50
+</span>5 <span style=''>  val StealthSabotageBonusPerc: Int = 50
+</span>6 <span style=''>  val DefaultPerc: Int = 0
+</span>7 <span style=''>/** Represents abilities that an AI player can unlock.
+</span>8 <span style=''> * These abilities enhance the AI's infection or sabotage capabilities.
+</span>9 <span style=''> */
+</span>10 <span style=''>object AiAbility:
+</span>11 <span style=''>  import AiAbilityValues._
+</span>12 <span style=''>  /** Trait for all AI abilities.
+</span>13 <span style=''>   * Provides optional bonuses to infection, sabotage, etc.
+</span>14 <span style=''>   */
+</span>15 <span style=''>  sealed trait AiAbility:
+</span>16 <span style=''>
+</span>17 <span style=''>    /** Bonus to infection probability. Defaults to 0. */
+</span>18 <span style=''>    </span><span style='background: #AEF1AE'>def infectionBonusPerc</span><span style=''>: Int = DefaultPerc
+</span>19 <span style=''>    /** Bonus to sabotage power. Defaults to 0. */
+</span>20 <span style=''>    </span><span style='background: #AEF1AE'>def sabotageBonusPerc</span><span style=''>: Int = DefaultPerc
+</span>21 <span style=''>
+</span>22 <span style=''>  /** Grants a +15% infection bonus when unlocked. */
+</span>23 <span style=''>  case object ImprovedInfection extends AiAbility:
+</span>24 <span style=''>    </span><span style='background: #AEF1AE'>override def infectionBonusPerc</span><span style=''>: Int = ImprovedInfectionBonusPerc
+</span>25 <span style=''>
+</span>26 <span style=''>  /** Grants a +15% sabotage bonus when unlocked. */
+</span>27 <span style=''>  case object StealthSabotage extends AiAbility:
+</span>28 <span style=''>    </span><span style='background: #AEF1AE'>override def sabotageBonusPerc</span><span style=''>: Int = StealthSabotageBonusPerc
+</span>29 <span style=''>
+</span>30 <span style=''>  /** Set of all available AI abilities. */
+</span>31 <span style=''>  val allAbilities : Set[AiAbility] = </span><span style='background: #F0ADAD'>Set</span><span style='background: #AEF1AE'>(ImprovedInfection, StealthSabotage)</span><span style=''> //Could be changed to a getAll
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          475
+        </td>
+        <td>
+          541
+          -
+          563
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          infectionBonusPerc
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def infectionBonusPerc
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          476
+        </td>
+        <td>
+          640
+          -
+          661
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          sabotageBonusPerc
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def sabotageBonusPerc
+        </td>
+      </tr><tr>
+        <td>
+          23
+        </td>
+        <td>
+          477
+        </td>
+        <td>
+          795
+          -
+          826
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          infectionBonusPerc
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def infectionBonusPerc
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          478
+        </td>
+        <td>
+          972
+          -
+          1002
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          sabotageBonusPerc
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def sabotageBonusPerc
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          480
+        </td>
+        <td>
+          1121
+          -
+          1124
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Set
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Set
+        </td>
+      </tr><tr>
+        <td>
+          30
+        </td>
+        <td>
+          479
+        </td>
+        <td>
+          1121
+          -
+          1160
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set(ImprovedInfection, StealthSabotage)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

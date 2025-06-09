@@ -1,0 +1,1955 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          model\strategy\PlayerHuman.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package model.strategy
+</span>2 <span style=''>
+</span>3 <span style=''>import model.map.CityModule.CityImpl.City
+</span>4 <span style=''>import model.map.WorldMapModule.WorldMap
+</span>5 <span style=''>import model.map.WorldState.WorldState
+</span>6 <span style=''>import model.strategy.ExecuteActionResult.ExecuteActionResult
+</span>7 <span style=''>import model.util.GameSettings.{Difficulty, GameSettings, HumanStats}
+</span>8 <span style=''>
+</span>9 <span style=''>/**
+</span>10 <span style=''> * Represents the human-controlled player in the strategy model.
+</span>11 <span style=''> * Extends the common PlayerEntity interface.
+</span>12 <span style=''> */
+</span>13 <span style=''>trait PlayerHuman extends PlayerEntity:
+</span>14 <span style=''>  /** Current progress of the kill switch development. */
+</span>15 <span style=''>  def killSwitch: Int
+</span>16 <span style=''>
+</span>17 <span style=''>  /** Get of cities currently defended by the player. */
+</span>18 <span style=''>  def defendedCities: Set[String]
+</span>19 <span style=''>
+</span>20 <span style=''>  /** Get of cities conquered by the player. */
+</span>21 <span style=''>  def conqueredCities: Set[String]
+</span>22 <span style=''>
+</span>23 <span style=''>  /** Returns the list of valid actions the player can take. */
+</span>24 <span style=''>  def getPossibleAction: List[HumanAction]
+</span>25 <span style=''>
+</span>26 <span style=''>  /** Returns the list of actions already executed. */
+</span>27 <span style=''>  def executedActions: List[HumanAction]
+</span>28 <span style=''>
+</span>29 <span style=''>  /** Decides an action using the SmartHumanStrategy based on world state. */
+</span>30 <span style=''>  def decideActionByStrategy(worldState: WorldState): HumanAction
+</span>31 <span style=''>
+</span>32 <span style=''>  override type ValidAction = HumanAction
+</span>33 <span style=''>  override type Self = PlayerHuman
+</span>34 <span style=''>
+</span>35 <span style=''>  /** Executes a given action, modifying the player state. */
+</span>36 <span style=''>  override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self]
+</span>37 <span style=''>
+</span>38 <span style=''>  override def toString: String
+</span>39 <span style=''>
+</span>40 <span style=''>/**
+</span>41 <span style=''> * Companion object for PlayerHuman.
+</span>42 <span style=''> * Provides factory methods from settings or stats.
+</span>43 <span style=''> */
+</span>44 <span style=''>object PlayerHuman:
+</span>45 <span style=''>
+</span>46 <span style=''>  </span><span style='background: #AEF1AE'>@deprecated(&quot;this method will be removed, user fromSetting instead, RotM 3.0&quot;)
+</span>47 <span style=''></span><span style='background: #AEF1AE'>  def fromStats</span><span style=''>(using stats: HumanStats): PlayerHuman =
+</span>48 <span style=''>    </span><span style='background: #AEF1AE'>PlayerHumanImpl</span><span style=''>(killSwitch = stats.killSwitch)
+</span>49 <span style=''>
+</span>50 <span style=''>  /**
+</span>51 <span style=''>   * Creates a PlayerHuman instance from game settings.
+</span>52 <span style=''>   */
+</span>53 <span style=''>  </span><span style='background: #AEF1AE'>def fromSettings</span><span style=''>(using settings: GameSettings): PlayerHuman =
+</span>54 <span style=''>    </span><span style='background: #AEF1AE'>PlayerHumanImpl</span><span style=''>(killSwitch = settings.human.killSwitch, actionsWeight = settings.human.actionsWeight)
+</span>55 <span style=''>
+</span>56 <span style=''>
+</span>57 <span style=''>/**
+</span>58 <span style=''> * Concrete implementation of the PlayerHuman trait.
+</span>59 <span style=''> *
+</span>60 <span style=''> * @param killSwitch      current progress of the kill switch
+</span>61 <span style=''> * @param defendedCities  cities currently defended
+</span>62 <span style=''> * @param conqueredCities cities conquered by the player
+</span>63 <span style=''> * @param executedActions list of executed actions
+</span>64 <span style=''> */
+</span>65 <span style=''>private case class PlayerHumanImpl(
+</span>66 <span style=''>                                    killSwitch: Int = 0,
+</span>67 <span style=''>                                    actionsWeight: ActionProbabilities = ActionProbabilities(33, 33, 34),
+</span>68 <span style=''>                                    defendedCities: Set[String] = </span><span style='background: #AEF1AE'>Set.empty</span><span style=''>,
+</span>69 <span style=''>                                    conqueredCities: Set[String] = </span><span style='background: #AEF1AE'>Set.empty</span><span style=''>,
+</span>70 <span style=''>                                    executedActions: List[HumanAction] = </span><span style='background: #AEF1AE'>List.empty</span><span style=''>
+</span>71 <span style=''>                                  ) extends PlayerHuman:
+</span>72 <span style=''>
+</span>73 <span style=''>  private val CityDefenseBoost = 20
+</span>74 <span style=''>  private val GlobalDefenseBoost = 2
+</span>75 <span style=''>  private val KillSwitchIncrement = 10
+</span>76 <span style=''>
+</span>77 <span style=''>  override type ValidAction = HumanAction
+</span>78 <span style=''>  override type Self = PlayerHuman
+</span>79 <span style=''>
+</span>80 <span style=''>  </span><span style='background: #F0ADAD'>override def getPossibleAction</span><span style=''>: List[HumanAction] = HumanAction.allActions
+</span>81 <span style=''>
+</span>82 <span style=''>  /**
+</span>83 <span style=''>   * Applies the given action to the player and the world map, producing a result.
+</span>84 <span style=''>   */
+</span>85 <span style=''>  </span><span style='background: #AEF1AE'>override def executeAction</span><span style=''>(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] =
+</span>86 <span style=''>    action match
+</span>87 <span style=''>    </span><span style='background: #AEF1AE'>case CityDefense(targets)</span><span style=''> =&gt;
+</span>88 <span style=''>      val updated = </span><span style='background: #AEF1AE'>withDefendedCities(targets.toSet).addAction(action)</span><span style=''>
+</span>89 <span style=''>      val defendedCities: List[City] = </span><span style='background: #AEF1AE'>targets.flatMap(cityName =&gt;
+</span>90 <span style=''></span><span style='background: #AEF1AE'>        </span><span style='background: #F0ADAD'>worldMap.getCityByName(cityName)</span><span style='background: #AEF1AE'>.map(_.defenseCity(CityDefenseBoost))
+</span>91 <span style=''></span><span style='background: #AEF1AE'>      )</span><span style=''>
+</span>92 <span style=''>      </span><span style='background: #AEF1AE'>result(updated, Some(defendedCities), s&quot;CityDefense on: ${targets.mkString(&quot;, &quot;)}&quot;)</span><span style=''>
+</span>93 <span style=''>
+</span>94 <span style=''>    </span><span style='background: #AEF1AE'>case GlobalDefense(targets)</span><span style=''> =&gt;
+</span>95 <span style=''>      val updated = </span><span style='background: #AEF1AE'>withDefendedCities(defendedCities).addAction(action)</span><span style=''>
+</span>96 <span style=''>      val updatedCities = </span><span style='background: #F0ADAD'>targets.flatMap(worldMap.getCityByName)</span><span style='background: #AEF1AE'>.map(_.defenseCity(GlobalDefenseBoost))</span><span style=''>
+</span>97 <span style=''>      </span><span style='background: #AEF1AE'>result(updated, Some(updatedCities), &quot;GlobalDefense executed&quot;)</span><span style=''>
+</span>98 <span style=''>
+</span>99 <span style=''>    </span><span style='background: #AEF1AE'>case DevelopKillSwitch</span><span style=''> =&gt;
+</span>100 <span style=''>      val updated = </span><span style='background: #AEF1AE'>copy(killSwitch = killSwitch + KillSwitchIncrement).addAction(action)</span><span style=''>
+</span>101 <span style=''>      </span><span style='background: #AEF1AE'>result(updated, None, &quot;KillSwitch progress increased&quot;)</span><span style=''>
+</span>102 <span style=''>
+</span>103 <span style=''>  </span><span style='background: #F0ADAD'>override def toString</span><span style=''>: String =
+</span>104 <span style=''>    </span><span style='background: #F0ADAD'>def formatSet</span><span style=''>(label: String, set: Set[String]): String =
+</span>105 <span style=''>      </span><span style='background: #F0ADAD'>s&quot;$label : ${if set.isEmpty then &quot;None&quot; else set.mkString(&quot;, &quot;)}&quot;</span><span style=''>
+</span>106 <span style=''>
+</span>107 <span style=''>    </span><span style='background: #F0ADAD'>def formatList</span><span style=''>(label: String, list: List[HumanAction]): String =
+</span>108 <span style=''>      </span><span style='background: #F0ADAD'>s&quot;$label :\n  ${if list.isEmpty then &quot;None&quot; else list.reverse.mkString(&quot;\n  &quot;)}&quot;</span><span style=''>
+</span>109 <span style=''>
+</span>110 <span style=''>    </span><span style='background: #F0ADAD'>s&quot;&quot;&quot;|--- PlayerHuman Status ---
+</span>111 <span style=''></span><span style='background: #F0ADAD'>        |KillSwitch Progress : $killSwitch
+</span>112 <span style=''></span><span style='background: #F0ADAD'>        |${formatSet(&quot;Defended Cities&quot;, defendedCities)}
+</span>113 <span style=''></span><span style='background: #F0ADAD'>        |${formatSet(&quot;Conquered Cities&quot;, conqueredCities)}
+</span>114 <span style=''></span><span style='background: #F0ADAD'>        |${formatList(&quot;Executed Actions&quot;, executedActions)}
+</span>115 <span style=''></span><span style='background: #F0ADAD'>        |------------------------&quot;&quot;&quot;.stripMargin</span><span style=''>
+</span>116 <span style=''>
+</span>117 <span style=''>  /**
+</span>118 <span style=''>   * Decides an action based on the current difficulty and game state using SmartHumanStrategy.
+</span>119 <span style=''>   */
+</span>120 <span style=''>  </span><span style='background: #AEF1AE'>def decideActionByStrategy</span><span style=''>(worldState: WorldState): HumanAction =
+</span>121 <span style=''>    </span><span style='background: #AEF1AE'>SmartHumanStrategy.decideAction(worldState)(using actionsWeight)</span><span style=''>
+</span>122 <span style=''>
+</span>123 <span style=''>  </span><span style='background: #AEF1AE'>private def result</span><span style=''>(player: PlayerHumanImpl, city: Option[List[City]], message: String): ExecuteActionResult[Self] =
+</span>124 <span style=''>    </span><span style='background: #AEF1AE'>ExecuteActionResult(player, city, </span><span style='background: #F0ADAD'>List</span><span style='background: #AEF1AE'>(message))</span><span style=''>
+</span>125 <span style=''>
+</span>126 <span style=''>  </span><span style='background: #AEF1AE'>private def withDefendedCities</span><span style=''>(cities: Set[String]): PlayerHumanImpl =
+</span>127 <span style=''>    copy(defendedCities = </span><span style='background: #AEF1AE'>defendedCities ++ cities</span><span style=''>)
+</span>128 <span style=''>
+</span>129 <span style=''>  </span><span style='background: #AEF1AE'>private def addAction</span><span style=''>(action: HumanAction): PlayerHumanImpl =
+</span>130 <span style=''>    copy(executedActions = </span><span style='background: #AEF1AE'>action :: executedActions</span><span style=''>)
+</span>131 <span style=''>
+</span>132 <span style=''>
+</span>133 <span style=''>
+</span>134 <span style=''>
+</span>135 <span style=''>
+</span>136 <span style=''>
+</span>137 <span style=''>
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          632
+        </td>
+        <td>
+          1481
+          -
+          1576
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          fromStats
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          @deprecated(&quot;this method will be removed, user fromSetting instead, RotM 3.0&quot;)\r\n  def fromStats
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          630
+        </td>
+        <td>
+          1622
+          -
+          1637
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$4
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          PlayerHumanImpl
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          629
+        </td>
+        <td>
+          1622
+          -
+          1637
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$3
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          PlayerHumanImpl
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          631
+        </td>
+        <td>
+          1622
+          -
+          1637
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$5
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          PlayerHumanImpl
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          628
+        </td>
+        <td>
+          1622
+          -
+          1637
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          PlayerHumanImpl
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          636
+        </td>
+        <td>
+          1745
+          -
+          1761
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          fromSettings
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def fromSettings
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          633
+        </td>
+        <td>
+          1812
+          -
+          1827
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$3
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          PlayerHumanImpl
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          635
+        </td>
+        <td>
+          1812
+          -
+          1827
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$5
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          PlayerHumanImpl
+        </td>
+      </tr><tr>
+        <td>
+          53
+        </td>
+        <td>
+          634
+        </td>
+        <td>
+          1812
+          -
+          1827
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$4
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          PlayerHumanImpl
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          691
+        </td>
+        <td>
+          2304
+          -
+          2304
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          $lessinit$greater$default$1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          692
+        </td>
+        <td>
+          2381
+          -
+          2381
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          $lessinit$greater$default$2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          693
+        </td>
+        <td>
+          2481
+          -
+          2484
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Set
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          695
+        </td>
+        <td>
+          2481
+          -
+          2481
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          $lessinit$greater$default$3
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          694
+        </td>
+        <td>
+          2481
+          -
+          2490
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set.empty
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          696
+        </td>
+        <td>
+          2560
+          -
+          2563
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Set
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          698
+        </td>
+        <td>
+          2560
+          -
+          2560
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          $lessinit$greater$default$4
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          697
+        </td>
+        <td>
+          2560
+          -
+          2569
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set.empty
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          699
+        </td>
+        <td>
+          2645
+          -
+          2649
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          701
+        </td>
+        <td>
+          2645
+          -
+          2645
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          $lessinit$greater$default$5
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          69
+        </td>
+        <td>
+          700
+        </td>
+        <td>
+          2645
+          -
+          2655
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List.empty
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          637
+        </td>
+        <td>
+          2917
+          -
+          2947
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          getPossibleAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          override def getPossibleAction
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          660
+        </td>
+        <td>
+          3095
+          -
+          3121
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          executeAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def executeAction
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          638
+        </td>
+        <td>
+          3215
+          -
+          3240
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case CityDefense(targets)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          639
+        </td>
+        <td>
+          3265
+          -
+          3316
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          addAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          withDefendedCities(targets.toSet).addAction(action)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          641
+        </td>
+        <td>
+          3284
+          -
+          3297
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toSet
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          targets.toSet
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          640
+        </td>
+        <td>
+          3265
+          -
+          3298
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          withDefendedCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          withDefendedCities(targets.toSet)
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          642
+        </td>
+        <td>
+          3357
+          -
+          3472
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          targets.flatMap(cityName =&gt;\r\n        worldMap.getCityByName(cityName).map(_.defenseCity(CityDefenseBoost))\r\n      )
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          645
+        </td>
+        <td>
+          3431
+          -
+          3462
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          defenseCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _.defenseCity(CityDefenseBoost)
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          644
+        </td>
+        <td>
+          3394
+          -
+          3426
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getCityByName
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.getCityByName(cityName)
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          643
+        </td>
+        <td>
+          3394
+          -
+          3463
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.getCityByName(cityName).map(_.defenseCity(CityDefenseBoost))
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          648
+        </td>
+        <td>
+          3538
+          -
+          3560
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          targets.mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          647
+        </td>
+        <td>
+          3518
+          -
+          3562
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          s&quot;CityDefense on: ${targets.mkString(&quot;, &quot;)}&quot;
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          646
+        </td>
+        <td>
+          3480
+          -
+          3563
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          result
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          result(updated, Some(defendedCities), s&quot;CityDefense on: ${targets.mkString(&quot;, &quot;)}&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          649
+        </td>
+        <td>
+          3571
+          -
+          3598
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case GlobalDefense(targets)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          651
+        </td>
+        <td>
+          3623
+          -
+          3657
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          withDefendedCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          withDefendedCities(defendedCities)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          650
+        </td>
+        <td>
+          3623
+          -
+          3675
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          addAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          withDefendedCities(defendedCities).addAction(action)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          654
+        </td>
+        <td>
+          3719
+          -
+          3727
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getCityByName
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          653
+        </td>
+        <td>
+          3703
+          -
+          3742
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          targets.flatMap(worldMap.getCityByName)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          655
+        </td>
+        <td>
+          3747
+          -
+          3780
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          defenseCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _.defenseCity(GlobalDefenseBoost)
+        </td>
+      </tr><tr>
+        <td>
+          95
+        </td>
+        <td>
+          652
+        </td>
+        <td>
+          3703
+          -
+          3781
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          targets.flatMap(worldMap.getCityByName).map(_.defenseCity(GlobalDefenseBoost))
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          656
+        </td>
+        <td>
+          3789
+          -
+          3851
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          result
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          result(updated, Some(updatedCities), &quot;GlobalDefense executed&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          657
+        </td>
+        <td>
+          3859
+          -
+          3881
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case DevelopKillSwitch
+        </td>
+      </tr><tr>
+        <td>
+          99
+        </td>
+        <td>
+          658
+        </td>
+        <td>
+          3906
+          -
+          3975
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          addAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          copy(killSwitch = killSwitch + KillSwitchIncrement).addAction(action)
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          659
+        </td>
+        <td>
+          3983
+          -
+          4037
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          result
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          result(updated, None, &quot;KillSwitch progress increased&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          680
+        </td>
+        <td>
+          4043
+          -
+          4064
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          toString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          override def toString
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          666
+        </td>
+        <td>
+          4080
+          -
+          4093
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          formatSet
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          def formatSet
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          663
+        </td>
+        <td>
+          4177
+          -
+          4183
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;None&quot;
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          662
+        </td>
+        <td>
+          4160
+          -
+          4171
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          isEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          set.isEmpty
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          665
+        </td>
+        <td>
+          4189
+          -
+          4207
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          set.mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          664
+        </td>
+        <td>
+          4189
+          -
+          4207
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          set.mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          661
+        </td>
+        <td>
+          4144
+          -
+          4209
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;$label : ${if set.isEmpty then &quot;None&quot; else set.mkString(&quot;, &quot;)}&quot;
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          673
+        </td>
+        <td>
+          4217
+          -
+          4231
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          formatList
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          def formatList
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          669
+        </td>
+        <td>
+          4326
+          -
+          4332
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          &quot;None&quot;
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          672
+        </td>
+        <td>
+          4338
+          -
+          4367
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          list.reverse.mkString(&quot;\\n  &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          668
+        </td>
+        <td>
+          4308
+          -
+          4320
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          isEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          list.isEmpty
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          671
+        </td>
+        <td>
+          4338
+          -
+          4350
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          reverse
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          list.reverse
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          667
+        </td>
+        <td>
+          4289
+          -
+          4369
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;$label :\\n  ${if list.isEmpty then &quot;None&quot; else list.reverse.mkString(&quot;\\n  &quot;)}&quot;
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          670
+        </td>
+        <td>
+          4338
+          -
+          4367
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          list.reverse.mkString(&quot;\\n  &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          675
+        </td>
+        <td>
+          4377
+          -
+          4669
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;&quot;&quot;|--- PlayerHuman Status ---\r\n        |KillSwitch Progress : $killSwitch\r\n        |${formatSet(&quot;Defended Cities&quot;, defendedCities)}\r\n        |${formatSet(&quot;Conquered Cities&quot;, conqueredCities)}\r\n        |${formatList(&quot;Executed Actions&quot;, executedActions)}\r\n        |------------------------&quot;&quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          674
+        </td>
+        <td>
+          4377
+          -
+          4669
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          augmentString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;&quot;&quot;|--- PlayerHuman Status ---\r\n        |KillSwitch Progress : $killSwitch\r\n        |${formatSet(&quot;Defended Cities&quot;, defendedCities)}\r\n        |${formatSet(&quot;Conquered Cities&quot;, conqueredCities)}\r\n        |${formatList(&quot;Executed Actions&quot;, executedActions)}\r\n        |------------------------&quot;&quot;&quot;
+        </td>
+      </tr><tr>
+        <td>
+          111
+        </td>
+        <td>
+          676
+        </td>
+        <td>
+          4465
+          -
+          4509
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          formatSet
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          formatSet(&quot;Defended Cities&quot;, defendedCities)
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          677
+        </td>
+        <td>
+          4523
+          -
+          4569
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          formatSet
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          formatSet(&quot;Conquered Cities&quot;, conqueredCities)
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          678
+        </td>
+        <td>
+          4583
+          -
+          4630
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          formatList
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          formatList(&quot;Executed Actions&quot;, executedActions)
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          679
+        </td>
+        <td>
+          4377
+          -
+          4681
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          stripMargin
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;&quot;&quot;|--- PlayerHuman Status ---\r\n        |KillSwitch Progress : $killSwitch\r\n        |${formatSet(&quot;Defended Cities&quot;, defendedCities)}\r\n        |${formatSet(&quot;Conquered Cities&quot;, conqueredCities)}\r\n        |${formatList(&quot;Executed Actions&quot;, executedActions)}\r\n        |------------------------&quot;&quot;&quot;.stripMargin
+        </td>
+      </tr><tr>
+        <td>
+          119
+        </td>
+        <td>
+          682
+        </td>
+        <td>
+          4798
+          -
+          4824
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          decideActionByStrategy
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def decideActionByStrategy
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          681
+        </td>
+        <td>
+          4869
+          -
+          4933
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          decideAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          SmartHumanStrategy.decideAction(worldState)(using actionsWeight)
+        </td>
+      </tr><tr>
+        <td>
+          122
+        </td>
+        <td>
+          686
+        </td>
+        <td>
+          4939
+          -
+          4957
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          result
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def result
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          684
+        </td>
+        <td>
+          5094
+          -
+          5107
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(message)
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          683
+        </td>
+        <td>
+          5060
+          -
+          5108
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          ExecuteActionResult(player, city, List(message))
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          685
+        </td>
+        <td>
+          5094
+          -
+          5098
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          688
+        </td>
+        <td>
+          5114
+          -
+          5144
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          withDefendedCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def withDefendedCities
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          687
+        </td>
+        <td>
+          5212
+          -
+          5236
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          ++
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          defendedCities ++ cities
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          690
+        </td>
+        <td>
+          5243
+          -
+          5264
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          addAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def addAction
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          689
+        </td>
+        <td>
+          5333
+          -
+          5358
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          ::
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          action :: executedActions
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -4,6 +4,10 @@ enablePlugins(AssemblyPlugin)
 val scala3Version = "3.3.1"
 
 ThisBuild / scalaVersion := scala3Version
+
+coverageEnabled := true
+
+//jar config
 assembly / assemblyJarName := "RiseOfTheMachine.jar"
 assembly / assemblyMergeStrategy := {
   case "reference.conf" => MergeStrategy.concat
@@ -12,6 +16,8 @@ assembly / assemblyMergeStrategy := {
 }
 mainClass := Some("Main")
 assembly / mainClass := Some("Main")
+
+// Progetto principale
 lazy val root = (project in file("."))
   .settings(
     name := "RiseOfTheMachine",
@@ -22,3 +28,5 @@ lazy val root = (project in file("."))
       "com.github.lalyos" % "jfiglet" % "0.0.8",
     )
   )
+
+

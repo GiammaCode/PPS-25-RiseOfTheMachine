@@ -1,0 +1,203 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          model\util\Util.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>/**
+</span>2 <span style=''> * Utility functions for probability handling and city naming.
+</span>3 <span style=''> */
+</span>4 <span style=''>package model.util
+</span>5 <span style=''>
+</span>6 <span style=''>import scala.util.Random
+</span>7 <span style=''>
+</span>8 <span style=''>object Util:
+</span>9 <span style=''>
+</span>10 <span style=''>  /**
+</span>11 <span style=''>   * Returns a boolean based on a given success probability.
+</span>12 <span style=''>   *
+</span>13 <span style=''>   * This simulates a probabilistic event: given a percentage (0-100),
+</span>14 <span style=''>   * it returns true with that likelihood.
+</span>15 <span style=''>   *
+</span>16 <span style=''>   * @param percentage The probability of success, from 0 to 100.
+</span>17 <span style=''>   * @return true with the given probability, false otherwise.
+</span>18 <span style=''>   */
+</span>19 <span style=''>  </span><span style='background: #AEF1AE'>def doesTheActionGoesRight</span><span style=''>(percentage: Int): Boolean = {
+</span>20 <span style=''>    val maxProbability = 100
+</span>21 <span style=''>    </span><span style='background: #AEF1AE'>Random.nextInt(maxProbability)</span><span style=''> &lt; percentage
+</span>22 <span style=''>  }
+</span>23 <span style=''>
+</span>24 <span style=''>  /**
+</span>25 <span style=''>   * Converts a number to a corresponding letter string,
+</span>26 <span style=''>   * using capital or lowercase depending on the flag.
+</span>27 <span style=''>   *
+</span>28 <span style=''>   * This is used to generate city names based on index and type (capital/non-capital).
+</span>29 <span style=''>   *
+</span>30 <span style=''>   * @param n the index of the letter (e.g., 0 -&gt; 'A' or 'a')
+</span>31 <span style=''>   * @param isCapital true if the letter should be uppercase (capital city), false otherwise
+</span>32 <span style=''>   * @return a string representing the corresponding letter
+</span>33 <span style=''>   */
+</span>34 <span style=''>  </span><span style='background: #AEF1AE'>def letterAt</span><span style=''>(n: Int, isCapital: Boolean): String =
+</span>35 <span style=''>    if isCapital then </span><span style='background: #AEF1AE'>{
+</span>36 <span style=''></span><span style='background: #AEF1AE'>      val firstCapitalLetterAscii = 65 // 'A'
+</span>37 <span style=''></span><span style='background: #AEF1AE'>      (firstCapitalLetterAscii + n).toChar.toString
+</span>38 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''> else </span><span style='background: #AEF1AE'>{
+</span>39 <span style=''></span><span style='background: #AEF1AE'>      val firstLowercaseLetterAscii = 97 // 'a'
+</span>40 <span style=''></span><span style='background: #AEF1AE'>      (firstLowercaseLetterAscii + n).toChar.toString
+</span>41 <span style=''></span><span style='background: #AEF1AE'>    }</span><span style=''>
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          815
+        </td>
+        <td>
+          477
+          -
+          503
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          doesTheActionGoesRight
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def doesTheActionGoesRight
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          814
+        </td>
+        <td>
+          569
+          -
+          599
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          nextInt
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Random.nextInt(maxProbability)
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          818
+        </td>
+        <td>
+          1070
+          -
+          1082
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          letterAt
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def letterAt
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          816
+        </td>
+        <td>
+          1144
+          -
+          1252
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          {\r\n      val firstCapitalLetterAscii = 65 // 'A'\r\n      (firstCapitalLetterAscii + n).toChar.toString\r\n    }
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          817
+        </td>
+        <td>
+          1258
+          -
+          1370
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          {\r\n      val firstLowercaseLetterAscii = 97 // 'a'\r\n      (firstLowercaseLetterAscii + n).toChar.toString\r\n    }
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

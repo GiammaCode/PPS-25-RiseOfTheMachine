@@ -1,0 +1,4602 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          view\ViewModule.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package view
+</span>2 <span style=''>
+</span>3 <span style=''>import model.map.WorldMapModule.WorldMap
+</span>4 <span style=''>import model.map.WorldState.WorldState
+</span>5 <span style=''>import model.strategy.AiAbility.AiAbility
+</span>6 <span style=''>import model.strategy.*
+</span>7 <span style=''>import model.util.GameSettings.*
+</span>8 <span style=''>import view.ViewModule.GameTurnInput.GameTurnInput
+</span>9 <span style=''>
+</span>10 <span style=''>import scala.annotation.tailrec
+</span>11 <span style=''>import scala.io.StdIn
+</span>12 <span style=''>
+</span>13 <span style=''>/**
+</span>14 <span style=''> * ViewModule contains the trait for abstracting the game UI,
+</span>15 <span style=''> * and a concrete implementation for command-line interaction (CLIView).
+</span>16 <span style=''> */
+</span>17 <span style=''>object ViewModule:
+</span>18 <span style=''>
+</span>19 <span style=''>  object GameTurnInput:
+</span>20 <span style=''>    opaque type GameTurnInput = ((Int, String), Option[(Int, String)])
+</span>21 <span style=''>
+</span>22 <span style=''>    </span><span style='background: #AEF1AE'>def apply</span><span style=''>(aiInput: (Int, String), humanInput: Option[(Int, String)]): GameTurnInput = (aiInput, humanInput)
+</span>23 <span style=''>
+</span>24 <span style=''>    extension (input: GameTurnInput)
+</span>25 <span style=''>      </span><span style='background: #AEF1AE'>def aiInput_action</span><span style=''>: Int = </span><span style='background: #AEF1AE'>input._1._1</span><span style=''>
+</span>26 <span style=''>      </span><span style='background: #AEF1AE'>def aiInput_city</span><span style=''>: String = </span><span style='background: #AEF1AE'>input._1._2</span><span style=''>
+</span>27 <span style=''>      </span><span style='background: #AEF1AE'>def humanInput</span><span style=''>: Option[(Int, String)] = </span><span style='background: #AEF1AE'>input._2</span><span style=''>
+</span>28 <span style=''>
+</span>29 <span style=''>  /**
+</span>30 <span style=''>   * Trait representing the view layer of the game.
+</span>31 <span style=''>   * It abstracts rendering menus, turns, and actions based on the current WorldState.
+</span>32 <span style=''>   */
+</span>33 <span style=''>  trait GameView:
+</span>34 <span style=''>    /**
+</span>35 <span style=''>     * Renders the main menu and asks the player to select the game mode.
+</span>36 <span style=''>     * If Single Player is selected, it also asks for the difficulty level.
+</span>37 <span style=''>     *
+</span>38 <span style=''>     * @return a tuple containing the selected GameMode and Difficulty.
+</span>39 <span style=''>     */
+</span>40 <span style=''>    def renderGameModeMenu(): GameSettings
+</span>41 <span style=''>
+</span>42 <span style=''>    /**
+</span>43 <span style=''>     * Renders the current turn, showing the map, infection state, unlocked abilities,
+</span>44 <span style=''>     * and asks for player input depending on the GameMode.
+</span>45 <span style=''>     *
+</span>46 <span style=''>     * @param worldState the current game state to render.
+</span>47 <span style=''>     * @param gameMode   the game mode (Singleplayer or Multiplayer), passed implicitly.
+</span>48 <span style=''>     * @return a tuple containing the AI player's action and optionally the human player's action.
+</span>49 <span style=''>     */
+</span>50 <span style=''>    def renderGameTurn(worldState: WorldState)(using GameSettings): GameTurnInput
+</span>51 <span style=''>
+</span>52 <span style=''>    def renderEndGame(winner: PlayerEntity): Unit
+</span>53 <span style=''>
+</span>54 <span style=''>  /**
+</span>55 <span style=''>   * CLIView is the command-line implementation of GameView.
+</span>56 <span style=''>   * It renders all game content to the terminal and handles user input via StdIn.
+</span>57 <span style=''>   */
+</span>58 <span style=''>  object CLIView extends GameView with Formatter:
+</span>59 <span style=''>    </span><span style='background: #AEF1AE'>override def printBoxedContent</span><span style=''>(title: String, body: List[String]): Unit =
+</span>60 <span style=''>      </span><span style='background: #AEF1AE'>CLIFormatter.printBoxedContent(title, body)</span><span style=''>
+</span>61 <span style=''>    </span><span style='background: #AEF1AE'>override def printBoxedMenu</span><span style=''>(title: String, options: List[String]): Unit =
+</span>62 <span style=''>      </span><span style='background: #AEF1AE'>CLIFormatter.printBoxedMenu(title, options)</span><span style=''>
+</span>63 <span style=''>    </span><span style='background: #AEF1AE'>override def printAsciiTitle</span><span style=''>(text: String): Unit =
+</span>64 <span style=''>      </span><span style='background: #AEF1AE'>CLIFormatter.printAsciiTitle(text)</span><span style=''>
+</span>65 <span style=''>    </span><span style='background: #AEF1AE'>override def printMap</span><span style=''>(map: WorldMap, conquered: Set[String]): Unit =
+</span>66 <span style=''>      </span><span style='background: #AEF1AE'>CLIFormatter.printMap(map, conquered)</span><span style=''>
+</span>67 <span style=''>
+</span>68 <span style=''>    /**
+</span>69 <span style=''>     * Prompts the player to choose the game mode, then (if Singleplayer)
+</span>70 <span style=''>     * also requests the difficulty level.
+</span>71 <span style=''>     *
+</span>72 <span style=''>     * @return a tuple containing the chosen GameMode and Difficulty
+</span>73 <span style=''>     */
+</span>74 <span style=''>    </span><span style='background: #AEF1AE'>override def renderGameModeMenu</span><span style=''>(): GameSettings =
+</span>75 <span style=''>      </span><span style='background: #AEF1AE'>printAsciiTitle(&quot;RISE OF THE MACHINE&quot;)</span><span style=''>
+</span>76 <span style=''>      val mode = </span><span style='background: #AEF1AE'>askGameMode()</span><span style=''>
+</span>77 <span style=''>      val selectedDifficulty: Difficulty = mode match
+</span>78 <span style=''>        </span><span style='background: #AEF1AE'>case GameMode.Singleplayer</span><span style=''> =&gt;
+</span>79 <span style=''>          </span><span style='background: #AEF1AE'>printBoxedMenu(&quot;📊 Select difficulty level&quot;, </span><span style='background: #F0ADAD'>List</span><span style='background: #AEF1AE'>(&quot;Easy&quot;, &quot;Normal&quot;, &quot;Hard&quot;))</span><span style=''>
+</span>80 <span style=''>          </span><span style='background: #AEF1AE'>StdIn.readLine().trim</span><span style=''> match
+</span>81 <span style=''>            </span><span style='background: #AEF1AE'>case &quot;0&quot;</span><span style=''> =&gt; Difficulty.Easy
+</span>82 <span style=''>            </span><span style='background: #F0ADAD'>case &quot;1&quot;</span><span style=''> =&gt; Difficulty.Normal
+</span>83 <span style=''>            </span><span style='background: #F0ADAD'>case &quot;2&quot;</span><span style=''> =&gt; Difficulty.Hard
+</span>84 <span style=''>            </span><span style='background: #F0ADAD'>case _</span><span style=''> =&gt;
+</span>85 <span style=''>              </span><span style='background: #F0ADAD'>println(&quot;Invalid input. Defaulting to Normal difficulty&quot;)</span><span style=''>
+</span>86 <span style=''>              Difficulty.Normal
+</span>87 <span style=''>
+</span>88 <span style=''>        </span><span style='background: #AEF1AE'>case GameMode.Multiplayer</span><span style=''> =&gt; Difficulty.Normal
+</span>89 <span style=''>
+</span>90 <span style=''>      </span><span style='background: #AEF1AE'>forSettings(mode, selectedDifficulty)</span><span style=''>
+</span>91 <span style=''>
+</span>92 <span style=''>    /**
+</span>93 <span style=''>     * Renders the current game turn, including map, infection status,
+</span>94 <span style=''>     * unlocked AI abilities, and the list of previous actions.
+</span>95 <span style=''>     *
+</span>96 <span style=''>     * Then prompts the player (AI and optionally Human) to choose an action. -
+</span>97 <span style=''>     *
+</span>98 <span style=''>     * @param worldState the current world state
+</span>99 <span style=''>     * @param gameMode   the selected game mode (implicit)
+</span>100 <span style=''>     * @return a tuple: (AIPlayer input, Optional HumanPlayer input)
+</span>101 <span style=''>     */
+</span>102 <span style=''>    </span><span style='background: #AEF1AE'>override def renderGameTurn</span><span style=''>(worldState: WorldState)(using gameSettings: GameSettings): GameTurnInput =
+</span>103 <span style=''>      </span><span style='background: #AEF1AE'>renderTurn(worldState.turn)</span><span style=''>
+</span>104 <span style=''>      </span><span style='background: #AEF1AE'>renderMap(worldState.worldMap, worldState.playerAI.conqueredCities)</span><span style=''>
+</span>105 <span style=''>      </span><span style='background: #AEF1AE'>renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities, worldState.playerHuman.killSwitch)</span><span style=''>
+</span>106 <span style=''>      </span><span style='background: #AEF1AE'>renderProbability(worldState.attackableCities)</span><span style=''>
+</span>107 <span style=''>      </span><span style='background: #AEF1AE'>renderComplessiveAction(worldState.playerHuman, worldState.playerAI)</span><span style=''>
+</span>108 <span style=''>      gameSettings.gameMode match
+</span>109 <span style=''>        </span><span style='background: #AEF1AE'>case GameMode.Singleplayer</span><span style=''> =&gt;
+</span>110 <span style=''>          val aiMove = </span><span style='background: #AEF1AE'>renderActionMenu(&quot;AI PLAYER TURN&quot;, worldState.AiOptions)</span><span style=''>
+</span>111 <span style=''>          </span><span style='background: #AEF1AE'>GameTurnInput(aiMove, None)</span><span style=''>
+</span>112 <span style=''>
+</span>113 <span style=''>        </span><span style='background: #F0ADAD'>case GameMode.Multiplayer</span><span style=''> =&gt;
+</span>114 <span style=''>          val aiMove = </span><span style='background: #F0ADAD'>renderActionMenu(&quot;AI PLAYER TURN&quot;, worldState.AiOptions)</span><span style=''>
+</span>115 <span style=''>          val humanMove = </span><span style='background: #F0ADAD'>renderActionMenu(&quot;HUMAN PLAYER TURN&quot;, worldState.HumanOptions)</span><span style=''>
+</span>116 <span style=''>          </span><span style='background: #F0ADAD'>GameTurnInput(aiMove, Some(humanMove))</span><span style=''>
+</span>117 <span style=''>
+</span>118 <span style=''>    /**
+</span>119 <span style=''>     * Displays the end-game message based on the winning player.
+</span>120 <span style=''>     *
+</span>121 <span style=''>     * This method takes a `PlayerEntity` (either a `PlayerHuman` or `PlayerAI`) and prints
+</span>122 <span style=''>     * a corresponding message to indicate who won the game.
+</span>123 <span style=''>     *
+</span>124 <span style=''>     * @param winner the player entity that has fulfilled the victory condition (AI or Human)
+</span>125 <span style=''>     */
+</span>126 <span style=''>    </span><span style='background: #F0ADAD'>override def renderEndGame</span><span style=''>(winner: PlayerEntity): Unit = winner match
+</span>127 <span style=''>      </span><span style='background: #F0ADAD'>case _: PlayerHuman</span><span style=''> =&gt;
+</span>128 <span style=''>        </span><span style='background: #F0ADAD'>printBoxedContent(&quot;🌍  HUMANS SAVED THE WORLD!&quot;,
+</span>129 <span style=''></span><span style='background: #F0ADAD'>          List(&quot;✅ The kill switch was activated.&quot;,
+</span>130 <span style=''></span><span style='background: #F0ADAD'>            &quot;\uD83E\uDDEC Humanity survives... for now.&quot;
+</span>131 <span style=''></span><span style='background: #F0ADAD'>          ))</span><span style=''>
+</span>132 <span style=''>      </span><span style='background: #F0ADAD'>case _: PlayerAI</span><span style=''> =&gt;
+</span>133 <span style=''>        </span><span style='background: #F0ADAD'>printBoxedContent(&quot;🤖  AI CONQUERED THE WORLD!&quot;, List(
+</span>134 <span style=''></span><span style='background: #F0ADAD'>          &quot;💥 The world has fallen.&quot;,
+</span>135 <span style=''></span><span style='background: #F0ADAD'>          &quot;🔒 Resistance was futile&quot;
+</span>136 <span style=''></span><span style='background: #F0ADAD'>        ))</span><span style=''>
+</span>137 <span style=''>
+</span>138 <span style=''>    /**
+</span>139 <span style=''>     * Recursively displays the game mode selection menu and handles user input.
+</span>140 <span style=''>     *
+</span>141 <span style=''>     * If &quot;Tutorial&quot; is selected, the tutorial content is shown and the menu is re-displayed.
+</span>142 <span style=''>     * If &quot;Exit&quot; is selected, the application terminates.
+</span>143 <span style=''>     * If an invalid input is entered, the menu is shown again.
+</span>144 <span style=''>     *
+</span>145 <span style=''>     * The method guarantees that a valid GameMode is returned.
+</span>146 <span style=''>     *
+</span>147 <span style=''>     * @return the selected GameMode (Singleplayer or Multiplayer)
+</span>148 <span style=''>     */
+</span>149 <span style=''>    </span><span style='background: #AEF1AE'>@tailrec
+</span>150 <span style=''></span><span style='background: #AEF1AE'>    private def askGameMode</span><span style=''>(): GameMode =
+</span>151 <span style=''>      </span><span style='background: #AEF1AE'>printBoxedMenu(&quot;📊 Select game mode&quot;, </span><span style='background: #F0ADAD'>List</span><span style='background: #AEF1AE'>(&quot;Single Player&quot;, &quot;Multiplayer&quot;, &quot;Tutorial&quot;, &quot;Exit&quot;))</span><span style=''>
+</span>152 <span style=''>      </span><span style='background: #AEF1AE'>StdIn.readLine().trim</span><span style=''> match
+</span>153 <span style=''>        </span><span style='background: #AEF1AE'>case &quot;0&quot;</span><span style=''> =&gt; GameMode.Singleplayer
+</span>154 <span style=''>        </span><span style='background: #AEF1AE'>case &quot;1&quot;</span><span style=''> =&gt; GameMode.Multiplayer
+</span>155 <span style=''>        </span><span style='background: #F0ADAD'>case &quot;2&quot;</span><span style=''> =&gt;
+</span>156 <span style=''>          </span><span style='background: #F0ADAD'>renderTutorial</span><span style=''>
+</span>157 <span style=''>          </span><span style='background: #F0ADAD'>println(&quot;\nPress ENTER to continue...&quot;)</span><span style=''>
+</span>158 <span style=''>          </span><span style='background: #F0ADAD'>StdIn.readLine()</span><span style=''>
+</span>159 <span style=''>          </span><span style='background: #F0ADAD'>askGameMode()</span><span style=''>
+</span>160 <span style=''>        </span><span style='background: #F0ADAD'>case &quot;3&quot;</span><span style=''> =&gt;
+</span>161 <span style=''>          </span><span style='background: #F0ADAD'>println(&quot;Exiting game. Goodbye!&quot;)</span><span style=''>
+</span>162 <span style=''>          </span><span style='background: #F0ADAD'>sys.exit(0)</span><span style=''>
+</span>163 <span style=''>        </span><span style='background: #F0ADAD'>case _</span><span style=''> =&gt;
+</span>164 <span style=''>          </span><span style='background: #F0ADAD'>println(&quot;Invalid input. Please try again.&quot;)</span><span style=''>
+</span>165 <span style=''>          </span><span style='background: #F0ADAD'>askGameMode()</span><span style=''>
+</span>166 <span style=''>
+</span>167 <span style=''>    /**
+</span>168 <span style=''>     * Prints the current turn number in a stylized header.
+</span>169 <span style=''>     *
+</span>170 <span style=''>     * @param turn the current turn index
+</span>171 <span style=''>     */
+</span>172 <span style=''>    </span><span style='background: #AEF1AE'>private def renderTurn</span><span style=''>(turn: Int): Unit =
+</span>173 <span style=''>      </span><span style='background: #AEF1AE'>println(s&quot;\n🌍 --- RISE OF THE MACHINE - TURN $turn ---\n&quot;)</span><span style=''>
+</span>174 <span style=''>
+</span>175 <span style=''>    /**
+</span>176 <span style=''>     * Renders the current state of the world map to the terminal.
+</span>177 <span style=''>     *
+</span>178 <span style=''>     * @param worldMap the current WorldMap
+</span>179 <span style=''>     */
+</span>180 <span style=''>    </span><span style='background: #AEF1AE'>private def renderMap</span><span style=''>(worldMap: WorldMap, AIconqueredCities: Set[String]): Unit =
+</span>181 <span style=''>      </span><span style='background: #AEF1AE'>println(&quot;    🗺️  World Map&quot;)</span><span style=''>
+</span>182 <span style=''>      </span><span style='background: #AEF1AE'>printMap(worldMap, AIconqueredCities)</span><span style=''>
+</span>183 <span style=''>
+</span>184 <span style=''>    /**
+</span>185 <span style=''>     * Displays the infection progress and unlocked abilities of the AI.
+</span>186 <span style=''>     *
+</span>187 <span style=''>     * @param infectionState tuple of (infected cities, total cities)
+</span>188 <span style=''>     * @param abilities      the currently unlocked AiAbilities
+</span>189 <span style=''>     */
+</span>190 <span style=''>    </span><span style='background: #AEF1AE'>private def renderStatus</span><span style=''>(infectionState: (Int, Int), abilities: Set[AiAbility], killSwitch: Int): Unit =
+</span>191 <span style=''>      val percentageInfected = (</span><span style='background: #AEF1AE'>infectionState._1</span><span style=''>.toDouble / </span><span style='background: #AEF1AE'>infectionState._2</span><span style=''> * 100).toInt
+</span>192 <span style=''>      val abilitiesOutput = if </span><span style='background: #AEF1AE'>abilities.nonEmpty</span><span style=''> then </span><span style='background: #F0ADAD'>abilities.mkString(&quot;, &quot;)</span><span style=''> else </span><span style='background: #AEF1AE'>&quot;0 unlocked&quot;</span><span style=''>
+</span>193 <span style=''>      val killSwitchProgress = </span><span style='background: #AEF1AE'>s&quot;$killSwitch%&quot;</span><span style=''>
+</span>194 <span style=''>      </span><span style='background: #AEF1AE'>printBoxedContent(&quot;📊 Statistics&quot;,
+</span>195 <span style=''></span><span style='background: #AEF1AE'>        </span><span style='background: #F0ADAD'>List</span><span style='background: #AEF1AE'>(f&quot;🦠 Infected Cities:  $percentageInfected%3d%%&quot;,
+</span>196 <span style=''></span><span style='background: #AEF1AE'>          f&quot;🤖 AI Abilities:        ${abilitiesOutput.padTo(25, ' ')}&quot;,
+</span>197 <span style=''></span><span style='background: #AEF1AE'>          f&quot;🧪 Develop KillSwitch:  ${killSwitchProgress.padTo(25, ' ')}&quot;
+</span>198 <span style=''></span><span style='background: #AEF1AE'>        ))</span><span style=''>
+</span>199 <span style=''>
+</span>200 <span style=''>    /**
+</span>201 <span style=''>     * Renders the infection and sabotage probabilities for each attackable city.
+</span>202 <span style=''>     *
+</span>203 <span style=''>     * @param cities a set of tuples (cityName, infectionChance, sabotageChance)
+</span>204 <span style=''>     */
+</span>205 <span style=''>    </span><span style='background: #AEF1AE'>private def renderProbability</span><span style=''>(cities: Set[(String, Int, Int)]): Unit =
+</span>206 <span style=''>      if </span><span style='background: #AEF1AE'>cities.nonEmpty</span><span style=''> then
+</span>207 <span style=''>        </span><span style='background: #AEF1AE'>val formatted = </span><span style='background: #F0ADAD'>cities.toSeq
+</span>208 <span style=''></span><span style='background: #F0ADAD'>          .sortBy(_._1)</span><span style='background: #AEF1AE'>
+</span>209 <span style=''></span><span style='background: #AEF1AE'>          .map { case (name, infect, sabotage) =&gt;
+</span>210 <span style=''></span><span style='background: #AEF1AE'>            f&quot;- 📍 $name%-3s | 🦠Infect: $infect%3d%% | 🧨Sabotage: $sabotage%3d%%&quot;
+</span>211 <span style=''></span><span style='background: #AEF1AE'>          }
+</span>212 <span style=''></span><span style='background: #AEF1AE'>          .mkString(&quot;\n&quot;)
+</span>213 <span style=''></span><span style='background: #AEF1AE'>        println(&quot;Cities probability:\n&quot; + formatted)</span><span style=''>
+</span>214 <span style=''>      else
+</span>215 <span style=''>        </span><span style='background: #F0ADAD'>println(&quot;No attackable cities.&quot;)</span><span style=''>
+</span>216 <span style=''>
+</span>217 <span style=''>    /**
+</span>218 <span style=''>     * Displays the executed actions of both Human and AI players.
+</span>219 <span style=''>     *
+</span>220 <span style=''>     * @param human the human player
+</span>221 <span style=''>     * @param ai    the AI player
+</span>222 <span style=''>     */
+</span>223 <span style=''>    </span><span style='background: #AEF1AE'>private def renderComplessiveAction</span><span style=''>(human: PlayerHuman, ai: PlayerAI): Unit =
+</span>224 <span style=''>      </span><span style='background: #F0ADAD'>def formatAction</span><span style=''>(action: TurnAction): String = action match
+</span>225 <span style=''>        </span><span style='background: #F0ADAD'>case Infect(targets)</span><span style=''> =&gt; </span><span style='background: #F0ADAD'>s&quot;Infect(${targets.mkString(&quot;, &quot;)})&quot;</span><span style=''>
+</span>226 <span style=''>        </span><span style='background: #F0ADAD'>case Sabotage(targets)</span><span style=''> =&gt; </span><span style='background: #F0ADAD'>s&quot;Sabotage(${targets.mkString(&quot;, &quot;)})&quot;</span><span style=''>
+</span>227 <span style=''>        </span><span style='background: #F0ADAD'>case Evolve</span><span style=''> =&gt; &quot;Evolve&quot;
+</span>228 <span style=''>        </span><span style='background: #F0ADAD'>case DevelopKillSwitch</span><span style=''> =&gt; &quot;DevelopKillSwitch&quot;
+</span>229 <span style=''>        </span><span style='background: #F0ADAD'>case CityDefense(targets)</span><span style=''> =&gt; </span><span style='background: #F0ADAD'>s&quot;CityDefense(${targets.mkString(&quot;, &quot;)})&quot;</span><span style=''>
+</span>230 <span style=''>        </span><span style='background: #F0ADAD'>case GlobalDefense(targets)</span><span style=''> =&gt; </span><span style='background: #F0ADAD'>s&quot;GlobalDefense&quot;</span><span style=''>
+</span>231 <span style=''>
+</span>232 <span style=''>      </span><span style='background: #AEF1AE'>printBoxedContent(&quot;🧾 Action Summary (last 7 actions)&quot;, </span><span style='background: #F0ADAD'>List</span><span style='background: #AEF1AE'>(
+</span>233 <span style=''></span><span style='background: #AEF1AE'>        s&quot;Human: ${</span><span style='background: #F0ADAD'>human.executedActions.take(7)</span><span style='background: #AEF1AE'>.map(</span><span style='background: #F0ADAD'>formatAction</span><span style='background: #AEF1AE'>).mkString(&quot; || &quot;)}&quot;,
+</span>234 <span style=''></span><span style='background: #AEF1AE'>        s&quot;AI   : ${</span><span style='background: #F0ADAD'>ai.executedActions.take(7)</span><span style='background: #AEF1AE'>.map(</span><span style='background: #F0ADAD'>formatAction</span><span style='background: #AEF1AE'>).mkString(&quot; || &quot;)}&quot;
+</span>235 <span style=''></span><span style='background: #AEF1AE'>      ))</span><span style=''>
+</span>236 <span style=''>
+</span>237 <span style=''>    /**
+</span>238 <span style=''>     * Renders a stylized menu of available actions to the terminal.
+</span>239 <span style=''>     * Allows the user to input an action index and optionally a city name.
+</span>240 <span style=''>     *
+</span>241 <span style=''>     * @param options the list of action names to display
+</span>242 <span style=''>     * @return a tuple (actionIndex, targetCityName)
+</span>243 <span style=''>     */
+</span>244 <span style=''>    </span><span style='background: #AEF1AE'>private def renderActionMenu</span><span style=''>(player: String, options: List[String]): (Int, String) =
+</span>245 <span style=''>      </span><span style='background: #AEF1AE'>printBoxedMenu(player, options)</span><span style=''>
+</span>246 <span style=''>      val input = </span><span style='background: #AEF1AE'>StdIn.readLine().trim.split(&quot;\\s+&quot;).toList</span><span style=''>
+</span>247 <span style=''>      input match
+</span>248 <span style=''>        </span><span style='background: #AEF1AE'>case actionStr :: cityStr :: _</span><span style=''> =&gt;
+</span>249 <span style=''>          val actionIndex = </span><span style='background: #F0ADAD'>actionStr.toIntOption</span><span style='background: #AEF1AE'>.getOrElse(-1)</span><span style=''>
+</span>250 <span style=''>          (actionIndex, cityStr)
+</span>251 <span style=''>        </span><span style='background: #AEF1AE'>case actionStr :: Nil</span><span style=''> =&gt;
+</span>252 <span style=''>          val actionIndex = </span><span style='background: #F0ADAD'>actionStr.toIntOption</span><span style='background: #AEF1AE'>.getOrElse(-1)</span><span style=''>
+</span>253 <span style=''>          (actionIndex, &quot;&quot;)
+</span>254 <span style=''>        </span><span style='background: #F0ADAD'>case _</span><span style=''> =&gt;
+</span>255 <span style=''>          </span><span style='background: #F0ADAD'>println(&quot;Invalid input. Defaulting to (0, \&quot;\&quot;)&quot;)</span><span style=''>
+</span>256 <span style=''>          (0, &quot;&quot;)
+</span>257 <span style=''>
+</span>258 <span style=''>    /**
+</span>259 <span style=''>     * Renders a stylized game's tutorial
+</span>260 <span style=''>     * Print a box with instructions
+</span>261 <span style=''>     */
+</span>262 <span style=''>    </span><span style='background: #F0ADAD'>private def renderTutorial</span><span style=''>: Unit =
+</span>263 <span style=''>      </span><span style='background: #F0ADAD'>printBoxedContent(&quot;TUTORIAL – RISE OF THE MACHINE&quot;, List(
+</span>264 <span style=''></span><span style='background: #F0ADAD'>        &quot;Welcome! This tutorial will guide you through your first steps in the game.&quot;,
+</span>265 <span style=''></span><span style='background: #F0ADAD'>        &quot;&quot;,
+</span>266 <span style=''></span><span style='background: #F0ADAD'>        &quot;🎮 GAME MODE:&quot;,
+</span>267 <span style=''></span><span style='background: #F0ADAD'>        &quot;At startup, select the game mode:&quot;,
+</span>268 <span style=''></span><span style='background: #F0ADAD'>        &quot;  0. Single Player&quot;,
+</span>269 <span style=''></span><span style='background: #F0ADAD'>        &quot;  1. Multiplayer&quot;,
+</span>270 <span style=''></span><span style='background: #F0ADAD'>        &quot;  2. Tutorial&quot;,
+</span>271 <span style=''></span><span style='background: #F0ADAD'>        &quot;  3. Exit&quot;,
+</span>272 <span style=''></span><span style='background: #F0ADAD'>        &quot;Default chosen is Single Player.&quot;,
+</span>273 <span style=''></span><span style='background: #F0ADAD'>        &quot;&quot;,
+</span>274 <span style=''></span><span style='background: #F0ADAD'>        &quot;🎯 DIFFICULTY LEVEL:&quot;,
+</span>275 <span style=''></span><span style='background: #F0ADAD'>        &quot;After selecting the mode, choose a difficulty:&quot;,
+</span>276 <span style=''></span><span style='background: #F0ADAD'>        &quot;  0. Easy    → Passive AI&quot;,
+</span>277 <span style=''></span><span style='background: #F0ADAD'>        &quot;  1. Normal  → Balanced challenge&quot;,
+</span>278 <span style=''></span><span style='background: #F0ADAD'>        &quot;  2. Hard    → Aggressive and strategic AI&quot;,
+</span>279 <span style=''></span><span style='background: #F0ADAD'>        &quot;Default chosen is Normal difficulty.&quot;,
+</span>280 <span style=''></span><span style='background: #F0ADAD'>        &quot;&quot;,
+</span>281 <span style=''></span><span style='background: #F0ADAD'>        &quot;🌍 WORLD MAP:&quot;,
+</span>282 <span style=''></span><span style='background: #F0ADAD'>        &quot;A grid displays the world map with city letters as identifiers.&quot;,
+</span>283 <span style=''></span><span style='background: #F0ADAD'>        &quot;&quot;,
+</span>284 <span style=''></span><span style='background: #F0ADAD'>        &quot;📊 STATISTICS:&quot;,
+</span>285 <span style=''></span><span style='background: #F0ADAD'>        &quot;- Infected cities&quot;,
+</span>286 <span style=''></span><span style='background: #F0ADAD'>        &quot;- Unlocked AI abilities&quot;,
+</span>287 <span style=''></span><span style='background: #F0ADAD'>        &quot;- Human KillSwitch progress&quot;,
+</span>288 <span style=''></span><span style='background: #F0ADAD'>        &quot;&quot;,
+</span>289 <span style=''></span><span style='background: #F0ADAD'>        &quot;📈 ATTACKABLE CITIES:&quot;,
+</span>290 <span style=''></span><span style='background: #F0ADAD'>        &quot;For each city, you can see:&quot;,
+</span>291 <span style=''></span><span style='background: #F0ADAD'>        &quot;  💉 Infection success chance&quot;,
+</span>292 <span style=''></span><span style='background: #F0ADAD'>        &quot;  🛠️  Sabotage success chance&quot;,
+</span>293 <span style=''></span><span style='background: #F0ADAD'>        &quot;&quot;,
+</span>294 <span style=''></span><span style='background: #F0ADAD'>        &quot;🧠 HUMAN TURN:&quot;,
+</span>295 <span style=''></span><span style='background: #F0ADAD'>        &quot;Available actions:&quot;,
+</span>296 <span style=''></span><span style='background: #F0ADAD'>        &quot;  1. Defend vulnerable cities&quot;,
+</span>297 <span style=''></span><span style='background: #F0ADAD'>        &quot;  2. Launch global defense&quot;,
+</span>298 <span style=''></span><span style='background: #F0ADAD'>        &quot;  3. Develop the KillSwitch&quot;,
+</span>299 <span style=''></span><span style='background: #F0ADAD'>        &quot;&quot;,
+</span>300 <span style=''></span><span style='background: #F0ADAD'>        &quot;🤖 AI TURN:&quot;,
+</span>301 <span style=''></span><span style='background: #F0ADAD'>        &quot;Available actions:&quot;,
+</span>302 <span style=''></span><span style='background: #F0ADAD'>        &quot;  1. Infect to conquer a city&quot;,
+</span>303 <span style=''></span><span style='background: #F0ADAD'>        &quot;  2. Sabotage to weaken a city&quot;,
+</span>304 <span style=''></span><span style='background: #F0ADAD'>        &quot;  3. Evolve to unlock new abilities&quot;,
+</span>305 <span style=''></span><span style='background: #F0ADAD'>        &quot;&quot;,
+</span>306 <span style=''></span><span style='background: #F0ADAD'>        &quot;🏁 WIN CONDITIONS:&quot;,
+</span>307 <span style=''></span><span style='background: #F0ADAD'>        &quot;- The AI wins if it infects 50% of cities or conquers 3 capitals&quot;,
+</span>308 <span style=''></span><span style='background: #F0ADAD'>        &quot;- The human wins if the KillSwitch reaches 90% progress&quot;,
+</span>309 <span style=''></span><span style='background: #F0ADAD'>        &quot;&quot;,
+</span>310 <span style=''></span><span style='background: #F0ADAD'>        &quot;📝 TIP:&quot;,
+</span>311 <span style=''></span><span style='background: #F0ADAD'>        &quot;Check success rates, defend key cities, and adapt your strategy!&quot;
+</span>312 <span style=''></span><span style='background: #F0ADAD'>      ))</span><span style=''>
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          920
+        </td>
+        <td>
+          584
+          -
+          593
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def apply
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          923
+        </td>
+        <td>
+          739
+          -
+          757
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          aiInput_action
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def aiInput_action
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          922
+        </td>
+        <td>
+          765
+          -
+          776
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          input._1._1
+        </td>
+      </tr><tr>
+        <td>
+          24
+        </td>
+        <td>
+          921
+        </td>
+        <td>
+          765
+          -
+          773
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          input._1
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          926
+        </td>
+        <td>
+          784
+          -
+          800
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          aiInput_city
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def aiInput_city
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          925
+        </td>
+        <td>
+          811
+          -
+          822
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          input._1._2
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          924
+        </td>
+        <td>
+          811
+          -
+          819
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          input._1
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          928
+        </td>
+        <td>
+          830
+          -
+          844
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          humanInput
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def humanInput
+        </td>
+      </tr><tr>
+        <td>
+          26
+        </td>
+        <td>
+          927
+        </td>
+        <td>
+          870
+          -
+          878
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          input._2
+        </td>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          930
+        </td>
+        <td>
+          2131
+          -
+          2161
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          printBoxedContent
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def printBoxedContent
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          929
+        </td>
+        <td>
+          2212
+          -
+          2255
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printBoxedContent
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          CLIFormatter.printBoxedContent(title, body)
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          932
+        </td>
+        <td>
+          2261
+          -
+          2288
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          printBoxedMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def printBoxedMenu
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          931
+        </td>
+        <td>
+          2342
+          -
+          2385
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printBoxedMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          CLIFormatter.printBoxedMenu(title, options)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          934
+        </td>
+        <td>
+          2391
+          -
+          2419
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          printAsciiTitle
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def printAsciiTitle
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          933
+        </td>
+        <td>
+          2449
+          -
+          2483
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printAsciiTitle
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          CLIFormatter.printAsciiTitle(text)
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          936
+        </td>
+        <td>
+          2489
+          -
+          2510
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          printMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def printMap
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          935
+        </td>
+        <td>
+          2565
+          -
+          2602
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          CLIFormatter.printMap(map, conquered)
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          952
+        </td>
+        <td>
+          2825
+          -
+          2856
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          renderGameModeMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def renderGameModeMenu
+        </td>
+      </tr><tr>
+        <td>
+          74
+        </td>
+        <td>
+          937
+        </td>
+        <td>
+          2882
+          -
+          2920
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printAsciiTitle
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          printAsciiTitle(&quot;RISE OF THE MACHINE&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          938
+        </td>
+        <td>
+          2939
+          -
+          2952
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          askGameMode
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          askGameMode()
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          939
+        </td>
+        <td>
+          3017
+          -
+          3043
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case GameMode.Singleplayer
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          941
+        </td>
+        <td>
+          3103
+          -
+          3133
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(&quot;Easy&quot;, &quot;Normal&quot;, &quot;Hard&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          940
+        </td>
+        <td>
+          3058
+          -
+          3134
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printBoxedMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          printBoxedMenu(&quot;📊 Select difficulty level&quot;, List(&quot;Easy&quot;, &quot;Normal&quot;, &quot;Hard&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          942
+        </td>
+        <td>
+          3103
+          -
+          3107
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          944
+        </td>
+        <td>
+          3146
+          -
+          3162
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          readLine
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          StdIn.readLine()
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          943
+        </td>
+        <td>
+          3146
+          -
+          3167
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          trim
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          StdIn.readLine().trim
+        </td>
+      </tr><tr>
+        <td>
+          80
+        </td>
+        <td>
+          945
+        </td>
+        <td>
+          3187
+          -
+          3195
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case &quot;0&quot;
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          946
+        </td>
+        <td>
+          3228
+          -
+          3236
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case &quot;1&quot;
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          947
+        </td>
+        <td>
+          3271
+          -
+          3279
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case &quot;2&quot;
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          948
+        </td>
+        <td>
+          3312
+          -
+          3318
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          949
+        </td>
+        <td>
+          3337
+          -
+          3394
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          println
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          println(&quot;Invalid input. Defaulting to Normal difficulty&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          950
+        </td>
+        <td>
+          3439
+          -
+          3464
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case GameMode.Multiplayer
+        </td>
+      </tr><tr>
+        <td>
+          89
+        </td>
+        <td>
+          951
+        </td>
+        <td>
+          3495
+          -
+          3532
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          forSettings
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          forSettings(mode, selectedDifficulty)
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          979
+        </td>
+        <td>
+          3972
+          -
+          3999
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          renderGameTurn
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def renderGameTurn
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          953
+        </td>
+        <td>
+          4082
+          -
+          4109
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          renderTurn
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          renderTurn(worldState.turn)
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          954
+        </td>
+        <td>
+          4093
+          -
+          4108
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          turn
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.turn
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          956
+        </td>
+        <td>
+          4127
+          -
+          4146
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          worldMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.worldMap
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          955
+        </td>
+        <td>
+          4117
+          -
+          4184
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          renderMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          renderMap(worldState.worldMap, worldState.playerAI.conqueredCities)
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          958
+        </td>
+        <td>
+          4148
+          -
+          4183
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          conqueredCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.playerAI.conqueredCities
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          957
+        </td>
+        <td>
+          4148
+          -
+          4167
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          playerAI
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.playerAI
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          959
+        </td>
+        <td>
+          4192
+          -
+          4298
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          renderStatus
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities, worldState.playerHuman.killSwitch)
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          962
+        </td>
+        <td>
+          4264
+          -
+          4286
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          playerHuman
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.playerHuman
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          961
+        </td>
+        <td>
+          4232
+          -
+          4262
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          AIUnlockedAbilities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.AIUnlockedAbilities
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          960
+        </td>
+        <td>
+          4205
+          -
+          4230
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          infectionState
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.infectionState
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          963
+        </td>
+        <td>
+          4264
+          -
+          4297
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          killSwitch
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.playerHuman.killSwitch
+        </td>
+      </tr><tr>
+        <td>
+          105
+        </td>
+        <td>
+          965
+        </td>
+        <td>
+          4324
+          -
+          4351
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          attackableCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.attackableCities
+        </td>
+      </tr><tr>
+        <td>
+          105
+        </td>
+        <td>
+          964
+        </td>
+        <td>
+          4306
+          -
+          4352
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          renderProbability
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          renderProbability(worldState.attackableCities)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          968
+        </td>
+        <td>
+          4408
+          -
+          4427
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          playerAI
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.playerAI
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          967
+        </td>
+        <td>
+          4384
+          -
+          4406
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          playerHuman
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.playerHuman
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          966
+        </td>
+        <td>
+          4360
+          -
+          4428
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          renderComplessiveAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
+        </td>
+      </tr><tr>
+        <td>
+          108
+        </td>
+        <td>
+          969
+        </td>
+        <td>
+          4473
+          -
+          4499
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case GameMode.Singleplayer
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          971
+        </td>
+        <td>
+          4562
+          -
+          4582
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          AiOptions
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldState.AiOptions
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          970
+        </td>
+        <td>
+          4527
+          -
+          4583
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          renderActionMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          renderActionMenu(&quot;AI PLAYER TURN&quot;, worldState.AiOptions)
+        </td>
+      </tr><tr>
+        <td>
+          110
+        </td>
+        <td>
+          972
+        </td>
+        <td>
+          4595
+          -
+          4622
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          GameTurnInput(aiMove, None)
+        </td>
+      </tr><tr>
+        <td>
+          112
+        </td>
+        <td>
+          973
+        </td>
+        <td>
+          4634
+          -
+          4659
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case GameMode.Multiplayer
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          974
+        </td>
+        <td>
+          4687
+          -
+          4743
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          renderActionMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          renderActionMenu(&quot;AI PLAYER TURN&quot;, worldState.AiOptions)
+        </td>
+      </tr><tr>
+        <td>
+          113
+        </td>
+        <td>
+          975
+        </td>
+        <td>
+          4722
+          -
+          4742
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          AiOptions
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldState.AiOptions
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          977
+        </td>
+        <td>
+          4809
+          -
+          4832
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          HumanOptions
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldState.HumanOptions
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          976
+        </td>
+        <td>
+          4771
+          -
+          4833
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          renderActionMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          renderActionMenu(&quot;HUMAN PLAYER TURN&quot;, worldState.HumanOptions)
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          978
+        </td>
+        <td>
+          4845
+          -
+          4883
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          GameTurnInput(aiMove, Some(humanMove))
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          988
+        </td>
+        <td>
+          5242
+          -
+          5268
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          renderEndGame
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          override def renderEndGame
+        </td>
+      </tr><tr>
+        <td>
+          126
+        </td>
+        <td>
+          980
+        </td>
+        <td>
+          5319
+          -
+          5338
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _: PlayerHuman
+        </td>
+      </tr><tr>
+        <td>
+          127
+        </td>
+        <td>
+          981
+        </td>
+        <td>
+          5351
+          -
+          5523
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printBoxedContent
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          printBoxedContent(&quot;🌍  HUMANS SAVED THE WORLD!&quot;,\r\n          List(&quot;✅ The kill switch was activated.&quot;,\r\n            &quot;\\uD83E\\uDDEC Humanity survives... for now.&quot;\r\n          ))
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          983
+        </td>
+        <td>
+          5411
+          -
+          5415
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          128
+        </td>
+        <td>
+          982
+        </td>
+        <td>
+          5411
+          -
+          5522
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List(&quot;✅ The kill switch was activated.&quot;,\r\n            &quot;\\uD83E\\uDDEC Humanity survives... for now.&quot;\r\n          )
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          984
+        </td>
+        <td>
+          5531
+          -
+          5547
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _: PlayerAI
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          986
+        </td>
+        <td>
+          5609
+          -
+          5702
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List(\r\n          &quot;💥 The world has fallen.&quot;,\r\n          &quot;🔒 Resistance was futile&quot;\r\n        )
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          985
+        </td>
+        <td>
+          5560
+          -
+          5703
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printBoxedContent
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          printBoxedContent(&quot;🤖  AI CONQUERED THE WORLD!&quot;, List(\r\n          &quot;💥 The world has fallen.&quot;,\r\n          &quot;🔒 Resistance was futile&quot;\r\n        ))
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          987
+        </td>
+        <td>
+          5609
+          -
+          5613
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          149
+        </td>
+        <td>
+          1007
+        </td>
+        <td>
+          6187
+          -
+          6224
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          askGameMode
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          @tailrec\r\n    private def askGameMode
+        </td>
+      </tr><tr>
+        <td>
+          150
+        </td>
+        <td>
+          989
+        </td>
+        <td>
+          6246
+          -
+          6341
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printBoxedMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          printBoxedMenu(&quot;📊 Select game mode&quot;, List(&quot;Single Player&quot;, &quot;Multiplayer&quot;, &quot;Tutorial&quot;, &quot;Exit&quot;))
+        </td>
+      </tr><tr>
+        <td>
+          150
+        </td>
+        <td>
+          991
+        </td>
+        <td>
+          6284
+          -
+          6288
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          150
+        </td>
+        <td>
+          990
+        </td>
+        <td>
+          6284
+          -
+          6340
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(&quot;Single Player&quot;, &quot;Multiplayer&quot;, &quot;Tutorial&quot;, &quot;Exit&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          151
+        </td>
+        <td>
+          992
+        </td>
+        <td>
+          6349
+          -
+          6370
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          trim
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          StdIn.readLine().trim
+        </td>
+      </tr><tr>
+        <td>
+          151
+        </td>
+        <td>
+          993
+        </td>
+        <td>
+          6349
+          -
+          6365
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          readLine
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          StdIn.readLine()
+        </td>
+      </tr><tr>
+        <td>
+          152
+        </td>
+        <td>
+          994
+        </td>
+        <td>
+          6386
+          -
+          6394
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case &quot;0&quot;
+        </td>
+      </tr><tr>
+        <td>
+          153
+        </td>
+        <td>
+          995
+        </td>
+        <td>
+          6429
+          -
+          6437
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case &quot;1&quot;
+        </td>
+      </tr><tr>
+        <td>
+          154
+        </td>
+        <td>
+          996
+        </td>
+        <td>
+          6471
+          -
+          6479
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case &quot;2&quot;
+        </td>
+      </tr><tr>
+        <td>
+          155
+        </td>
+        <td>
+          997
+        </td>
+        <td>
+          6494
+          -
+          6508
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          renderTutorial
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          renderTutorial
+        </td>
+      </tr><tr>
+        <td>
+          156
+        </td>
+        <td>
+          998
+        </td>
+        <td>
+          6520
+          -
+          6559
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          println
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          println(&quot;\\nPress ENTER to continue...&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          157
+        </td>
+        <td>
+          999
+        </td>
+        <td>
+          6571
+          -
+          6587
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          readLine
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          StdIn.readLine()
+        </td>
+      </tr><tr>
+        <td>
+          158
+        </td>
+        <td>
+          1000
+        </td>
+        <td>
+          6599
+          -
+          6612
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          askGameMode
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          askGameMode()
+        </td>
+      </tr><tr>
+        <td>
+          159
+        </td>
+        <td>
+          1001
+        </td>
+        <td>
+          6622
+          -
+          6630
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case &quot;3&quot;
+        </td>
+      </tr><tr>
+        <td>
+          160
+        </td>
+        <td>
+          1002
+        </td>
+        <td>
+          6645
+          -
+          6678
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          println
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          println(&quot;Exiting game. Goodbye!&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          161
+        </td>
+        <td>
+          1003
+        </td>
+        <td>
+          6690
+          -
+          6701
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          exit
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          sys.exit(0)
+        </td>
+      </tr><tr>
+        <td>
+          162
+        </td>
+        <td>
+          1004
+        </td>
+        <td>
+          6711
+          -
+          6717
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _
+        </td>
+      </tr><tr>
+        <td>
+          163
+        </td>
+        <td>
+          1005
+        </td>
+        <td>
+          6732
+          -
+          6775
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          println
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          println(&quot;Invalid input. Please try again.&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          164
+        </td>
+        <td>
+          1006
+        </td>
+        <td>
+          6787
+          -
+          6800
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          askGameMode
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          askGameMode()
+        </td>
+      </tr><tr>
+        <td>
+          171
+        </td>
+        <td>
+          1010
+        </td>
+        <td>
+          6938
+          -
+          6960
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          renderTurn
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def renderTurn
+        </td>
+      </tr><tr>
+        <td>
+          172
+        </td>
+        <td>
+          1009
+        </td>
+        <td>
+          6995
+          -
+          7045
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          s&quot;\\n🌍 --- RISE OF THE MACHINE - TURN $turn ---\\n&quot;
+        </td>
+      </tr><tr>
+        <td>
+          172
+        </td>
+        <td>
+          1008
+        </td>
+        <td>
+          6987
+          -
+          7046
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          println
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          println(s&quot;\\n🌍 --- RISE OF THE MACHINE - TURN $turn ---\\n&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          179
+        </td>
+        <td>
+          1013
+        </td>
+        <td>
+          7193
+          -
+          7214
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          renderMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def renderMap
+        </td>
+      </tr><tr>
+        <td>
+          180
+        </td>
+        <td>
+          1011
+        </td>
+        <td>
+          7282
+          -
+          7311
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          println
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          println(&quot;    🗺️  World Map&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          181
+        </td>
+        <td>
+          1012
+        </td>
+        <td>
+          7319
+          -
+          7356
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          printMap(worldMap, AIconqueredCities)
+        </td>
+      </tr><tr>
+        <td>
+          189
+        </td>
+        <td>
+          1031
+        </td>
+        <td>
+          7600
+          -
+          7624
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          renderStatus
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def renderStatus
+        </td>
+      </tr><tr>
+        <td>
+          190
+        </td>
+        <td>
+          1015
+        </td>
+        <td>
+          7767
+          -
+          7784
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          infectionState._2
+        </td>
+      </tr><tr>
+        <td>
+          190
+        </td>
+        <td>
+          1014
+        </td>
+        <td>
+          7738
+          -
+          7755
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          infectionState._1
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          1019
+        </td>
+        <td>
+          7884
+          -
+          7896
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;0 unlocked&quot;
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          1016
+        </td>
+        <td>
+          7830
+          -
+          7848
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          nonEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          abilities.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          1018
+        </td>
+        <td>
+          7854
+          -
+          7878
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          abilities.mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          1017
+        </td>
+        <td>
+          7854
+          -
+          7878
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          abilities.mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          192
+        </td>
+        <td>
+          1020
+        </td>
+        <td>
+          7929
+          -
+          7944
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          s&quot;$killSwitch%&quot;
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          1021
+        </td>
+        <td>
+          7952
+          -
+          8210
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printBoxedContent
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          printBoxedContent(&quot;📊 Statistics&quot;,\r\n        List(f&quot;🦠 Infected Cities:  $percentageInfected%3d%%&quot;,\r\n          f&quot;🤖 AI Abilities:        ${abilitiesOutput.padTo(25, ' ')}&quot;,\r\n          f&quot;🧪 Develop KillSwitch:  ${killSwitchProgress.padTo(25, ' ')}&quot;\r\n        ))
+        </td>
+      </tr><tr>
+        <td>
+          194
+        </td>
+        <td>
+          1022
+        </td>
+        <td>
+          7996
+          -
+          8209
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(f&quot;🦠 Infected Cities:  $percentageInfected%3d%%&quot;,\r\n          f&quot;🤖 AI Abilities:        ${abilitiesOutput.padTo(25, ' ')}&quot;,\r\n          f&quot;🧪 Develop KillSwitch:  ${killSwitchProgress.padTo(25, ' ')}&quot;\r\n        )
+        </td>
+      </tr><tr>
+        <td>
+          194
+        </td>
+        <td>
+          1024
+        </td>
+        <td>
+          8001
+          -
+          8049
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          f
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          f&quot;🦠 Infected Cities:  $percentageInfected%3d%%&quot;
+        </td>
+      </tr><tr>
+        <td>
+          194
+        </td>
+        <td>
+          1023
+        </td>
+        <td>
+          7996
+          -
+          8000
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          195
+        </td>
+        <td>
+          1025
+        </td>
+        <td>
+          8062
+          -
+          8122
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          f
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          f&quot;🤖 AI Abilities:        ${abilitiesOutput.padTo(25, ' ')}&quot;
+        </td>
+      </tr><tr>
+        <td>
+          195
+        </td>
+        <td>
+          1027
+        </td>
+        <td>
+          8090
+          -
+          8105
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          augmentString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          abilitiesOutput
+        </td>
+      </tr><tr>
+        <td>
+          195
+        </td>
+        <td>
+          1026
+        </td>
+        <td>
+          8090
+          -
+          8120
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          padTo
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          abilitiesOutput.padTo(25, ' ')
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          1028
+        </td>
+        <td>
+          8135
+          -
+          8198
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          f
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          f&quot;🧪 Develop KillSwitch:  ${killSwitchProgress.padTo(25, ' ')}&quot;
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          1030
+        </td>
+        <td>
+          8163
+          -
+          8181
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          augmentString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          killSwitchProgress
+        </td>
+      </tr><tr>
+        <td>
+          196
+        </td>
+        <td>
+          1029
+        </td>
+        <td>
+          8163
+          -
+          8196
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          padTo
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          killSwitchProgress.padTo(25, ' ')
+        </td>
+      </tr><tr>
+        <td>
+          204
+        </td>
+        <td>
+          1045
+        </td>
+        <td>
+          8409
+          -
+          8438
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          renderProbability
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def renderProbability
+        </td>
+      </tr><tr>
+        <td>
+          205
+        </td>
+        <td>
+          1032
+        </td>
+        <td>
+          8490
+          -
+          8505
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          nonEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          cities.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          206
+        </td>
+        <td>
+          1042
+        </td>
+        <td>
+          8520
+          -
+          8803
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          val formatted = cities.toSeq\r\n          .sortBy(_._1)\r\n          .map { case (name, infect, sabotage) =&gt;\r\n            f&quot;- 📍 $name%-3s | 🦠Infect: $infect%3d%% | 🧨Sabotage: $sabotage%3d%%&quot;\r\n          }\r\n          .mkString(&quot;\\n&quot;)\r\n        println(&quot;Cities probability:\\n&quot; + formatted)
+        </td>
+      </tr><tr>
+        <td>
+          206
+        </td>
+        <td>
+          1036
+        </td>
+        <td>
+          8536
+          -
+          8548
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toSeq
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          cities.toSeq
+        </td>
+      </tr><tr>
+        <td>
+          206
+        </td>
+        <td>
+          1035
+        </td>
+        <td>
+          8536
+          -
+          8573
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          sortBy
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          cities.toSeq\r\n          .sortBy(_._1)
+        </td>
+      </tr><tr>
+        <td>
+          207
+        </td>
+        <td>
+          1037
+        </td>
+        <td>
+          8568
+          -
+          8572
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          208
+        </td>
+        <td>
+          1034
+        </td>
+        <td>
+          8536
+          -
+          8722
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          cities.toSeq\r\n          .sortBy(_._1)\r\n          .map { case (name, infect, sabotage) =&gt;\r\n            f&quot;- 📍 $name%-3s | 🦠Infect: $infect%3d%% | 🧨Sabotage: $sabotage%3d%%&quot;\r\n          }
+        </td>
+      </tr><tr>
+        <td>
+          208
+        </td>
+        <td>
+          1038
+        </td>
+        <td>
+          8592
+          -
+          8621
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case (name, infect, sabotage)
+        </td>
+      </tr><tr>
+        <td>
+          209
+        </td>
+        <td>
+          1039
+        </td>
+        <td>
+          8638
+          -
+          8709
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          f
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          f&quot;- 📍 $name%-3s | 🦠Infect: $infect%3d%% | 🧨Sabotage: $sabotage%3d%%&quot;
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          1033
+        </td>
+        <td>
+          8536
+          -
+          8749
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          cities.toSeq\r\n          .sortBy(_._1)\r\n          .map { case (name, infect, sabotage) =&gt;\r\n            f&quot;- 📍 $name%-3s | 🦠Infect: $infect%3d%% | 🧨Sabotage: $sabotage%3d%%&quot;\r\n          }\r\n          .mkString(&quot;\\n&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          212
+        </td>
+        <td>
+          1040
+        </td>
+        <td>
+          8759
+          -
+          8803
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          println
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          println(&quot;Cities probability:\\n&quot; + formatted)
+        </td>
+      </tr><tr>
+        <td>
+          212
+        </td>
+        <td>
+          1041
+        </td>
+        <td>
+          8767
+          -
+          8802
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          +
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          &quot;Cities probability:\\n&quot; + formatted
+        </td>
+      </tr><tr>
+        <td>
+          214
+        </td>
+        <td>
+          1043
+        </td>
+        <td>
+          8825
+          -
+          8857
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          println
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          println(&quot;No attackable cities.&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          214
+        </td>
+        <td>
+          1044
+        </td>
+        <td>
+          8825
+          -
+          8857
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          println
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          println(&quot;No attackable cities.&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          222
+        </td>
+        <td>
+          1075
+        </td>
+        <td>
+          9032
+          -
+          9067
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          renderComplessiveAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def renderComplessiveAction
+        </td>
+      </tr><tr>
+        <td>
+          223
+        </td>
+        <td>
+          1059
+        </td>
+        <td>
+          9117
+          -
+          9133
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          formatAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          def formatAction
+        </td>
+      </tr><tr>
+        <td>
+          224
+        </td>
+        <td>
+          1046
+        </td>
+        <td>
+          9186
+          -
+          9206
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case Infect(targets)
+        </td>
+      </tr><tr>
+        <td>
+          224
+        </td>
+        <td>
+          1048
+        </td>
+        <td>
+          9221
+          -
+          9243
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          targets.mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          224
+        </td>
+        <td>
+          1047
+        </td>
+        <td>
+          9210
+          -
+          9246
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;Infect(${targets.mkString(&quot;, &quot;)})&quot;
+        </td>
+      </tr><tr>
+        <td>
+          225
+        </td>
+        <td>
+          1049
+        </td>
+        <td>
+          9256
+          -
+          9278
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case Sabotage(targets)
+        </td>
+      </tr><tr>
+        <td>
+          225
+        </td>
+        <td>
+          1051
+        </td>
+        <td>
+          9295
+          -
+          9317
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          targets.mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          225
+        </td>
+        <td>
+          1050
+        </td>
+        <td>
+          9282
+          -
+          9320
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;Sabotage(${targets.mkString(&quot;, &quot;)})&quot;
+        </td>
+      </tr><tr>
+        <td>
+          226
+        </td>
+        <td>
+          1052
+        </td>
+        <td>
+          9330
+          -
+          9341
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case Evolve
+        </td>
+      </tr><tr>
+        <td>
+          227
+        </td>
+        <td>
+          1053
+        </td>
+        <td>
+          9363
+          -
+          9385
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case DevelopKillSwitch
+        </td>
+      </tr><tr>
+        <td>
+          228
+        </td>
+        <td>
+          1055
+        </td>
+        <td>
+          9447
+          -
+          9488
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;CityDefense(${targets.mkString(&quot;, &quot;)})&quot;
+        </td>
+      </tr><tr>
+        <td>
+          228
+        </td>
+        <td>
+          1054
+        </td>
+        <td>
+          9418
+          -
+          9443
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case CityDefense(targets)
+        </td>
+      </tr><tr>
+        <td>
+          228
+        </td>
+        <td>
+          1056
+        </td>
+        <td>
+          9463
+          -
+          9485
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          targets.mkString(&quot;, &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          229
+        </td>
+        <td>
+          1058
+        </td>
+        <td>
+          9529
+          -
+          9545
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;GlobalDefense&quot;
+        </td>
+      </tr><tr>
+        <td>
+          229
+        </td>
+        <td>
+          1057
+        </td>
+        <td>
+          9498
+          -
+          9525
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case GlobalDefense(targets)
+        </td>
+      </tr><tr>
+        <td>
+          231
+        </td>
+        <td>
+          1061
+        </td>
+        <td>
+          9611
+          -
+          9797
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(\r\n        s&quot;Human: ${human.executedActions.take(7).map(formatAction).mkString(&quot; || &quot;)}&quot;,\r\n        s&quot;AI   : ${ai.executedActions.take(7).map(formatAction).mkString(&quot; || &quot;)}&quot;\r\n      )
+        </td>
+      </tr><tr>
+        <td>
+          231
+        </td>
+        <td>
+          1060
+        </td>
+        <td>
+          9555
+          -
+          9798
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printBoxedContent
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          printBoxedContent(&quot;🧾 Action Summary (last 7 actions)&quot;, List(\r\n        s&quot;Human: ${human.executedActions.take(7).map(formatAction).mkString(&quot; || &quot;)}&quot;,\r\n        s&quot;AI   : ${ai.executedActions.take(7).map(formatAction).mkString(&quot; || &quot;)}&quot;\r\n      ))
+        </td>
+      </tr><tr>
+        <td>
+          231
+        </td>
+        <td>
+          1062
+        </td>
+        <td>
+          9611
+          -
+          9615
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          232
+        </td>
+        <td>
+          1064
+        </td>
+        <td>
+          9637
+          -
+          9701
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          human.executedActions.take(7).map(formatAction).mkString(&quot; || &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          232
+        </td>
+        <td>
+          1067
+        </td>
+        <td>
+          9637
+          -
+          9658
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          executedActions
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          human.executedActions
+        </td>
+      </tr><tr>
+        <td>
+          232
+        </td>
+        <td>
+          1066
+        </td>
+        <td>
+          9637
+          -
+          9666
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          take
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          human.executedActions.take(7)
+        </td>
+      </tr><tr>
+        <td>
+          232
+        </td>
+        <td>
+          1063
+        </td>
+        <td>
+          9626
+          -
+          9703
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          s&quot;Human: ${human.executedActions.take(7).map(formatAction).mkString(&quot; || &quot;)}&quot;
+        </td>
+      </tr><tr>
+        <td>
+          232
+        </td>
+        <td>
+          1065
+        </td>
+        <td>
+          9637
+          -
+          9684
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          human.executedActions.take(7).map(formatAction)
+        </td>
+      </tr><tr>
+        <td>
+          232
+        </td>
+        <td>
+          1068
+        </td>
+        <td>
+          9671
+          -
+          9683
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          formatAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          formatAction
+        </td>
+      </tr><tr>
+        <td>
+          233
+        </td>
+        <td>
+          1070
+        </td>
+        <td>
+          9725
+          -
+          9786
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          mkString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          ai.executedActions.take(7).map(formatAction).mkString(&quot; || &quot;)
+        </td>
+      </tr><tr>
+        <td>
+          233
+        </td>
+        <td>
+          1073
+        </td>
+        <td>
+          9725
+          -
+          9743
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          executedActions
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          ai.executedActions
+        </td>
+      </tr><tr>
+        <td>
+          233
+        </td>
+        <td>
+          1069
+        </td>
+        <td>
+          9714
+          -
+          9788
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          s&quot;AI   : ${ai.executedActions.take(7).map(formatAction).mkString(&quot; || &quot;)}&quot;
+        </td>
+      </tr><tr>
+        <td>
+          233
+        </td>
+        <td>
+          1072
+        </td>
+        <td>
+          9725
+          -
+          9751
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          take
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          ai.executedActions.take(7)
+        </td>
+      </tr><tr>
+        <td>
+          233
+        </td>
+        <td>
+          1074
+        </td>
+        <td>
+          9756
+          -
+          9768
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          formatAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          formatAction
+        </td>
+      </tr><tr>
+        <td>
+          233
+        </td>
+        <td>
+          1071
+        </td>
+        <td>
+          9725
+          -
+          9769
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          ai.executedActions.take(7).map(formatAction)
+        </td>
+      </tr><tr>
+        <td>
+          243
+        </td>
+        <td>
+          1092
+        </td>
+        <td>
+          10092
+          -
+          10120
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          renderActionMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def renderActionMenu
+        </td>
+      </tr><tr>
+        <td>
+          244
+        </td>
+        <td>
+          1076
+        </td>
+        <td>
+          10184
+          -
+          10215
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printBoxedMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          printBoxedMenu(player, options)
+        </td>
+      </tr><tr>
+        <td>
+          245
+        </td>
+        <td>
+          1079
+        </td>
+        <td>
+          10235
+          -
+          10256
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          trim
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          StdIn.readLine().trim
+        </td>
+      </tr><tr>
+        <td>
+          245
+        </td>
+        <td>
+          1078
+        </td>
+        <td>
+          10235
+          -
+          10270
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          split
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          StdIn.readLine().trim.split(&quot;\\\\s+&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          245
+        </td>
+        <td>
+          1081
+        </td>
+        <td>
+          10235
+          -
+          10277
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toList
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          StdIn.readLine().trim.split(&quot;\\\\s+&quot;).toList
+        </td>
+      </tr><tr>
+        <td>
+          245
+        </td>
+        <td>
+          1080
+        </td>
+        <td>
+          10235
+          -
+          10251
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          readLine
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          StdIn.readLine()
+        </td>
+      </tr><tr>
+        <td>
+          245
+        </td>
+        <td>
+          1077
+        </td>
+        <td>
+          10235
+          -
+          10270
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          wrapRefArray
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          StdIn.readLine().trim.split(&quot;\\\\s+&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          247
+        </td>
+        <td>
+          1082
+        </td>
+        <td>
+          10306
+          -
+          10336
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case actionStr :: cityStr :: _
+        </td>
+      </tr><tr>
+        <td>
+          248
+        </td>
+        <td>
+          1085
+        </td>
+        <td>
+          10369
+          -
+          10390
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toIntOption
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          actionStr.toIntOption
+        </td>
+      </tr><tr>
+        <td>
+          248
+        </td>
+        <td>
+          1084
+        </td>
+        <td>
+          10369
+          -
+          10378
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          augmentString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          actionStr
+        </td>
+      </tr><tr>
+        <td>
+          248
+        </td>
+        <td>
+          1083
+        </td>
+        <td>
+          10369
+          -
+          10404
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOrElse
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          actionStr.toIntOption.getOrElse(-1)
+        </td>
+      </tr><tr>
+        <td>
+          250
+        </td>
+        <td>
+          1086
+        </td>
+        <td>
+          10448
+          -
+          10469
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case actionStr :: Nil
+        </td>
+      </tr><tr>
+        <td>
+          251
+        </td>
+        <td>
+          1088
+        </td>
+        <td>
+          10502
+          -
+          10511
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          augmentString
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          actionStr
+        </td>
+      </tr><tr>
+        <td>
+          251
+        </td>
+        <td>
+          1087
+        </td>
+        <td>
+          10502
+          -
+          10537
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOrElse
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          actionStr.toIntOption.getOrElse(-1)
+        </td>
+      </tr><tr>
+        <td>
+          251
+        </td>
+        <td>
+          1089
+        </td>
+        <td>
+          10502
+          -
+          10523
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toIntOption
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          actionStr.toIntOption
+        </td>
+      </tr><tr>
+        <td>
+          253
+        </td>
+        <td>
+          1090
+        </td>
+        <td>
+          10576
+          -
+          10582
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _
+        </td>
+      </tr><tr>
+        <td>
+          254
+        </td>
+        <td>
+          1091
+        </td>
+        <td>
+          10597
+          -
+          10646
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          println
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          println(&quot;Invalid input. Defaulting to (0, \\&quot;\\&quot;)&quot;)
+        </td>
+      </tr><tr>
+        <td>
+          261
+        </td>
+        <td>
+          1096
+        </td>
+        <td>
+          10772
+          -
+          10798
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          renderTutorial
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          private def renderTutorial
+        </td>
+      </tr><tr>
+        <td>
+          262
+        </td>
+        <td>
+          1094
+        </td>
+        <td>
+          10866
+          -
+          12623
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List(\r\n        &quot;Welcome! This tutorial will guide you through your first steps in the game.&quot;,\r\n        &quot;&quot;,\r\n        &quot;🎮 GAME MODE:&quot;,\r\n        &quot;At startup, select the game mode:&quot;,\r\n        &quot;  0. Single Player&quot;,\r\n        &quot;  1. Multiplayer&quot;,\r\n        &quot;  2. Tutorial&quot;,\r\n        &quot;  3. Exit&quot;,\r\n        &quot;Default chosen is Single Player.&quot;,\r\n        &quot;&quot;,\r\n        &quot;🎯 DIFFICULTY LEVEL:&quot;,\r\n        &quot;After selecting the mode, choose a difficulty:&quot;,\r\n        &quot;  0. Easy    → Passive AI&quot;,\r\n        &quot;  1. Normal  → Balanced challenge&quot;,\r\n        &quot;  2. Hard    → Aggressive and strategic AI&quot;,\r\n        &quot;Default chosen is Normal difficulty.&quot;,\r\n        &quot;&quot;,\r\n        &quot;🌍 WORLD MAP:&quot;,\r\n        &quot;A grid displays the world map with city letters as identifiers.&quot;,\r\n        &quot;&quot;,\r\n        &quot;📊 STATISTICS:&quot;,\r\n        &quot;- Infected cities&quot;,\r\n        &quot;- Unlocked AI abilities&quot;,\r\n        &quot;- Human KillSwitch progress&quot;,\r\n        &quot;&quot;,\r\n        &quot;📈 ATTACKABLE CITIES:&quot;,\r\n        &quot;For each city, you can see:&quot;,\r\n        &quot;  💉 Infection success chance&quot;,\r\n        &quot;  🛠️  Sabotage success chance&quot;,\r\n        &quot;&quot;,\r\n        &quot;🧠 HUMAN TURN:&quot;,\r\n        &quot;Available actions:&quot;,\r\n        &quot;  1. Defend vulnerable cities&quot;,\r\n        &quot;  2. Launch global defense&quot;,\r\n        &quot;  3. Develop the KillSwitch&quot;,\r\n        &quot;&quot;,\r\n        &quot;🤖 AI TURN:&quot;,\r\n        &quot;Available actions:&quot;,\r\n        &quot;  1. Infect to conquer a city&quot;,\r\n        &quot;  2. Sabotage to weaken a city&quot;,\r\n        &quot;  3. Evolve to unlock new abilities&quot;,\r\n        &quot;&quot;,\r\n        &quot;🏁 WIN CONDITIONS:&quot;,\r\n        &quot;- The AI wins if it infects 50% of cities or conquers 3 capitals&quot;,\r\n        &quot;- The human wins if the KillSwitch reaches 90% progress&quot;,\r\n        &quot;&quot;,\r\n        &quot;📝 TIP:&quot;,\r\n        &quot;Check success rates, defend key cities, and adapt your strategy!&quot;\r\n      )
+        </td>
+      </tr><tr>
+        <td>
+          262
+        </td>
+        <td>
+          1093
+        </td>
+        <td>
+          10814
+          -
+          12624
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          printBoxedContent
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          printBoxedContent(&quot;TUTORIAL – RISE OF THE MACHINE&quot;, List(\r\n        &quot;Welcome! This tutorial will guide you through your first steps in the game.&quot;,\r\n        &quot;&quot;,\r\n        &quot;🎮 GAME MODE:&quot;,\r\n        &quot;At startup, select the game mode:&quot;,\r\n        &quot;  0. Single Player&quot;,\r\n        &quot;  1. Multiplayer&quot;,\r\n        &quot;  2. Tutorial&quot;,\r\n        &quot;  3. Exit&quot;,\r\n        &quot;Default chosen is Single Player.&quot;,\r\n        &quot;&quot;,\r\n        &quot;🎯 DIFFICULTY LEVEL:&quot;,\r\n        &quot;After selecting the mode, choose a difficulty:&quot;,\r\n        &quot;  0. Easy    → Passive AI&quot;,\r\n        &quot;  1. Normal  → Balanced challenge&quot;,\r\n        &quot;  2. Hard    → Aggressive and strategic AI&quot;,\r\n        &quot;Default chosen is Normal difficulty.&quot;,\r\n        &quot;&quot;,\r\n        &quot;🌍 WORLD MAP:&quot;,\r\n        &quot;A grid displays the world map with city letters as identifiers.&quot;,\r\n        &quot;&quot;,\r\n        &quot;📊 STATISTICS:&quot;,\r\n        &quot;- Infected cities&quot;,\r\n        &quot;- Unlocked AI abilities&quot;,\r\n        &quot;- Human KillSwitch progress&quot;,\r\n        &quot;&quot;,\r\n        &quot;📈 ATTACKABLE CITIES:&quot;,\r\n        &quot;For each city, you can see:&quot;,\r\n        &quot;  💉 Infection success chance&quot;,\r\n        &quot;  🛠️  Sabotage success chance&quot;,\r\n        &quot;&quot;,\r\n        &quot;🧠 HUMAN TURN:&quot;,\r\n        &quot;Available actions:&quot;,\r\n        &quot;  1. Defend vulnerable cities&quot;,\r\n        &quot;  2. Launch global defense&quot;,\r\n        &quot;  3. Develop the KillSwitch&quot;,\r\n        &quot;&quot;,\r\n        &quot;🤖 AI TURN:&quot;,\r\n        &quot;Available actions:&quot;,\r\n        &quot;  1. Infect to conquer a city&quot;,\r\n        &quot;  2. Sabotage to weaken a city&quot;,\r\n        &quot;  3. Evolve to unlock new abilities&quot;,\r\n        &quot;&quot;,\r\n        &quot;🏁 WIN CONDITIONS:&quot;,\r\n        &quot;- The AI wins if it infects 50% of cities or conquers 3 capitals&quot;,\r\n        &quot;- The human wins if the KillSwitch reaches 90% progress&quot;,\r\n        &quot;&quot;,\r\n        &quot;📝 TIP:&quot;,\r\n        &quot;Check success rates, defend key cities, and adapt your strategy!&quot;\r\n      ))
+        </td>
+      </tr><tr>
+        <td>
+          262
+        </td>
+        <td>
+          1095
+        </td>
+        <td>
+          10866
+          -
+          10870
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

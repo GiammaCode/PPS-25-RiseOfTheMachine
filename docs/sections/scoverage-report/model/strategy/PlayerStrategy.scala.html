@@ -1,0 +1,1502 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          model\strategy\PlayerStrategy.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package model.strategy
+</span>2 <span style=''>
+</span>3 <span style=''>import model.map.WorldState.WorldState
+</span>4 <span style=''>import model.util.GameSettings.Difficulty
+</span>5 <span style=''>
+</span>6 <span style=''>import scala.util.Random
+</span>7 <span style=''>
+</span>8 <span style=''>/**
+</span>9 <span style=''> * Represents the relative weights (probabilities) assigned to each possible HumanAction
+</span>10 <span style=''> * that a strategy can choose from during decision-making.
+</span>11 <span style=''> *
+</span>12 <span style=''> * These weights are used to influence the likelihood of each action being selected
+</span>13 <span style=''> * by weighted random selection logic.
+</span>14 <span style=''> *
+</span>15 <span style=''> * The higher the weight, the more likely the action is to be chosen.
+</span>16 <span style=''> * A weight of zero effectively disables that action.
+</span>17 <span style=''> *
+</span>18 <span style=''> * @param cityDefenseWeight     the weight assigned to the CityDefense action
+</span>19 <span style=''> * @param globalDefenseWeight   the weight assigned to the GlobalDefense action
+</span>20 <span style=''> * @param killSwitchWeight      the weight assigned to the DevelopKillSwitch action
+</span>21 <span style=''> */
+</span>22 <span style=''>case class ActionProbabilities(
+</span>23 <span style=''>                                cityDefenseWeight: Int,
+</span>24 <span style=''>                                globalDefenseWeight: Int,
+</span>25 <span style=''>                                killSwitchWeight: Int
+</span>26 <span style=''>                              )
+</span>27 <span style=''>
+</span>28 <span style=''>
+</span>29 <span style=''>/**
+</span>30 <span style=''> * A generic trait for a player strategy that can decide a valid TurnAction
+</span>31 <span style=''> * based on the current WorldState.
+</span>32 <span style=''> *
+</span>33 <span style=''> * @tparam A the type of TurnAction the strategy produces
+</span>34 <span style=''> */
+</span>35 <span style=''>trait PlayerStrategy[A &lt;: TurnAction]:
+</span>36 <span style=''>  /**
+</span>37 <span style=''>   * Decides the next action to perform based on the current game state.
+</span>38 <span style=''>   *
+</span>39 <span style=''>   * @param state the current state of the game world
+</span>40 <span style=''>   * @return a valid TurnAction for the player
+</span>41 <span style=''>   */
+</span>42 <span style=''>  def decideAction(state: WorldState)(using probs: ActionProbabilities): A
+</span>43 <span style=''>
+</span>44 <span style=''>/**
+</span>45 <span style=''> * A smart strategy implementation for the Human player.
+</span>46 <span style=''> * The decision is based on the difficulty level defined in the game settings.
+</span>47 <span style=''> *
+</span>48 <span style=''> * - Easy: defensive/passive
+</span>49 <span style=''> * - Normal: random among all valid actions
+</span>50 <span style=''> * - Hard: risk-based and proactive
+</span>51 <span style=''> */
+</span>52 <span style=''>object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
+</span>53 <span style=''>  /**
+</span>54 <span style=''>   * Chooses the appropriate decision strategy based on the difficulty level.
+</span>55 <span style=''>   *
+</span>56 <span style=''>   * @param state the current world state
+</span>57 <span style=''>   * @return the chosen HumanAction
+</span>58 <span style=''>   */
+</span>59 <span style=''>  </span><span style='background: #AEF1AE'>override def decideAction</span><span style=''>(state: WorldState)(using probs: ActionProbabilities): HumanAction =
+</span>60 <span style=''>    </span><span style='background: #AEF1AE'>def decideWeighted</span><span style=''>(targetSelector: WorldState =&gt; List[String]): HumanAction =
+</span>61 <span style=''>      val targets = </span><span style='background: #AEF1AE'>targetSelector(state)</span><span style=''>
+</span>62 <span style=''>      val defend = </span><span style='background: #AEF1AE'>nonDefended(targets, state).take(1)</span><span style=''>
+</span>63 <span style=''>      val available = </span><span style='background: #AEF1AE'>baseHumanActions(defend, targets)</span><span style=''>
+</span>64 <span style=''>      val actions = </span><span style='background: #AEF1AE'>available.collect {
+</span>65 <span style=''></span><span style='background: #AEF1AE'>        case a: CityDefense =&gt; (a, probs.cityDefenseWeight)
+</span>66 <span style=''></span><span style='background: #AEF1AE'>        case a: GlobalDefense =&gt; (a, probs.globalDefenseWeight)
+</span>67 <span style=''></span><span style='background: #AEF1AE'>        case DevelopKillSwitch =&gt; (DevelopKillSwitch, probs.killSwitchWeight)
+</span>68 <span style=''></span><span style='background: #AEF1AE'>      }</span><span style=''>
+</span>69 <span style=''>      </span><span style='background: #AEF1AE'>chooseWeighted(actions)</span><span style=''>
+</span>70 <span style=''>
+</span>71 <span style=''>    </span><span style='background: #AEF1AE'>state.difficulty</span><span style=''> match
+</span>72 <span style=''>      </span><span style='background: #AEF1AE'>case Difficulty.Easy</span><span style=''> =&gt; </span><span style='background: #AEF1AE'>decideWeighted(possibleTargets)</span><span style=''>
+</span>73 <span style=''>      </span><span style='background: #AEF1AE'>case Difficulty.Normal</span><span style=''> =&gt; </span><span style='background: #AEF1AE'>decideWeighted(possibleTargets)</span><span style=''>
+</span>74 <span style=''>      </span><span style='background: #AEF1AE'>case Difficulty.Hard</span><span style=''> =&gt; </span><span style='background: #AEF1AE'>decideWeighted(topRiskTargets)</span><span style=''>
+</span>75 <span style=''>
+</span>76 <span style=''>
+</span>77 <span style=''>  /**
+</span>78 <span style=''>   * Extracts the list of attackable cities as names, without sorting.
+</span>79 <span style=''>   *
+</span>80 <span style=''>   * @param state the current game state
+</span>81 <span style=''>   * @return list of city names that can be targeted
+</span>82 <span style=''>   */
+</span>83 <span style=''>  </span><span style='background: #AEF1AE'>private def possibleTargets</span><span style=''>(state: WorldState): List[String] =
+</span>84 <span style=''>    </span><span style='background: #F0ADAD'>state.attackableCities</span><span style='background: #AEF1AE'>.map(_._1).toList</span><span style=''>
+</span>85 <span style=''>
+</span>86 <span style=''>  /**
+</span>87 <span style=''>   * Returns the names of attackable cities sorted by combined infection and sabotage risk (descending).
+</span>88 <span style=''>   *
+</span>89 <span style=''>   * @param state the current game state
+</span>90 <span style=''>   * @return list of city names ordered by total risk
+</span>91 <span style=''>   */
+</span>92 <span style=''>  </span><span style='background: #AEF1AE'>private def topRiskTargets</span><span style=''>(state: WorldState): List[String] =
+</span>93 <span style=''>    </span><span style='background: #F0ADAD'>state.attackableCities.toList
+</span>94 <span style=''></span><span style='background: #F0ADAD'>      .sortBy { case (_, infect, sabotage) =&gt; -(infect + sabotage) }</span><span style='background: #AEF1AE'>
+</span>95 <span style=''></span><span style='background: #AEF1AE'>      .map(_._1)</span><span style=''>
+</span>96 <span style=''>
+</span>97 <span style=''>   /**
+</span>98 <span style=''>   * Filters out cities that are already defended by the human player.
+</span>99 <span style=''>   *
+</span>100 <span style=''>   * @param cities list of candidate city names
+</span>101 <span style=''>   * @param state  the current game state
+</span>102 <span style=''>   * @return list of city names not yet defended
+</span>103 <span style=''>   */
+</span>104 <span style=''>  </span><span style='background: #AEF1AE'>private def nonDefended</span><span style=''>(cities: List[String], state: WorldState): List[String] =
+</span>105 <span style=''>    </span><span style='background: #AEF1AE'>cities.filterNot(state.playerHuman.defendedCities.contains)</span><span style=''>
+</span>106 <span style=''>
+</span>107 <span style=''>  /**
+</span>108 <span style=''>   * Builds the list of available actions for the human player,
+</span>109 <span style=''>   * including city defense, kill switch development, and global defense.
+</span>110 <span style=''>   *
+</span>111 <span style=''>   * @param defend     list of cities to defend
+</span>112 <span style=''>   * @param allTargets list of all potential city targets
+</span>113 <span style=''>   * @return a list of valid HumanActions
+</span>114 <span style=''>   */
+</span>115 <span style=''>  </span><span style='background: #AEF1AE'>private def baseHumanActions</span><span style=''>(defend: List[String], allTargets: List[String]): List[HumanAction] =
+</span>116 <span style=''>    </span><span style='background: #F0ADAD'>List(
+</span>117 <span style=''></span><span style='background: #F0ADAD'>      Option.when(defend.nonEmpty)(CityDefense(defend)),
+</span>118 <span style=''></span><span style='background: #F0ADAD'>      Some(DevelopKillSwitch),
+</span>119 <span style=''></span><span style='background: #F0ADAD'>      Some(GlobalDefense(allTargets))
+</span>120 <span style=''></span><span style='background: #F0ADAD'>    )</span><span style='background: #AEF1AE'>.flatten</span><span style=''>
+</span>121 <span style=''>
+</span>122 <span style=''>  /**
+</span>123 <span style=''>   * Selects one action from a list of weighted HumanActions using a weighted random algorithm.
+</span>124 <span style=''>   *
+</span>125 <span style=''>   * Each action in the input list is associated with a weight (priority or likelihood).
+</span>126 <span style=''>   * The selection is made such that the probability of choosing an action is proportional to its weight.
+</span>127 <span style=''>   *
+</span>128 <span style=''>   * @param actions a list of tuples where each tuple contains a HumanAction and its corresponding weight
+</span>129 <span style=''>   * @return one HumanAction randomly selected based on the specified weights
+</span>130 <span style=''>   */
+</span>131 <span style=''>  </span><span style='background: #AEF1AE'>private def chooseWeighted</span><span style=''>(actions: List[(HumanAction, Int)]): HumanAction =
+</span>132 <span style=''>    val total = </span><span style='background: #F0ADAD'>actions.map(_._2)</span><span style='background: #AEF1AE'>.sum</span><span style=''>
+</span>133 <span style=''>    val rand = </span><span style='background: #AEF1AE'>Random.nextInt(total)</span><span style=''>
+</span>134 <span style=''>    </span><span style='background: #F0ADAD'>actions
+</span>135 <span style=''></span><span style='background: #F0ADAD'>      .scanLeft((Option.empty[HumanAction], 0)) {
+</span>136 <span style=''></span><span style='background: #F0ADAD'>        case ((_, acc), (action, weight)) =&gt; (Some(action), acc + weight)
+</span>137 <span style=''></span><span style='background: #F0ADAD'>      }</span><span style='background: #AEF1AE'>
+</span>138 <span style=''></span><span style='background: #AEF1AE'>      .collectFirst { case (Some(action), acc) if rand &lt; acc =&gt; action }
+</span>139 <span style=''></span><span style='background: #AEF1AE'>      .get</span><span style=''>
+</span>140 <span style=''>
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          58
+        </td>
+        <td>
+          722
+        </td>
+        <td>
+          2059
+          -
+          2084
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          decideAction
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def decideAction
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          711
+        </td>
+        <td>
+          2158
+          -
+          2176
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          decideWeighted
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def decideWeighted
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          702
+        </td>
+        <td>
+          2257
+          -
+          2278
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          targetSelector(state)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          704
+        </td>
+        <td>
+          2299
+          -
+          2326
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          nonDefended
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          nonDefended(targets, state)
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          703
+        </td>
+        <td>
+          2299
+          -
+          2334
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          take
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          nonDefended(targets, state).take(1)
+        </td>
+      </tr><tr>
+        <td>
+          62
+        </td>
+        <td>
+          705
+        </td>
+        <td>
+          2358
+          -
+          2391
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          baseHumanActions
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          baseHumanActions(defend, targets)
+        </td>
+      </tr><tr>
+        <td>
+          63
+        </td>
+        <td>
+          706
+        </td>
+        <td>
+          2413
+          -
+          2646
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          collect
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          available.collect {\r\n        case a: CityDefense =&gt; (a, probs.cityDefenseWeight)\r\n        case a: GlobalDefense =&gt; (a, probs.globalDefenseWeight)\r\n        case DevelopKillSwitch =&gt; (DevelopKillSwitch, probs.killSwitchWeight)\r\n      }
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          707
+        </td>
+        <td>
+          2442
+          -
+          2461
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case a: CityDefense
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          708
+        </td>
+        <td>
+          2503
+          -
+          2524
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case a: GlobalDefense
+        </td>
+      </tr><tr>
+        <td>
+          66
+        </td>
+        <td>
+          709
+        </td>
+        <td>
+          2568
+          -
+          2590
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case DevelopKillSwitch
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          710
+        </td>
+        <td>
+          2654
+          -
+          2677
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          chooseWeighted
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          chooseWeighted(actions)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          712
+        </td>
+        <td>
+          2685
+          -
+          2701
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          difficulty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          state.difficulty
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          714
+        </td>
+        <td>
+          2739
+          -
+          2770
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          decideWeighted
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          decideWeighted(possibleTargets)
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          713
+        </td>
+        <td>
+          2715
+          -
+          2735
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case Difficulty.Easy
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          715
+        </td>
+        <td>
+          2754
+          -
+          2769
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          possibleTargets
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          possibleTargets
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          717
+        </td>
+        <td>
+          2804
+          -
+          2835
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          decideWeighted
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          decideWeighted(possibleTargets)
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          716
+        </td>
+        <td>
+          2778
+          -
+          2800
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case Difficulty.Normal
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          718
+        </td>
+        <td>
+          2819
+          -
+          2834
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          possibleTargets
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          possibleTargets
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          720
+        </td>
+        <td>
+          2867
+          -
+          2897
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          decideWeighted
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          decideWeighted(topRiskTargets)
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          719
+        </td>
+        <td>
+          2843
+          -
+          2863
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case Difficulty.Hard
+        </td>
+      </tr><tr>
+        <td>
+          73
+        </td>
+        <td>
+          721
+        </td>
+        <td>
+          2882
+          -
+          2896
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          topRiskTargets
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          topRiskTargets
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          727
+        </td>
+        <td>
+          3093
+          -
+          3120
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          possibleTargets
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def possibleTargets
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          723
+        </td>
+        <td>
+          3161
+          -
+          3193
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          state.attackableCities.map(_._1)
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          726
+        </td>
+        <td>
+          3161
+          -
+          3200
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toList
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          state.attackableCities.map(_._1).toList
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          725
+        </td>
+        <td>
+          3188
+          -
+          3192
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          724
+        </td>
+        <td>
+          3161
+          -
+          3183
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          attackableCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          state.attackableCities
+        </td>
+      </tr><tr>
+        <td>
+          91
+        </td>
+        <td>
+          734
+        </td>
+        <td>
+          3429
+          -
+          3455
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          topRiskTargets
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def topRiskTargets
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          729
+        </td>
+        <td>
+          3496
+          -
+          3595
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          sortBy
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          state.attackableCities.toList\r\n      .sortBy { case (_, infect, sabotage) =&gt; -(infect + sabotage) }
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          731
+        </td>
+        <td>
+          3496
+          -
+          3525
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toList
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          state.attackableCities.toList
+        </td>
+      </tr><tr>
+        <td>
+          92
+        </td>
+        <td>
+          730
+        </td>
+        <td>
+          3496
+          -
+          3518
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          attackableCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          state.attackableCities
+        </td>
+      </tr><tr>
+        <td>
+          93
+        </td>
+        <td>
+          732
+        </td>
+        <td>
+          3543
+          -
+          3569
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case (_, infect, sabotage)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          728
+        </td>
+        <td>
+          3496
+          -
+          3613
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          state.attackableCities.toList\r\n      .sortBy { case (_, infect, sabotage) =&gt; -(infect + sabotage) }\r\n      .map(_._1)
+        </td>
+      </tr><tr>
+        <td>
+          94
+        </td>
+        <td>
+          733
+        </td>
+        <td>
+          3608
+          -
+          3612
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          739
+        </td>
+        <td>
+          3854
+          -
+          3877
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          nonDefended
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def nonDefended
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          738
+        </td>
+        <td>
+          3957
+          -
+          3998
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          contains
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          state.playerHuman.defendedCities.contains
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          735
+        </td>
+        <td>
+          3940
+          -
+          3999
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          filterNot
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          cities.filterNot(state.playerHuman.defendedCities.contains)
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          737
+        </td>
+        <td>
+          3957
+          -
+          3989
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          defendedCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          state.playerHuman.defendedCities
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          736
+        </td>
+        <td>
+          3957
+          -
+          3974
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          playerHuman
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          state.playerHuman
+        </td>
+      </tr><tr>
+        <td>
+          114
+        </td>
+        <td>
+          745
+        </td>
+        <td>
+          4316
+          -
+          4344
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          baseHumanActions
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def baseHumanActions
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          741
+        </td>
+        <td>
+          4419
+          -
+          4560
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List(\r\n      Option.when(defend.nonEmpty)(CityDefense(defend)),\r\n      Some(DevelopKillSwitch),\r\n      Some(GlobalDefense(allTargets))\r\n    )
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          740
+        </td>
+        <td>
+          4419
+          -
+          4568
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatten
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(\r\n      Option.when(defend.nonEmpty)(CityDefense(defend)),\r\n      Some(DevelopKillSwitch),\r\n      Some(GlobalDefense(allTargets))\r\n    ).flatten
+        </td>
+      </tr><tr>
+        <td>
+          115
+        </td>
+        <td>
+          742
+        </td>
+        <td>
+          4419
+          -
+          4423
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          116
+        </td>
+        <td>
+          744
+        </td>
+        <td>
+          4444
+          -
+          4459
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          nonEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          defend.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          116
+        </td>
+        <td>
+          743
+        </td>
+        <td>
+          4432
+          -
+          4481
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          when
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Option.when(defend.nonEmpty)(CityDefense(defend))
+        </td>
+      </tr><tr>
+        <td>
+          130
+        </td>
+        <td>
+          756
+        </td>
+        <td>
+          5080
+          -
+          5106
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          chooseWeighted
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def chooseWeighted
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          747
+        </td>
+        <td>
+          5174
+          -
+          5191
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          actions.map(_._2)
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          746
+        </td>
+        <td>
+          5174
+          -
+          5195
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          sum
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          actions.map(_._2).sum
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          748
+        </td>
+        <td>
+          5186
+          -
+          5190
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._2
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          749
+        </td>
+        <td>
+          5212
+          -
+          5233
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          nextInt
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Random.nextInt(total)
+        </td>
+      </tr><tr>
+        <td>
+          134
+        </td>
+        <td>
+          752
+        </td>
+        <td>
+          5265
+          -
+          5277
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Option.empty
+        </td>
+      </tr><tr>
+        <td>
+          134
+        </td>
+        <td>
+          751
+        </td>
+        <td>
+          5239
+          -
+          5381
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          scanLeft
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          actions\r\n      .scanLeft((Option.empty[HumanAction], 0)) {\r\n        case ((_, acc), (action, weight)) =&gt; (Some(action), acc + weight)\r\n      }
+        </td>
+      </tr><tr>
+        <td>
+          135
+        </td>
+        <td>
+          753
+        </td>
+        <td>
+          5307
+          -
+          5340
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case ((_, acc), (action, weight))
+        </td>
+      </tr><tr>
+        <td>
+          137
+        </td>
+        <td>
+          750
+        </td>
+        <td>
+          5239
+          -
+          5455
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          collectFirst
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          actions\r\n      .scanLeft((Option.empty[HumanAction], 0)) {\r\n        case ((_, acc), (action, weight)) =&gt; (Some(action), acc + weight)\r\n      }\r\n      .collectFirst { case (Some(action), acc) if rand &lt; acc =&gt; action }
+        </td>
+      </tr><tr>
+        <td>
+          137
+        </td>
+        <td>
+          754
+        </td>
+        <td>
+          5405
+          -
+          5443
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case (Some(action), acc) if rand &lt; acc
+        </td>
+      </tr><tr>
+        <td>
+          138
+        </td>
+        <td>
+          755
+        </td>
+        <td>
+          5239
+          -
+          5467
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          get
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          actions\r\n      .scanLeft((Option.empty[HumanAction], 0)) {\r\n        case ((_, acc), (action, weight)) =&gt; (Some(action), acc + weight)\r\n      }\r\n      .collectFirst { case (Some(action), acc) if rand &lt; acc =&gt; action }\r\n      .get
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -38,7 +38,8 @@ Campus of Cesena – Italy
 - [4️⃣ Architettura](sections/4_Architecture.md)
 - [5️⃣ Design](sections/5_Design.md)
 - [6️⃣ Implementazione](sections/6_Implementation.md)
-- [7️⃣ Retrospettiva](sections/7_Retrospective.md)
+- [7️⃣_Testing](sections/7_Testing.md)
+- [8️⃣Retrospettiva](sections/8_Retrospective.md)
 
 ---
 

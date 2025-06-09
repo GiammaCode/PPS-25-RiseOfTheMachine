@@ -1,0 +1,6137 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          model\map\WorldMapModule.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package model.map
+</span>2 <span style=''>
+</span>3 <span style=''>import model.map.CityModule.*
+</span>4 <span style=''>import model.map.CityModule.CityImpl.*
+</span>5 <span style=''>import model.util.Util.{doesTheActionGoesRight, letterAt}
+</span>6 <span style=''>
+</span>7 <span style=''>import scala.annotation.tailrec
+</span>8 <span style=''>import scala.util.Random
+</span>9 <span style=''>
+</span>10 <span style=''>/**
+</span>11 <span style=''> * == WorldMapModule ==
+</span>12 <span style=''> *
+</span>13 <span style=''> * This module defines the representation and construction logic for the game map.
+</span>14 <span style=''> * A world map consists of cities, each associated with a set of coordinate tiles representing its spatial footprint.
+</span>15 <span style=''> *
+</span>16 <span style=''> * === Opaque Type ===
+</span>17 <span style=''> * - [[WorldMap]] is an abstracted representation of a set of cities with their tile coordinates.
+</span>18 <span style=''> *
+</span>19 <span style=''> *
+</span>20 <span style=''> * == Traits ==
+</span>21 <span style=''> * === CreateModuleType ===
+</span>22 <span style=''> * Abstract interface for any map creation strategy.
+</span>23 <span style=''> *
+</span>24 <span style=''> * == DeterministicMapModule ==
+</span>25 <span style=''> * Creates a reproducible, grid-based map with adjacent tile allocation for each city.
+</span>26 <span style=''> *
+</span>27 <span style=''> * == UndeterministicMapModule ==
+</span>28 <span style=''> * Uses a state monad with a PRNG to construct a randomized map, including random tile distribution and city sizes.
+</span>29 <span style=''> *
+</span>30 <span style=''> * == Extension Methods ==
+</span>31 <span style=''> * Adds useful methods to `WorldMap`:
+</span>32 <span style=''> *  - `getSizeOfTheMap`: returns map dimensions
+</span>33 <span style=''> *  - `getCityByName(name)`: looks up a city by name
+</span>34 <span style=''> *  - `numberOfCityInfected`: counts infected (AI-controlled) cities
+</span>35 <span style=''> *  - `getAdjacentCities`: finds human cities adjacent to infected ones
+</span>36 <span style=''> *  - `changeACityOfTheMap`: replaces a city with an updated version
+</span>37 <span style=''> */
+</span>38 <span style=''>
+</span>39 <span style=''>object WorldMapModule:
+</span>40 <span style=''>
+</span>41 <span style=''>
+</span>42 <span style=''>  private val nCapital = 4
+</span>43 <span style=''>/**
+</span>44 <span style=''>   * Opaque type representing the entire game map as a set of pairs:
+</span>45 <span style=''>   * - City data
+</span>46 <span style=''>   * - Set of coordinates (tiles) associated with the city
+</span>47 <span style=''>   */
+</span>48 <span style=''>
+</span>49 <span style=''>  private type Coord = (Int, Int)
+</span>50 <span style=''>
+</span>51 <span style=''>  opaque type WorldMap = Set[(City, Set[Coord])]
+</span>52 <span style=''>
+</span>53 <span style=''>  /**
+</span>54 <span style=''>   * Strategy trait for creating a world map.
+</span>55 <span style=''>   */
+</span>56 <span style=''>
+</span>57 <span style=''>  /**
+</span>58 <span style=''>   * Trait that defines the interface for map creation modules.
+</span>59 <span style=''>   */
+</span>60 <span style=''>  trait CreateModuleType:
+</span>61 <span style=''>
+</span>62 <span style=''>    /**
+</span>63 <span style=''>     * Creates a world map of a specified size.
+</span>64 <span style=''>     *
+</span>65 <span style=''>     * @param size the width and height of the square map grid
+</span>66 <span style=''>     * @return a new [[WorldMap]] instance
+</span>67 <span style=''>     */
+</span>68 <span style=''>    def createMap(size: Int): WorldMap
+</span>69 <span style=''>
+</span>70 <span style=''>  /**
+</span>71 <span style=''>   * Deterministic implementation of [[CreateModuleType]].
+</span>72 <span style=''>   * Creates a predictable, reproducible world map layout.
+</span>73 <span style=''>   */
+</span>74 <span style=''>  object DeterministicMapModule extends CreateModuleType:
+</span>75 <span style=''>
+</span>76 <span style=''>    </span><span style='background: #AEF1AE'>override def createMap</span><span style=''>(size: Int): WorldMap =
+</span>77 <span style=''>
+</span>78 <span style=''>      /**
+</span>79 <span style=''>       * Expands a city from a starting coordinate up to a desired size,
+</span>80 <span style=''>       * ensuring all cells are connected.
+</span>81 <span style=''>       */
+</span>82 <span style=''>      </span><span style='background: #AEF1AE'>def expandCity</span><span style=''>(start: Coord, available: Set[Coord], desiredSize: Int): Set[Coord] =
+</span>83 <span style=''>        </span><span style='background: #AEF1AE'>@tailrec
+</span>84 <span style=''></span><span style='background: #AEF1AE'>        def expandLoop</span><span style=''>(frontier: List[Coord], visited: Set[Coord]): Set[Coord] =
+</span>85 <span style=''>          if </span><span style='background: #AEF1AE'>visited.size</span><span style=''> &gt;= desiredSize || </span><span style='background: #AEF1AE'>frontier.isEmpty</span><span style=''> then </span><span style='background: #AEF1AE'>visited</span><span style=''>
+</span>86 <span style=''>          else
+</span>87 <span style=''>            </span><span style='background: #AEF1AE'>val next = frontier.head
+</span>88 <span style=''></span><span style='background: #AEF1AE'>            val newNeighbors = adjacentTo(</span><span style='background: #F0ADAD'>Set</span><span style='background: #AEF1AE'>(next), size).toSet.intersect(available).diff(visited)
+</span>89 <span style=''></span><span style='background: #AEF1AE'>            expandLoop(</span><span style='background: #F0ADAD'>frontier.tail</span><span style='background: #AEF1AE'> ++ newNeighbors, visited + next)</span><span style=''>
+</span>90 <span style=''>
+</span>91 <span style=''>        </span><span style='background: #AEF1AE'>expandLoop(</span><span style='background: #F0ADAD'>List</span><span style='background: #AEF1AE'>(start), </span><span style='background: #F0ADAD'>Set</span><span style='background: #AEF1AE'>(start)).intersect(available)</span><span style=''>
+</span>92 <span style=''>
+</span>93 <span style=''>      /**
+</span>94 <span style=''>       * Recursively builds the map by placing cities one by one.
+</span>95 <span style=''>       */
+</span>96 <span style=''>      </span><span style='background: #AEF1AE'>@tailrec
+</span>97 <span style=''></span><span style='background: #AEF1AE'>      def createMapLoop</span><span style=''>(index: Int, available: Set[Coord], acc: WorldMap): WorldMap =
+</span>98 <span style=''>        val maxCellPossible = 10
+</span>99 <span style=''>        if </span><span style='background: #AEF1AE'>available.isEmpty</span><span style=''> then </span><span style='background: #AEF1AE'>acc</span><span style=''>
+</span>100 <span style=''>        else
+</span>101 <span style=''>          </span><span style='background: #AEF1AE'>val isCapital = index &lt; nCapital
+</span>102 <span style=''></span><span style='background: #AEF1AE'>          val name = letterAt(index, isCapital)
+</span>103 <span style=''></span><span style='background: #AEF1AE'>          val city = createCity(name, size, isCapital)
+</span>104 <span style=''></span><span style='background: #AEF1AE'>          val start = available.head
+</span>105 <span style=''></span><span style='background: #AEF1AE'>          val maxCitySize = math.min(maxCellPossible, available.size)
+</span>106 <span style=''></span><span style='background: #AEF1AE'>          val tiles = expandCity(start, available, maxCitySize)
+</span>107 <span style=''></span><span style='background: #AEF1AE'>          if tiles.size &lt; 0 then </span><span style='background: #F0ADAD'>createMapLoop(index + 1, available -- tiles, acc)</span><span style='background: #AEF1AE'>
+</span>108 <span style=''></span><span style='background: #AEF1AE'>          else createMapLoop(index + 1, available -- tiles, acc + (city -&gt; tiles))</span><span style=''>
+</span>109 <span style=''>
+</span>110 <span style=''>      </span><span style='background: #AEF1AE'>createMapLoop(0, getSetOfCoords(size), Set.empty)</span><span style=''>
+</span>111 <span style=''>
+</span>112 <span style=''>  /**
+</span>113 <span style=''>   * Undeterministic implementation of [[CreateModuleType]].
+</span>114 <span style=''>   * Randomly generates cities and their territories.
+</span>115 <span style=''>   */
+</span>116 <span style=''>  object UndeterministicMapModule extends CreateModuleType:
+</span>117 <span style=''>
+</span>118 <span style=''>    /**
+</span>119 <span style=''>     * Recursively places cities on the map, randomly determining their position and size.
+</span>120 <span style=''>     */
+</span>121 <span style=''>    </span><span style='background: #AEF1AE'>private def placeCities</span><span style=''>(
+</span>122 <span style=''>                             size: Int,
+</span>123 <span style=''>                             remaining: Set[Coord],
+</span>124 <span style=''>                             letterOffset: Int = 0,
+</span>125 <span style=''>                             cityPlaced: WorldMap = </span><span style='background: #AEF1AE'>Set.empty</span><span style=''>,
+</span>126 <span style=''>                             remainingCapitals: Int = nCapital
+</span>127 <span style=''>                           ): LazyList[WorldMap] =
+</span>128 <span style=''>
+</span>129 <span style=''>      val probabilityOfBeingCapital = 50
+</span>130 <span style=''>      if </span><span style='background: #AEF1AE'>remaining.isEmpty</span><span style=''> then </span><span style='background: #F0ADAD'>LazyList</span><span style='background: #AEF1AE'>(cityPlaced)</span><span style=''>
+</span>131 <span style=''>      else
+</span>132 <span style=''>        </span><span style='background: #AEF1AE'>for
+</span>133 <span style=''></span><span style='background: #AEF1AE'>          </span><span style='background: #F0ADAD'>start &lt;- Random.shuffle(remaining.toList).to(LazyList)
+</span>134 <span style=''></span><span style='background: #F0ADAD'>          isCapital = remainingCapitals &gt; 0 &amp;&amp; doesTheActionGoesRight(probabilityOfBeingCapital)
+</span>135 <span style=''></span><span style='background: #F0ADAD'>          tiles = growCity(start, randomMaxSize(isCapital), remaining, size)
+</span>136 <span style=''></span><span style='background: #F0ADAD'>          city = createCity(letterAt(letterOffset, isCapital), tiles.size, isCapital)
+</span>137 <span style=''></span><span style='background: #F0ADAD'>          updatedCityPlaced = cityPlaced + (city -&gt; tiles)
+</span>138 <span style=''></span><span style='background: #F0ADAD'>          updatedRemaining = remaining -- tiles</span><span style='background: #AEF1AE'>
+</span>139 <span style=''></span><span style='background: #AEF1AE'>          result &lt;- </span><span style='background: #F0ADAD'>placeCities(
+</span>140 <span style=''></span><span style='background: #F0ADAD'>            size,
+</span>141 <span style=''></span><span style='background: #F0ADAD'>            updatedRemaining,
+</span>142 <span style=''></span><span style='background: #F0ADAD'>            letterOffset + 1,
+</span>143 <span style=''></span><span style='background: #F0ADAD'>            updatedCityPlaced,
+</span>144 <span style=''></span><span style='background: #F0ADAD'>            if isCapital then remainingCapitals - 1 else remainingCapitals
+</span>145 <span style=''></span><span style='background: #F0ADAD'>          )</span><span style='background: #AEF1AE'>
+</span>146 <span style=''></span><span style='background: #AEF1AE'>        yield result</span><span style=''>
+</span>147 <span style=''>
+</span>148 <span style=''>    /**
+</span>149 <span style=''>     * Generates a random size for a city depending on whether it is a capital.
+</span>150 <span style=''>     */
+</span>151 <span style=''>    </span><span style='background: #AEF1AE'>private def randomMaxSize</span><span style=''>(isCapital: Boolean): Int =
+</span>152 <span style=''>      val defaultCellsCity = 3
+</span>153 <span style=''>      val maxBonusCells = 3
+</span>154 <span style=''>      val defaultCellsCapital = 4
+</span>155 <span style=''>      val noOtherCells = 0
+</span>156 <span style=''>
+</span>157 <span style=''>      defaultCellsCity + </span><span style='background: #AEF1AE'>Random.nextInt(maxBonusCells)</span><span style=''> + (if isCapital then </span><span style='background: #AEF1AE'>defaultCellsCapital</span><span style=''> else </span><span style='background: #AEF1AE'>noOtherCells</span><span style=''>)
+</span>158 <span style=''>
+</span>159 <span style=''>    /**
+</span>160 <span style=''>     * Grows a city from a start tile to a maximum size by exploring adjacent tiles.
+</span>161 <span style=''>     */
+</span>162 <span style=''>    </span><span style='background: #AEF1AE'>private def growCity</span><span style=''>(start: Coord,
+</span>163 <span style=''>                         maxSize: Int,
+</span>164 <span style=''>                         available: Set[Coord],
+</span>165 <span style=''>                         mapSize: Int
+</span>166 <span style=''>                        ): Set[Coord] =
+</span>167 <span style=''>      </span><span style='background: #AEF1AE'>@tailrec
+</span>168 <span style=''></span><span style='background: #AEF1AE'>      def expand</span><span style=''>(frontier: List[Coord], built: Set[Coord]): Set[Coord] =
+</span>169 <span style=''>        if </span><span style='background: #AEF1AE'>built.size</span><span style=''> &gt;= maxSize || </span><span style='background: #AEF1AE'>frontier.isEmpty</span><span style=''> then </span><span style='background: #AEF1AE'>built</span><span style=''>
+</span>170 <span style=''>        else
+</span>171 <span style=''>          </span><span style='background: #AEF1AE'>val next = frontier.head
+</span>172 <span style=''></span><span style='background: #AEF1AE'>          val neighbors = adjacentTo(built, mapSize).filter(c =&gt;
+</span>173 <span style=''></span><span style='background: #AEF1AE'>            c._1 &gt;= 0 &amp;&amp; c._2 &gt;= 0 &amp;&amp;
+</span>174 <span style=''></span><span style='background: #AEF1AE'>              c._1 &lt; mapSize &amp;&amp; c._2 &lt; mapSize &amp;&amp;
+</span>175 <span style=''></span><span style='background: #AEF1AE'>              available.contains(c) &amp;&amp; !built.contains(c)
+</span>176 <span style=''></span><span style='background: #AEF1AE'>          )
+</span>177 <span style=''></span><span style='background: #AEF1AE'>          expand(</span><span style='background: #F0ADAD'>frontier.tail</span><span style='background: #AEF1AE'> ++ neighbors, built + next)</span><span style=''>
+</span>178 <span style=''>
+</span>179 <span style=''>      </span><span style='background: #AEF1AE'>expand(</span><span style='background: #F0ADAD'>List</span><span style='background: #AEF1AE'>(start), </span><span style='background: #F0ADAD'>Set</span><span style='background: #AEF1AE'>(start))</span><span style=''>
+</span>180 <span style=''>
+</span>181 <span style=''>    /**
+</span>182 <span style=''>     * Generates the a lazy list of map and returns the first valid one that fills the map grid and respect the parameter.
+</span>183 <span style=''>     */
+</span>184 <span style=''>    </span><span style='background: #AEF1AE'>override def createMap</span><span style=''>(size: Int): WorldMap =
+</span>185 <span style=''>      val minNumberOfCity = 10
+</span>186 <span style=''>      val minCapitalSize = 3
+</span>187 <span style=''>      val maxAttempts = 1000
+</span>188 <span style=''>      val maps = </span><span style='background: #AEF1AE'>placeCities(size, getSetOfCoords(size)).take(maxAttempts)</span><span style=''>
+</span>189 <span style=''>      </span><span style='background: #F0ADAD'>maps.find(m =&gt;
+</span>190 <span style=''></span><span style='background: #F0ADAD'>        m.numberOfCity() &gt;= minNumberOfCity &amp;&amp;
+</span>191 <span style=''></span><span style='background: #F0ADAD'>        m.count( c =&gt; c._1.isCapital) == nCapital  &amp;&amp;
+</span>192 <span style=''></span><span style='background: #F0ADAD'>        m.forall(c =&gt; !c._1.isCapital || c._2.size &gt;= minCapitalSize))</span><span style='background: #AEF1AE'>
+</span>193 <span style=''></span><span style='background: #AEF1AE'>        .orElse(
+</span>194 <span style=''></span><span style='background: #AEF1AE'>          maps.find(m =&gt; m.flatMap(_._2).size == size * size)).get</span><span style=''>
+</span>195 <span style=''>
+</span>196 <span style=''>  /**
+</span>197 <span style=''>   * Generates a set of all coordinates (x, y) within a square grid of the given size.
+</span>198 <span style=''>   */
+</span>199 <span style=''>  </span><span style='background: #AEF1AE'>private def getSetOfCoords</span><span style=''>(size: Int): Set[Coord] =
+</span>200 <span style=''>    </span><span style='background: #AEF1AE'>(for
+</span>201 <span style=''></span><span style='background: #AEF1AE'>      x &lt;- </span><span style='background: #F0ADAD'>0 until size</span><span style='background: #AEF1AE'>
+</span>202 <span style=''></span><span style='background: #AEF1AE'>      y &lt;- </span><span style='background: #F0ADAD'>0 until size</span><span style='background: #AEF1AE'>
+</span>203 <span style=''></span><span style='background: #AEF1AE'>    yield (x, y)).toSet</span><span style=''>
+</span>204 <span style=''>
+</span>205 <span style=''>  /**
+</span>206 <span style=''>   * Returns valid neighboring coordinates that are not blocked, based on a seed set.
+</span>207 <span style=''>   */
+</span>208 <span style=''>  </span><span style='background: #AEF1AE'>private def validNeighbors</span><span style=''>(seeds: List[Coord], size: Int, blocked: Set[Coord]): List[Coord] =
+</span>209 <span style=''>    </span><span style='background: #AEF1AE'>for
+</span>210 <span style=''></span><span style='background: #AEF1AE'>      </span><span style='background: #F0ADAD'>(x, y) &lt;- seeds</span><span style='background: #AEF1AE'>
+</span>211 <span style=''></span><span style='background: #AEF1AE'>      dx &lt;- </span><span style='background: #F0ADAD'>-1 to 1</span><span style='background: #AEF1AE'>
+</span>212 <span style=''></span><span style='background: #AEF1AE'>      </span><span style='background: #F0ADAD'>dy &lt;- -1 to 1
+</span>213 <span style=''></span><span style='background: #F0ADAD'>      if dx != 0 || dy != 0
+</span>214 <span style=''></span><span style='background: #F0ADAD'>      nx = x + dx
+</span>215 <span style=''></span><span style='background: #F0ADAD'>      ny = y + dy
+</span>216 <span style=''></span><span style='background: #F0ADAD'>      if 0 &lt;= nx &amp;&amp; nx &lt; size
+</span>217 <span style=''></span><span style='background: #F0ADAD'>      if 0 &lt;= ny &amp;&amp; ny &lt; size
+</span>218 <span style=''></span><span style='background: #F0ADAD'>      if !blocked.contains((nx, ny))</span><span style='background: #AEF1AE'>
+</span>219 <span style=''></span><span style='background: #AEF1AE'>    yield (nx, ny)</span><span style=''>
+</span>220 <span style=''>
+</span>221 <span style=''>  /**
+</span>222 <span style=''>   * Computes the set of adjacent coordinates to a given set of tiles,
+</span>223 <span style=''>   * excluding those already occupied.
+</span>224 <span style=''>   */
+</span>225 <span style=''>  </span><span style='background: #AEF1AE'>private def adjacentTo</span><span style=''>(tiles: Set[Coord], size: Int): List[Coord] =
+</span>226 <span style=''>    </span><span style='background: #AEF1AE'>validNeighbors(tiles.toList, size, tiles)</span><span style=''>
+</span>227 <span style=''>
+</span>228 <span style=''>  /**
+</span>229 <span style=''>   * Given instance of [[CreateModuleType]] that provides an undeterministic map generator.
+</span>230 <span style=''>   */
+</span>231 <span style=''>  given undeterministicMap: CreateModuleType = UndeterministicMapModule
+</span>232 <span style=''>  /**
+</span>233 <span style=''>   * Factory method to create a map using a selected module.
+</span>234 <span style=''>   *
+</span>235 <span style=''>   * @param size            map size
+</span>236 <span style=''>   * @param CreateMapModule strategy module
+</span>237 <span style=''>   * @return a WorldMap instance
+</span>238 <span style=''>   */
+</span>239 <span style=''>
+</span>240 <span style=''>  </span><span style='background: #AEF1AE'>def createWorldMap</span><span style=''>(size: Int)(using CreateMapModule: CreateModuleType): WorldMap =
+</span>241 <span style=''>    </span><span style='background: #AEF1AE'>CreateMapModule.createMap(size)</span><span style=''>
+</span>242 <span style=''>
+</span>243 <span style=''>  extension (worldMap: WorldMap)
+</span>244 <span style=''>
+</span>245 <span style=''>    /**
+</span>246 <span style=''>     * Calculates the size (dimension) of the map by inspecting tile coordinates.
+</span>247 <span style=''>     *
+</span>248 <span style=''>     * @return an integer representing the width/height of the square map
+</span>249 <span style=''>     */
+</span>250 <span style=''>    </span><span style='background: #AEF1AE'>def getSizeOfTheMap</span><span style=''>: Int =
+</span>251 <span style=''>      </span><span style='background: #F0ADAD'>worldMap.flatMap(_._2)</span><span style='background: #AEF1AE'>.foldLeft(0)((acc, xy) =&gt; math.max(acc, math.max(xy._1, xy._2)))</span><span style=''> + 1
+</span>252 <span style=''>
+</span>253 <span style=''>    /**
+</span>254 <span style=''>     * Retrieves a city by its name, if it exists.
+</span>255 <span style=''>     *
+</span>256 <span style=''>     * @param name the name of the city
+</span>257 <span style=''>     * @return Option[City] containing the city if found
+</span>258 <span style=''>     */
+</span>259 <span style=''>    </span><span style='background: #AEF1AE'>def getCityByName</span><span style=''>(name: String): Option[City] =
+</span>260 <span style=''>      </span><span style='background: #F0ADAD'>worldMap.find(_._1.getName == name)</span><span style='background: #AEF1AE'>.map(_._1)</span><span style=''>
+</span>261 <span style=''>
+</span>262 <span style=''>    /**
+</span>263 <span style=''>     * Counts the number of cities currently infected (AI-controlled).
+</span>264 <span style=''>     *
+</span>265 <span style=''>     * @return the number of infected cities
+</span>266 <span style=''>     */
+</span>267 <span style=''>    </span><span style='background: #AEF1AE'>def numberOfCityInfected</span><span style=''>(): Int = </span><span style='background: #AEF1AE'>worldMap.count(_._1.getOwner == Owner.AI)</span><span style=''>
+</span>268 <span style=''>
+</span>269 <span style=''>    /**
+</span>270 <span style=''>     * Counts the number of cities.
+</span>271 <span style=''>     *
+</span>272 <span style=''>     * @return the number of cities
+</span>273 <span style=''>     */
+</span>274 <span style=''>    </span><span style='background: #AEF1AE'>def numberOfCity</span><span style=''>(): Int = </span><span style='background: #AEF1AE'>worldMap.size</span><span style=''>
+</span>275 <span style=''>
+</span>276 <span style=''>    /**
+</span>277 <span style=''>     * Utility function to apply a generic filter over the map and return the name of the first matching city.
+</span>278 <span style=''>     *
+</span>279 <span style=''>     * @param f predicate function for filtering (City, TileSet) pairs
+</span>280 <span style=''>     * @return Option[String] of the city name if match found
+</span>281 <span style=''>     */
+</span>282 <span style=''>    </span><span style='background: #AEF1AE'>def findInMap</span><span style=''>(f: (City, Set[Coord]) =&gt; Boolean): Option[String] =
+</span>283 <span style=''>      </span><span style='background: #F0ADAD'>worldMap.find(f.tupled)</span><span style='background: #AEF1AE'>.flatMap((city, coords) =&gt; </span><span style='background: #F0ADAD'>coords.headOption</span><span style='background: #AEF1AE'>.map(_ =&gt; city.getName))</span><span style=''>
+</span>284 <span style=''>
+</span>285 <span style=''>    /**
+</span>286 <span style=''>     * Returns all cities currently owned by the AI.
+</span>287 <span style=''>     *
+</span>288 <span style=''>     * @return a Set of infected cities
+</span>289 <span style=''>     */
+</span>290 <span style=''>    </span><span style='background: #AEF1AE'>def aiCities</span><span style=''>: Set[City] = </span><span style='background: #F0ADAD'>worldMap.filter(_._1.getOwner == Owner.AI)</span><span style='background: #AEF1AE'>.map(_._1)</span><span style=''>
+</span>291 <span style=''>
+</span>292 <span style=''>    /**
+</span>293 <span style=''>     * Returns all cities currently owned by humans.
+</span>294 <span style=''>     *
+</span>295 <span style=''>     * @return a Set of human-controlled cities
+</span>296 <span style=''>     */
+</span>297 <span style=''>    </span><span style='background: #AEF1AE'>def humanCities</span><span style=''>: Set[City] = </span><span style='background: #F0ADAD'>worldMap.filter(_._1.getOwner == Owner.HUMAN)</span><span style='background: #AEF1AE'>.map(_._1)</span><span style=''>
+</span>298 <span style=''>    /**
+</span>299 <span style=''>     * Counts the number of capitals currently infected (AI-controlled).
+</span>300 <span style=''>     *
+</span>301 <span style=''>     * @return the number of infected capitals
+</span>302 <span style=''>     */
+</span>303 <span style=''>    </span><span style='background: #AEF1AE'>def capitalConqueredCounter</span><span style=''>: Int = </span><span style='background: #AEF1AE'>worldMap.count(map =&gt; map._1.isCapital &amp;&amp; map._1.getOwner == Owner.AI)</span><span style=''>
+</span>304 <span style=''>
+</span>305 <span style=''>    /**
+</span>306 <span style=''>     * Identifies human cities that are adjacent to any infected (AI) city.
+</span>307 <span style=''>     *
+</span>308 <span style=''>     * @return a Set of human cities next to infected cities
+</span>309 <span style=''>     */
+</span>310 <span style=''>    </span><span style='background: #AEF1AE'>def getAdjacentCities</span><span style=''>: Set[City] =
+</span>311 <span style=''>      if </span><span style='background: #AEF1AE'>aiCities.isEmpty</span><span style=''> then </span><span style='background: #AEF1AE'>humanCities</span><span style=''>
+</span>312 <span style=''>      else </span><span style='background: #AEF1AE'>worldMap.collect:
+</span>313 <span style=''></span><span style='background: #AEF1AE'>        case (city, coords)
+</span>314 <span style=''></span><span style='background: #AEF1AE'>          if city.getOwner == Owner.HUMAN &amp;&amp;
+</span>315 <span style=''></span><span style='background: #AEF1AE'>            coords.exists(adjacentTo(</span><span style='background: #F0ADAD'>worldMap.filter(_._1.getOwner == Owner.AI)</span><span style='background: #AEF1AE'>
+</span>316 <span style=''></span><span style='background: #AEF1AE'>              .flatMap(_._2), worldMap.getSizeOfTheMap).toSet.contains)
+</span>317 <span style=''></span><span style='background: #AEF1AE'>        =&gt; city</span><span style=''>
+</span>318 <span style=''>
+</span>319 <span style=''>    /**
+</span>320 <span style=''>     * Replaces an existing city on the map with a new instance, preserving its tile coordinates.
+</span>321 <span style=''>     *
+</span>322 <span style=''>     * @param city the updated city to be inserted
+</span>323 <span style=''>     * @return a new WorldMap with the updated city
+</span>324 <span style=''>     */
+</span>325 <span style=''>    </span><span style='background: #AEF1AE'>def changeACityOfTheMap</span><span style=''>(city: City): WorldMap =
+</span>326 <span style=''>      </span><span style='background: #F0ADAD'>worldMap.find(_._1.getName == city.getName)
+</span>327 <span style=''></span><span style='background: #F0ADAD'>        .map((_, coords) =&gt; worldMap.filterNot(_._1.getName == city.getName) + (city -&gt; coords))</span><span style='background: #AEF1AE'>
+</span>328 <span style=''></span><span style='background: #AEF1AE'>        .getOrElse(worldMap)</span><span style=''>
+</span>329 <span style=''>
+</span>330 <span style=''>
+</span>331 <span style=''>
+</span>332 <span style=''>
+</span>333 <span style=''>
+</span>334 <span style=''>
+</span>335 <span style=''>
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          194
+        </td>
+        <td>
+          2263
+          -
+          2285
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          createMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def createMap
+        </td>
+      </tr><tr>
+        <td>
+          81
+        </td>
+        <td>
+          170
+        </td>
+        <td>
+          2458
+          -
+          2472
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          expandCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def expandCity
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          163
+        </td>
+        <td>
+          2551
+          -
+          2583
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          expandLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          @tailrec\r\n        def expandLoop
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          149
+        </td>
+        <td>
+          2687
+          -
+          2703
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          isEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          frontier.isEmpty
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          148
+        </td>
+        <td>
+          2656
+          -
+          2668
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          size
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          visited.size
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          150
+        </td>
+        <td>
+          2709
+          -
+          2716
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          visited
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          visited
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          151
+        </td>
+        <td>
+          2757
+          -
+          2770
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          head
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          frontier.head
+        </td>
+      </tr><tr>
+        <td>
+          86
+        </td>
+        <td>
+          162
+        </td>
+        <td>
+          2746
+          -
+          2942
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          val next = frontier.head\r\n            val newNeighbors = adjacentTo(Set(next), size).toSet.intersect(available).diff(visited)\r\n            expandLoop(frontier.tail ++ newNeighbors, visited + next)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          155
+        </td>
+        <td>
+          2814
+          -
+          2823
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set(next)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          154
+        </td>
+        <td>
+          2803
+          -
+          2830
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          adjacentTo
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          adjacentTo(Set(next), size)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          157
+        </td>
+        <td>
+          2803
+          -
+          2836
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toSet
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          adjacentTo(Set(next), size).toSet
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          156
+        </td>
+        <td>
+          2814
+          -
+          2817
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Set
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Set
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          153
+        </td>
+        <td>
+          2803
+          -
+          2857
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          intersect
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          adjacentTo(Set(next), size).toSet.intersect(available)
+        </td>
+      </tr><tr>
+        <td>
+          87
+        </td>
+        <td>
+          152
+        </td>
+        <td>
+          2803
+          -
+          2871
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          diff
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          adjacentTo(Set(next), size).toSet.intersect(available).diff(visited)
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          158
+        </td>
+        <td>
+          2885
+          -
+          2942
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          expandLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          expandLoop(frontier.tail ++ newNeighbors, visited + next)
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          160
+        </td>
+        <td>
+          2896
+          -
+          2909
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          tail
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          frontier.tail
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          159
+        </td>
+        <td>
+          2896
+          -
+          2925
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          ++
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          frontier.tail ++ newNeighbors
+        </td>
+      </tr><tr>
+        <td>
+          88
+        </td>
+        <td>
+          161
+        </td>
+        <td>
+          2927
+          -
+          2941
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          +
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          visited + next
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          164
+        </td>
+        <td>
+          2954
+          -
+          3010
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          intersect
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          expandLoop(List(start), Set(start)).intersect(available)
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          167
+        </td>
+        <td>
+          2965
+          -
+          2969
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          166
+        </td>
+        <td>
+          2965
+          -
+          2976
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(start)
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          169
+        </td>
+        <td>
+          2978
+          -
+          2981
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Set
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Set
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          165
+        </td>
+        <td>
+          2954
+          -
+          2989
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          expandLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          expandLoop(List(start), Set(start))
+        </td>
+      </tr><tr>
+        <td>
+          90
+        </td>
+        <td>
+          168
+        </td>
+        <td>
+          2978
+          -
+          2988
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set(start)
+        </td>
+      </tr><tr>
+        <td>
+          96
+        </td>
+        <td>
+          189
+        </td>
+        <td>
+          3109
+          -
+          3142
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          createMapLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          @tailrec\r\n      def createMapLoop
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          172
+        </td>
+        <td>
+          3274
+          -
+          3277
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          acc
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          acc
+        </td>
+      </tr><tr>
+        <td>
+          98
+        </td>
+        <td>
+          171
+        </td>
+        <td>
+          3251
+          -
+          3268
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          isEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          available.isEmpty
+        </td>
+      </tr><tr>
+        <td>
+          100
+        </td>
+        <td>
+          188
+        </td>
+        <td>
+          3303
+          -
+          3782
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          val isCapital = index &lt; nCapital\r\n          val name = letterAt(index, isCapital)\r\n          val city = createCity(name, size, isCapital)\r\n          val start = available.head\r\n          val maxCitySize = math.min(maxCellPossible, available.size)\r\n          val tiles = expandCity(start, available, maxCitySize)\r\n          if tiles.size &lt; 0 then createMapLoop(index + 1, available -- tiles, acc)\r\n          else createMapLoop(index + 1, available -- tiles, acc + (city -&gt; tiles))
+        </td>
+      </tr><tr>
+        <td>
+          101
+        </td>
+        <td>
+          173
+        </td>
+        <td>
+          3358
+          -
+          3384
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          letterAt
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          letterAt(index, isCapital)
+        </td>
+      </tr><tr>
+        <td>
+          102
+        </td>
+        <td>
+          174
+        </td>
+        <td>
+          3407
+          -
+          3440
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          createCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          createCity(name, size, isCapital)
+        </td>
+      </tr><tr>
+        <td>
+          103
+        </td>
+        <td>
+          175
+        </td>
+        <td>
+          3464
+          -
+          3478
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          head
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          available.head
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          176
+        </td>
+        <td>
+          3508
+          -
+          3549
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          min
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          math.min(maxCellPossible, available.size)
+        </td>
+      </tr><tr>
+        <td>
+          104
+        </td>
+        <td>
+          177
+        </td>
+        <td>
+          3534
+          -
+          3548
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          size
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          available.size
+        </td>
+      </tr><tr>
+        <td>
+          105
+        </td>
+        <td>
+          178
+        </td>
+        <td>
+          3573
+          -
+          3614
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          expandCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          expandCity(start, available, maxCitySize)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          182
+        </td>
+        <td>
+          3649
+          -
+          3698
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          createMapLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          createMapLoop(index + 1, available -- tiles, acc)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          181
+        </td>
+        <td>
+          3674
+          -
+          3692
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          --
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          available -- tiles
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          180
+        </td>
+        <td>
+          3649
+          -
+          3698
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          createMapLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          createMapLoop(index + 1, available -- tiles, acc)
+        </td>
+      </tr><tr>
+        <td>
+          106
+        </td>
+        <td>
+          179
+        </td>
+        <td>
+          3629
+          -
+          3639
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          size
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          tiles.size
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          185
+        </td>
+        <td>
+          3760
+          -
+          3780
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          +
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          acc + (city -&gt; tiles
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          184
+        </td>
+        <td>
+          3740
+          -
+          3758
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          --
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          available -- tiles
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          187
+        </td>
+        <td>
+          3715
+          -
+          3782
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          createMapLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          createMapLoop(index + 1, available -- tiles, acc + (city -&gt; tiles))
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          183
+        </td>
+        <td>
+          3715
+          -
+          3782
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          createMapLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          createMapLoop(index + 1, available -- tiles, acc + (city -&gt; tiles))
+        </td>
+      </tr><tr>
+        <td>
+          107
+        </td>
+        <td>
+          186
+        </td>
+        <td>
+          3767
+          -
+          3780
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          -&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          city -&gt; tiles
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          191
+        </td>
+        <td>
+          3809
+          -
+          3829
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getSetOfCoords
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          getSetOfCoords(size)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          193
+        </td>
+        <td>
+          3831
+          -
+          3840
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set.empty
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          190
+        </td>
+        <td>
+          3792
+          -
+          3841
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          createMapLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          createMapLoop(0, getSetOfCoords(size), Set.empty)
+        </td>
+      </tr><tr>
+        <td>
+          109
+        </td>
+        <td>
+          192
+        </td>
+        <td>
+          3831
+          -
+          3834
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Set
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set
+        </td>
+      </tr><tr>
+        <td>
+          120
+        </td>
+        <td>
+          220
+        </td>
+        <td>
+          4153
+          -
+          4176
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          placeCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def placeCities
+        </td>
+      </tr><tr>
+        <td>
+          123
+        </td>
+        <td>
+          221
+        </td>
+        <td>
+          4322
+          -
+          4322
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          placeCities$default$3
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          124
+        </td>
+        <td>
+          223
+        </td>
+        <td>
+          4378
+          -
+          4387
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set.empty
+        </td>
+      </tr><tr>
+        <td>
+          124
+        </td>
+        <td>
+          222
+        </td>
+        <td>
+          4378
+          -
+          4381
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Set
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set
+        </td>
+      </tr><tr>
+        <td>
+          124
+        </td>
+        <td>
+          224
+        </td>
+        <td>
+          4378
+          -
+          4378
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          placeCities$default$4
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          125
+        </td>
+        <td>
+          225
+        </td>
+        <td>
+          4444
+          -
+          4444
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          placeCities$default$5
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          196
+        </td>
+        <td>
+          4582
+          -
+          4602
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          LazyList(cityPlaced)
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          198
+        </td>
+        <td>
+          4582
+          -
+          4602
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          LazyList(cityPlaced)
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          195
+        </td>
+        <td>
+          4559
+          -
+          4576
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          isEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          remaining.isEmpty
+        </td>
+      </tr><tr>
+        <td>
+          129
+        </td>
+        <td>
+          197
+        </td>
+        <td>
+          4582
+          -
+          4590
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          LazyList
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          LazyList
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          199
+        </td>
+        <td>
+          4624
+          -
+          5323
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          for\r\n          start &lt;- Random.shuffle(remaining.toList).to(LazyList)\r\n          isCapital = remainingCapitals &gt; 0 &amp;&amp; doesTheActionGoesRight(probabilityOfBeingCapital)\r\n          tiles = growCity(start, randomMaxSize(isCapital), remaining, size)\r\n          city = createCity(letterAt(letterOffset, isCapital), tiles.size, isCapital)\r\n          updatedCityPlaced = cityPlaced + (city -&gt; tiles)\r\n          updatedRemaining = remaining -- tiles\r\n          result &lt;- placeCities(\r\n            size,\r\n            updatedRemaining,\r\n            letterOffset + 1,\r\n            updatedCityPlaced,\r\n            if isCapital then remainingCapitals - 1 else remainingCapitals\r\n          )\r\n        yield result
+        </td>
+      </tr><tr>
+        <td>
+          131
+        </td>
+        <td>
+          219
+        </td>
+        <td>
+          4624
+          -
+          5323
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          for\r\n          start &lt;- Random.shuffle(remaining.toList).to(LazyList)\r\n          isCapital = remainingCapitals &gt; 0 &amp;&amp; doesTheActionGoesRight(probabilityOfBeingCapital)\r\n          tiles = growCity(start, randomMaxSize(isCapital), remaining, size)\r\n          city = createCity(letterAt(letterOffset, isCapital), tiles.size, isCapital)\r\n          updatedCityPlaced = cityPlaced + (city -&gt; tiles)\r\n          updatedRemaining = remaining -- tiles\r\n          result &lt;- placeCities(\r\n            size,\r\n            updatedRemaining,\r\n            letterOffset + 1,\r\n            updatedCityPlaced,\r\n            if isCapital then remainingCapitals - 1 else remainingCapitals\r\n          )\r\n        yield result
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          200
+        </td>
+        <td>
+          4639
+          -
+          5065
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          start &lt;- Random.shuffle(remaining.toList).to(LazyList)\r\n          isCapital = remainingCapitals &gt; 0 &amp;&amp; doesTheActionGoesRight(probabilityOfBeingCapital)\r\n          tiles = growCity(start, randomMaxSize(isCapital), remaining, size)\r\n          city = createCity(letterAt(letterOffset, isCapital), tiles.size, isCapital)\r\n          updatedCityPlaced = cityPlaced + (city -&gt; tiles)\r\n          updatedRemaining = remaining -- tiles
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          202
+        </td>
+        <td>
+          4648
+          -
+          4680
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          shuffle
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Random.shuffle(remaining.toList)
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          205
+        </td>
+        <td>
+          4684
+          -
+          4692
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          LazyList
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          LazyList
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          201
+        </td>
+        <td>
+          4648
+          -
+          4693
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          to
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Random.shuffle(remaining.toList).to(LazyList)
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          204
+        </td>
+        <td>
+          4684
+          -
+          4692
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          toFactory
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          LazyList
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          203
+        </td>
+        <td>
+          4663
+          -
+          4679
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toList
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          remaining.toList
+        </td>
+      </tr><tr>
+        <td>
+          132
+        </td>
+        <td>
+          215
+        </td>
+        <td>
+          4639
+          -
+          5044
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          start &lt;- Random.shuffle(remaining.toList).to(LazyList)\r\n          isCapital = remainingCapitals &gt; 0 &amp;&amp; doesTheActionGoesRight(probabilityOfBeingCapital)\r\n          tiles = growCity(start, randomMaxSize(isCapital), remaining, size)\r\n          city = createCity(letterAt(letterOffset, isCapital), tiles.size, isCapital)\r\n          updatedCityPlaced = cityPlaced + (city -&gt; tiles)\r\n          updatedRemaining
+        </td>
+      </tr><tr>
+        <td>
+          133
+        </td>
+        <td>
+          206
+        </td>
+        <td>
+          4742
+          -
+          4791
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          doesTheActionGoesRight
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          doesTheActionGoesRight(probabilityOfBeingCapital)
+        </td>
+      </tr><tr>
+        <td>
+          134
+        </td>
+        <td>
+          208
+        </td>
+        <td>
+          4827
+          -
+          4851
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          randomMaxSize
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          randomMaxSize(isCapital)
+        </td>
+      </tr><tr>
+        <td>
+          134
+        </td>
+        <td>
+          207
+        </td>
+        <td>
+          4811
+          -
+          4869
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          growCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          growCity(start, randomMaxSize(isCapital), remaining, size)
+        </td>
+      </tr><tr>
+        <td>
+          135
+        </td>
+        <td>
+          209
+        </td>
+        <td>
+          4888
+          -
+          4956
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          createCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          createCity(letterAt(letterOffset, isCapital), tiles.size, isCapital)
+        </td>
+      </tr><tr>
+        <td>
+          135
+        </td>
+        <td>
+          211
+        </td>
+        <td>
+          4934
+          -
+          4944
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          size
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          tiles.size
+        </td>
+      </tr><tr>
+        <td>
+          135
+        </td>
+        <td>
+          210
+        </td>
+        <td>
+          4899
+          -
+          4932
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          letterAt
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          letterAt(letterOffset, isCapital)
+        </td>
+      </tr><tr>
+        <td>
+          136
+        </td>
+        <td>
+          213
+        </td>
+        <td>
+          5002
+          -
+          5015
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          -&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          city -&gt; tiles
+        </td>
+      </tr><tr>
+        <td>
+          136
+        </td>
+        <td>
+          212
+        </td>
+        <td>
+          4988
+          -
+          5015
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          +
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          cityPlaced + (city -&gt; tiles
+        </td>
+      </tr><tr>
+        <td>
+          137
+        </td>
+        <td>
+          214
+        </td>
+        <td>
+          5047
+          -
+          5065
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          --
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          remaining -- tiles
+        </td>
+      </tr><tr>
+        <td>
+          138
+        </td>
+        <td>
+          217
+        </td>
+        <td>
+          5087
+          -
+          5301
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          placeCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          placeCities(\r\n            size,\r\n            updatedRemaining,\r\n            letterOffset + 1,\r\n            updatedCityPlaced,\r\n            if isCapital then remainingCapitals - 1 else remainingCapitals\r\n          )
+        </td>
+      </tr><tr>
+        <td>
+          138
+        </td>
+        <td>
+          216
+        </td>
+        <td>
+          5077
+          -
+          5323
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          result &lt;- placeCities(\r\n            size,\r\n            updatedRemaining,\r\n            letterOffset + 1,\r\n            updatedCityPlaced,\r\n            if isCapital then remainingCapitals - 1 else remainingCapitals\r\n          )\r\n        yield result
+        </td>
+      </tr><tr>
+        <td>
+          143
+        </td>
+        <td>
+          218
+        </td>
+        <td>
+          5271
+          -
+          5288
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          remainingCapitals
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          remainingCapitals
+        </td>
+      </tr><tr>
+        <td>
+          150
+        </td>
+        <td>
+          229
+        </td>
+        <td>
+          5430
+          -
+          5455
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          randomMaxSize
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def randomMaxSize
+        </td>
+      </tr><tr>
+        <td>
+          156
+        </td>
+        <td>
+          227
+        </td>
+        <td>
+          5686
+          -
+          5705
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          defaultCellsCapital
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          defaultCellsCapital
+        </td>
+      </tr><tr>
+        <td>
+          156
+        </td>
+        <td>
+          226
+        </td>
+        <td>
+          5635
+          -
+          5664
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          nextInt
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Random.nextInt(maxBonusCells)
+        </td>
+      </tr><tr>
+        <td>
+          156
+        </td>
+        <td>
+          228
+        </td>
+        <td>
+          5711
+          -
+          5723
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          noOtherCells
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          noOtherCells
+        </td>
+      </tr><tr>
+        <td>
+          161
+        </td>
+        <td>
+          253
+        </td>
+        <td>
+          5836
+          -
+          5856
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          growCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def growCity
+        </td>
+      </tr><tr>
+        <td>
+          167
+        </td>
+        <td>
+          247
+        </td>
+        <td>
+          6047
+          -
+          6073
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          expand
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          @tailrec\r\n      def expand
+        </td>
+      </tr><tr>
+        <td>
+          168
+        </td>
+        <td>
+          232
+        </td>
+        <td>
+          6189
+          -
+          6194
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          built
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          built
+        </td>
+      </tr><tr>
+        <td>
+          168
+        </td>
+        <td>
+          231
+        </td>
+        <td>
+          6167
+          -
+          6183
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          isEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          frontier.isEmpty
+        </td>
+      </tr><tr>
+        <td>
+          168
+        </td>
+        <td>
+          230
+        </td>
+        <td>
+          6142
+          -
+          6152
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          size
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          built.size
+        </td>
+      </tr><tr>
+        <td>
+          170
+        </td>
+        <td>
+          246
+        </td>
+        <td>
+          6220
+          -
+          6532
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          val next = frontier.head\r\n          val neighbors = adjacentTo(built, mapSize).filter(c =&gt;\r\n            c._1 &gt;= 0 &amp;&amp; c._2 &gt;= 0 &amp;&amp;\r\n              c._1 &lt; mapSize &amp;&amp; c._2 &lt; mapSize &amp;&amp;\r\n              available.contains(c) &amp;&amp; !built.contains(c)\r\n          )\r\n          expand(frontier.tail ++ neighbors, built + next)
+        </td>
+      </tr><tr>
+        <td>
+          170
+        </td>
+        <td>
+          233
+        </td>
+        <td>
+          6231
+          -
+          6244
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          head
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          frontier.head
+        </td>
+      </tr><tr>
+        <td>
+          171
+        </td>
+        <td>
+          235
+        </td>
+        <td>
+          6272
+          -
+          6298
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          adjacentTo
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          adjacentTo(built, mapSize)
+        </td>
+      </tr><tr>
+        <td>
+          171
+        </td>
+        <td>
+          234
+        </td>
+        <td>
+          6272
+          -
+          6472
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          filter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          adjacentTo(built, mapSize).filter(c =&gt;\r\n            c._1 &gt;= 0 &amp;&amp; c._2 &gt;= 0 &amp;&amp;\r\n              c._1 &lt; mapSize &amp;&amp; c._2 &lt; mapSize &amp;&amp;\r\n              available.contains(c) &amp;&amp; !built.contains(c)\r\n          )
+        </td>
+      </tr><tr>
+        <td>
+          172
+        </td>
+        <td>
+          236
+        </td>
+        <td>
+          6324
+          -
+          6328
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          c._1
+        </td>
+      </tr><tr>
+        <td>
+          172
+        </td>
+        <td>
+          237
+        </td>
+        <td>
+          6337
+          -
+          6341
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          c._2
+        </td>
+      </tr><tr>
+        <td>
+          173
+        </td>
+        <td>
+          238
+        </td>
+        <td>
+          6365
+          -
+          6369
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          c._1
+        </td>
+      </tr><tr>
+        <td>
+          173
+        </td>
+        <td>
+          239
+        </td>
+        <td>
+          6383
+          -
+          6387
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          c._2
+        </td>
+      </tr><tr>
+        <td>
+          174
+        </td>
+        <td>
+          241
+        </td>
+        <td>
+          6442
+          -
+          6459
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          contains
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          built.contains(c)
+        </td>
+      </tr><tr>
+        <td>
+          174
+        </td>
+        <td>
+          240
+        </td>
+        <td>
+          6416
+          -
+          6437
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          contains
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          available.contains(c)
+        </td>
+      </tr><tr>
+        <td>
+          176
+        </td>
+        <td>
+          245
+        </td>
+        <td>
+          6519
+          -
+          6531
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          +
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          built + next
+        </td>
+      </tr><tr>
+        <td>
+          176
+        </td>
+        <td>
+          244
+        </td>
+        <td>
+          6491
+          -
+          6504
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          tail
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          frontier.tail
+        </td>
+      </tr><tr>
+        <td>
+          176
+        </td>
+        <td>
+          243
+        </td>
+        <td>
+          6491
+          -
+          6517
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          ++
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          frontier.tail ++ neighbors
+        </td>
+      </tr><tr>
+        <td>
+          176
+        </td>
+        <td>
+          242
+        </td>
+        <td>
+          6484
+          -
+          6532
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          expand
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          expand(frontier.tail ++ neighbors, built + next)
+        </td>
+      </tr><tr>
+        <td>
+          178
+        </td>
+        <td>
+          250
+        </td>
+        <td>
+          6549
+          -
+          6553
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          178
+        </td>
+        <td>
+          249
+        </td>
+        <td>
+          6549
+          -
+          6560
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(start)
+        </td>
+      </tr><tr>
+        <td>
+          178
+        </td>
+        <td>
+          252
+        </td>
+        <td>
+          6562
+          -
+          6565
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Set
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Set
+        </td>
+      </tr><tr>
+        <td>
+          178
+        </td>
+        <td>
+          248
+        </td>
+        <td>
+          6542
+          -
+          6573
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          expand
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          expand(List(start), Set(start))
+        </td>
+      </tr><tr>
+        <td>
+          178
+        </td>
+        <td>
+          251
+        </td>
+        <td>
+          6562
+          -
+          6572
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Set(start)
+        </td>
+      </tr><tr>
+        <td>
+          183
+        </td>
+        <td>
+          276
+        </td>
+        <td>
+          6723
+          -
+          6745
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          createMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def createMap
+        </td>
+      </tr><tr>
+        <td>
+          187
+        </td>
+        <td>
+          254
+        </td>
+        <td>
+          6879
+          -
+          6936
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          take
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          placeCities(size, getSetOfCoords(size)).take(maxAttempts)
+        </td>
+      </tr><tr>
+        <td>
+          187
+        </td>
+        <td>
+          256
+        </td>
+        <td>
+          6897
+          -
+          6917
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getSetOfCoords
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          getSetOfCoords(size)
+        </td>
+      </tr><tr>
+        <td>
+          187
+        </td>
+        <td>
+          259
+        </td>
+        <td>
+          6879
+          -
+          6890
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          placeCities$default$5
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          placeCities
+        </td>
+      </tr><tr>
+        <td>
+          187
+        </td>
+        <td>
+          258
+        </td>
+        <td>
+          6879
+          -
+          6890
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          placeCities$default$4
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          placeCities
+        </td>
+      </tr><tr>
+        <td>
+          187
+        </td>
+        <td>
+          255
+        </td>
+        <td>
+          6879
+          -
+          6918
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          placeCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          placeCities(size, getSetOfCoords(size))
+        </td>
+      </tr><tr>
+        <td>
+          187
+        </td>
+        <td>
+          257
+        </td>
+        <td>
+          6879
+          -
+          6890
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          placeCities$default$3
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          placeCities
+        </td>
+      </tr><tr>
+        <td>
+          188
+        </td>
+        <td>
+          261
+        </td>
+        <td>
+          6944
+          -
+          7133
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          find
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          maps.find(m =&gt;\r\n        m.numberOfCity() &gt;= minNumberOfCity &amp;&amp;\r\n        m.count( c =&gt; c._1.isCapital) == nCapital  &amp;&amp;\r\n        m.forall(c =&gt; !c._1.isCapital || c._2.size &gt;= minCapitalSize))
+        </td>
+      </tr><tr>
+        <td>
+          189
+        </td>
+        <td>
+          262
+        </td>
+        <td>
+          6968
+          -
+          6984
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          numberOfCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          m.numberOfCity()
+        </td>
+      </tr><tr>
+        <td>
+          190
+        </td>
+        <td>
+          265
+        </td>
+        <td>
+          7030
+          -
+          7034
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          c._1
+        </td>
+      </tr><tr>
+        <td>
+          190
+        </td>
+        <td>
+          264
+        </td>
+        <td>
+          7030
+          -
+          7044
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          isCapital
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          c._1.isCapital
+        </td>
+      </tr><tr>
+        <td>
+          190
+        </td>
+        <td>
+          263
+        </td>
+        <td>
+          7016
+          -
+          7045
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          count
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          m.count( c =&gt; c._1.isCapital)
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          268
+        </td>
+        <td>
+          7086
+          -
+          7090
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          c._1
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          267
+        </td>
+        <td>
+          7086
+          -
+          7100
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          isCapital
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          c._1.isCapital
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          270
+        </td>
+        <td>
+          7104
+          -
+          7113
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          size
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          c._2.size
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          266
+        </td>
+        <td>
+          7071
+          -
+          7132
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          forall
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          m.forall(c =&gt; !c._1.isCapital || c._2.size &gt;= minCapitalSize)
+        </td>
+      </tr><tr>
+        <td>
+          191
+        </td>
+        <td>
+          269
+        </td>
+        <td>
+          7104
+          -
+          7108
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          c._2
+        </td>
+      </tr><tr>
+        <td>
+          192
+        </td>
+        <td>
+          260
+        </td>
+        <td>
+          6944
+          -
+          7215
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          orElse
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          maps.find(m =&gt;\r\n        m.numberOfCity() &gt;= minNumberOfCity &amp;&amp;\r\n        m.count( c =&gt; c._1.isCapital) == nCapital  &amp;&amp;\r\n        m.forall(c =&gt; !c._1.isCapital || c._2.size &gt;= minCapitalSize))\r\n        .orElse(\r\n          maps.find(m =&gt; m.flatMap(_._2).size == size * size))
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          271
+        </td>
+        <td>
+          7163
+          -
+          7214
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          find
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          maps.find(m =&gt; m.flatMap(_._2).size == size * size)
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          274
+        </td>
+        <td>
+          7178
+          -
+          7198
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          size
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          m.flatMap(_._2).size
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          273
+        </td>
+        <td>
+          7188
+          -
+          7192
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _._2
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          272
+        </td>
+        <td>
+          7178
+          -
+          7193
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          m.flatMap(_._2)
+        </td>
+      </tr><tr>
+        <td>
+          193
+        </td>
+        <td>
+          275
+        </td>
+        <td>
+          6944
+          -
+          7219
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          get
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          maps.find(m =&gt;\r\n        m.numberOfCity() &gt;= minNumberOfCity &amp;&amp;\r\n        m.count( c =&gt; c._1.isCapital) == nCapital  &amp;&amp;\r\n        m.forall(c =&gt; !c._1.isCapital || c._2.size &gt;= minCapitalSize))\r\n        .orElse(\r\n          maps.find(m =&gt; m.flatMap(_._2).size == size * size)).get
+        </td>
+      </tr><tr>
+        <td>
+          198
+        </td>
+        <td>
+          284
+        </td>
+        <td>
+          7327
+          -
+          7353
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          getSetOfCoords
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def getSetOfCoords
+        </td>
+      </tr><tr>
+        <td>
+          199
+        </td>
+        <td>
+          277
+        </td>
+        <td>
+          7385
+          -
+          7456
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          for\r\n      x &lt;- 0 until size\r\n      y &lt;- 0 until size\r\n    yield (x, y)
+        </td>
+      </tr><tr>
+        <td>
+          200
+        </td>
+        <td>
+          279
+        </td>
+        <td>
+          7401
+          -
+          7402
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          intWrapper
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          200
+        </td>
+        <td>
+          278
+        </td>
+        <td>
+          7401
+          -
+          7413
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          until
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          0 until size
+        </td>
+      </tr><tr>
+        <td>
+          201
+        </td>
+        <td>
+          280
+        </td>
+        <td>
+          7421
+          -
+          7456
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          y &lt;- 0 until size\r\n    yield (x, y)
+        </td>
+      </tr><tr>
+        <td>
+          201
+        </td>
+        <td>
+          282
+        </td>
+        <td>
+          7426
+          -
+          7427
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          intWrapper
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          0
+        </td>
+      </tr><tr>
+        <td>
+          201
+        </td>
+        <td>
+          281
+        </td>
+        <td>
+          7426
+          -
+          7438
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          until
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          0 until size
+        </td>
+      </tr><tr>
+        <td>
+          202
+        </td>
+        <td>
+          283
+        </td>
+        <td>
+          7384
+          -
+          7463
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toSet
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          (for\r\n      x &lt;- 0 until size\r\n      y &lt;- 0 until size\r\n    yield (x, y)).toSet
+        </td>
+      </tr><tr>
+        <td>
+          207
+        </td>
+        <td>
+          305
+        </td>
+        <td>
+          7570
+          -
+          7596
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          validNeighbors
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def validNeighbors
+        </td>
+      </tr><tr>
+        <td>
+          208
+        </td>
+        <td>
+          285
+        </td>
+        <td>
+          7669
+          -
+          7924
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          for\r\n      (x, y) &lt;- seeds\r\n      dx &lt;- -1 to 1\r\n      dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny = y + dy\r\n      if 0 &lt;= nx &amp;&amp; nx &lt; size\r\n      if 0 &lt;= ny &amp;&amp; ny &lt; size\r\n      if !blocked.contains((nx, ny))\r\n    yield (nx, ny)
+        </td>
+      </tr><tr>
+        <td>
+          209
+        </td>
+        <td>
+          286
+        </td>
+        <td>
+          7680
+          -
+          7695
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          withFilter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          (x, y) &lt;- seeds
+        </td>
+      </tr><tr>
+        <td>
+          209
+        </td>
+        <td>
+          288
+        </td>
+        <td>
+          7680
+          -
+          7686
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          (x, y)
+        </td>
+      </tr><tr>
+        <td>
+          209
+        </td>
+        <td>
+          287
+        </td>
+        <td>
+          7680
+          -
+          7686
+        </td>
+        <td>
+          Literal
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          (x, y)
+        </td>
+      </tr><tr>
+        <td>
+          210
+        </td>
+        <td>
+          289
+        </td>
+        <td>
+          7703
+          -
+          7924
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          dx &lt;- -1 to 1\r\n      dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny = y + dy\r\n      if 0 &lt;= nx &amp;&amp; nx &lt; size\r\n      if 0 &lt;= ny &amp;&amp; ny &lt; size\r\n      if !blocked.contains((nx, ny))\r\n    yield (nx, ny)
+        </td>
+      </tr><tr>
+        <td>
+          210
+        </td>
+        <td>
+          291
+        </td>
+        <td>
+          7709
+          -
+          7711
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          intWrapper
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          -1
+        </td>
+      </tr><tr>
+        <td>
+          210
+        </td>
+        <td>
+          290
+        </td>
+        <td>
+          7709
+          -
+          7716
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          to
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          -1 to 1
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          304
+        </td>
+        <td>
+          7724
+          -
+          7795
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          295
+        </td>
+        <td>
+          7724
+          -
+          7835
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          withFilter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny = y + dy\r\n      if 0 &lt;= nx &amp;&amp; nx &lt; size
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          298
+        </td>
+        <td>
+          7730
+          -
+          7737
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          to
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          -1 to 1
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          301
+        </td>
+        <td>
+          7724
+          -
+          7795
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          &amp;&amp;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          292
+        </td>
+        <td>
+          7724
+          -
+          7924
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny = y + dy\r\n      if 0 &lt;= nx &amp;&amp; nx &lt; size\r\n      if 0 &lt;= ny &amp;&amp; ny &lt; size\r\n      if !blocked.contains((nx, ny))\r\n    yield (nx, ny)
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          300
+        </td>
+        <td>
+          7724
+          -
+          7795
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          &amp;&amp;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          294
+        </td>
+        <td>
+          7724
+          -
+          7866
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          withFilter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny = y + dy\r\n      if 0 &lt;= nx &amp;&amp; nx &lt; size\r\n      if 0 &lt;= ny &amp;&amp; ny &lt; size
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          297
+        </td>
+        <td>
+          7724
+          -
+          7766
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          withFilter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          299
+        </td>
+        <td>
+          7730
+          -
+          7732
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          intWrapper
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          -1
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          302
+        </td>
+        <td>
+          7724
+          -
+          7795
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          unary_!
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          293
+        </td>
+        <td>
+          7724
+          -
+          7904
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          withFilter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny = y + dy\r\n      if 0 &lt;= nx &amp;&amp; nx &lt; size\r\n      if 0 &lt;= ny &amp;&amp; ny &lt; size\r\n      if !blocked.contains((nx, ny))
+        </td>
+      </tr><tr>
+        <td>
+          211
+        </td>
+        <td>
+          296
+        </td>
+        <td>
+          7724
+          -
+          7804
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          dy &lt;- -1 to 1\r\n      if dx != 0 || dy != 0\r\n      nx = x + dx\r\n      ny = y + dy
+        </td>
+      </tr><tr>
+        <td>
+          217
+        </td>
+        <td>
+          303
+        </td>
+        <td>
+          7878
+          -
+          7904
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          contains
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          blocked.contains((nx, ny))
+        </td>
+      </tr><tr>
+        <td>
+          224
+        </td>
+        <td>
+          308
+        </td>
+        <td>
+          8056
+          -
+          8078
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          adjacentTo
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          private def adjacentTo
+        </td>
+      </tr><tr>
+        <td>
+          225
+        </td>
+        <td>
+          307
+        </td>
+        <td>
+          8144
+          -
+          8156
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toList
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          tiles.toList
+        </td>
+      </tr><tr>
+        <td>
+          225
+        </td>
+        <td>
+          306
+        </td>
+        <td>
+          8129
+          -
+          8170
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          validNeighbors
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          validNeighbors(tiles.toList, size, tiles)
+        </td>
+      </tr><tr>
+        <td>
+          239
+        </td>
+        <td>
+          310
+        </td>
+        <td>
+          8557
+          -
+          8575
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          createWorldMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def createWorldMap
+        </td>
+      </tr><tr>
+        <td>
+          240
+        </td>
+        <td>
+          309
+        </td>
+        <td>
+          8645
+          -
+          8676
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          createMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          CreateMapModule.createMap(size)
+        </td>
+      </tr><tr>
+        <td>
+          249
+        </td>
+        <td>
+          318
+        </td>
+        <td>
+          8904
+          -
+          8923
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          getSizeOfTheMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def getSizeOfTheMap
+        </td>
+      </tr><tr>
+        <td>
+          250
+        </td>
+        <td>
+          313
+        </td>
+        <td>
+          8955
+          -
+          8959
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._2
+        </td>
+      </tr><tr>
+        <td>
+          250
+        </td>
+        <td>
+          316
+        </td>
+        <td>
+          9009
+          -
+          9014
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          xy._1
+        </td>
+      </tr><tr>
+        <td>
+          250
+        </td>
+        <td>
+          312
+        </td>
+        <td>
+          8938
+          -
+          8960
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.flatMap(_._2)
+        </td>
+      </tr><tr>
+        <td>
+          250
+        </td>
+        <td>
+          315
+        </td>
+        <td>
+          9000
+          -
+          9022
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          max
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          math.max(xy._1, xy._2)
+        </td>
+      </tr><tr>
+        <td>
+          250
+        </td>
+        <td>
+          317
+        </td>
+        <td>
+          9016
+          -
+          9021
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          xy._2
+        </td>
+      </tr><tr>
+        <td>
+          250
+        </td>
+        <td>
+          311
+        </td>
+        <td>
+          8938
+          -
+          9024
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          foldLeft
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.flatMap(_._2).foldLeft(0)((acc, xy) =&gt; math.max(acc, math.max(xy._1, xy._2)))
+        </td>
+      </tr><tr>
+        <td>
+          250
+        </td>
+        <td>
+          314
+        </td>
+        <td>
+          8986
+          -
+          9023
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          max
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          math.max(acc, math.max(xy._1, xy._2))
+        </td>
+      </tr><tr>
+        <td>
+          258
+        </td>
+        <td>
+          324
+        </td>
+        <td>
+          9213
+          -
+          9230
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          getCityByName
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def getCityByName
+        </td>
+      </tr><tr>
+        <td>
+          259
+        </td>
+        <td>
+          322
+        </td>
+        <td>
+          9282
+          -
+          9286
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          259
+        </td>
+        <td>
+          319
+        </td>
+        <td>
+          9268
+          -
+          9313
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.find(_._1.getName == name).map(_._1)
+        </td>
+      </tr><tr>
+        <td>
+          259
+        </td>
+        <td>
+          321
+        </td>
+        <td>
+          9282
+          -
+          9294
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getName
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1.getName
+        </td>
+      </tr><tr>
+        <td>
+          259
+        </td>
+        <td>
+          323
+        </td>
+        <td>
+          9308
+          -
+          9312
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          259
+        </td>
+        <td>
+          320
+        </td>
+        <td>
+          9268
+          -
+          9303
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          find
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.find(_._1.getName == name)
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          325
+        </td>
+        <td>
+          9499
+          -
+          9540
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          count
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.count(_._1.getOwner == Owner.AI)
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          328
+        </td>
+        <td>
+          9465
+          -
+          9489
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          numberOfCityInfected
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def numberOfCityInfected
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          327
+        </td>
+        <td>
+          9514
+          -
+          9518
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          266
+        </td>
+        <td>
+          326
+        </td>
+        <td>
+          9514
+          -
+          9527
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOwner
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _._1.getOwner
+        </td>
+      </tr><tr>
+        <td>
+          273
+        </td>
+        <td>
+          330
+        </td>
+        <td>
+          9648
+          -
+          9664
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          numberOfCity
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def numberOfCity
+        </td>
+      </tr><tr>
+        <td>
+          273
+        </td>
+        <td>
+          329
+        </td>
+        <td>
+          9674
+          -
+          9687
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          size
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.size
+        </td>
+      </tr><tr>
+        <td>
+          281
+        </td>
+        <td>
+          337
+        </td>
+        <td>
+          9968
+          -
+          9981
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          findInMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def findInMap
+        </td>
+      </tr><tr>
+        <td>
+          282
+        </td>
+        <td>
+          331
+        </td>
+        <td>
+          10041
+          -
+          10132
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.find(f.tupled).flatMap((city, coords) =&gt; coords.headOption.map(_ =&gt; city.getName))
+        </td>
+      </tr><tr>
+        <td>
+          282
+        </td>
+        <td>
+          334
+        </td>
+        <td>
+          10091
+          -
+          10131
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          coords.headOption.map(_ =&gt; city.getName)
+        </td>
+      </tr><tr>
+        <td>
+          282
+        </td>
+        <td>
+          336
+        </td>
+        <td>
+          10118
+          -
+          10130
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getName
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          city.getName
+        </td>
+      </tr><tr>
+        <td>
+          282
+        </td>
+        <td>
+          333
+        </td>
+        <td>
+          10055
+          -
+          10063
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          tupled
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          f.tupled
+        </td>
+      </tr><tr>
+        <td>
+          282
+        </td>
+        <td>
+          332
+        </td>
+        <td>
+          10041
+          -
+          10064
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          find
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.find(f.tupled)
+        </td>
+      </tr><tr>
+        <td>
+          282
+        </td>
+        <td>
+          335
+        </td>
+        <td>
+          10091
+          -
+          10108
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          headOption
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          coords.headOption
+        </td>
+      </tr><tr>
+        <td>
+          289
+        </td>
+        <td>
+          340
+        </td>
+        <td>
+          10303
+          -
+          10316
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOwner
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1.getOwner
+        </td>
+      </tr><tr>
+        <td>
+          289
+        </td>
+        <td>
+          343
+        </td>
+        <td>
+          10261
+          -
+          10273
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          aiCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def aiCities
+        </td>
+      </tr><tr>
+        <td>
+          289
+        </td>
+        <td>
+          339
+        </td>
+        <td>
+          10287
+          -
+          10329
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          filter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.filter(_._1.getOwner == Owner.AI)
+        </td>
+      </tr><tr>
+        <td>
+          289
+        </td>
+        <td>
+          342
+        </td>
+        <td>
+          10334
+          -
+          10338
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          289
+        </td>
+        <td>
+          341
+        </td>
+        <td>
+          10303
+          -
+          10307
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          289
+        </td>
+        <td>
+          338
+        </td>
+        <td>
+          10287
+          -
+          10339
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.filter(_._1.getOwner == Owner.AI).map(_._1)
+        </td>
+      </tr><tr>
+        <td>
+          296
+        </td>
+        <td>
+          346
+        </td>
+        <td>
+          10521
+          -
+          10534
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOwner
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1.getOwner
+        </td>
+      </tr><tr>
+        <td>
+          296
+        </td>
+        <td>
+          349
+        </td>
+        <td>
+          10476
+          -
+          10491
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          humanCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def humanCities
+        </td>
+      </tr><tr>
+        <td>
+          296
+        </td>
+        <td>
+          345
+        </td>
+        <td>
+          10505
+          -
+          10550
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          filter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.filter(_._1.getOwner == Owner.HUMAN)
+        </td>
+      </tr><tr>
+        <td>
+          296
+        </td>
+        <td>
+          348
+        </td>
+        <td>
+          10555
+          -
+          10559
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          296
+        </td>
+        <td>
+          344
+        </td>
+        <td>
+          10505
+          -
+          10560
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
+        </td>
+      </tr><tr>
+        <td>
+          296
+        </td>
+        <td>
+          347
+        </td>
+        <td>
+          10521
+          -
+          10525
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          302
+        </td>
+        <td>
+          355
+        </td>
+        <td>
+          10714
+          -
+          10741
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          capitalConqueredCounter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def capitalConqueredCounter
+        </td>
+      </tr><tr>
+        <td>
+          302
+        </td>
+        <td>
+          352
+        </td>
+        <td>
+          10771
+          -
+          10777
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          map._1
+        </td>
+      </tr><tr>
+        <td>
+          302
+        </td>
+        <td>
+          354
+        </td>
+        <td>
+          10791
+          -
+          10797
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          map._1
+        </td>
+      </tr><tr>
+        <td>
+          302
+        </td>
+        <td>
+          351
+        </td>
+        <td>
+          10771
+          -
+          10787
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          isCapital
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          map._1.isCapital
+        </td>
+      </tr><tr>
+        <td>
+          302
+        </td>
+        <td>
+          350
+        </td>
+        <td>
+          10749
+          -
+          10819
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          count
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.count(map =&gt; map._1.isCapital &amp;&amp; map._1.getOwner == Owner.AI)
+        </td>
+      </tr><tr>
+        <td>
+          302
+        </td>
+        <td>
+          353
+        </td>
+        <td>
+          10791
+          -
+          10806
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOwner
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          map._1.getOwner
+        </td>
+      </tr><tr>
+        <td>
+          309
+        </td>
+        <td>
+          374
+        </td>
+        <td>
+          10992
+          -
+          11013
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          getAdjacentCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def getAdjacentCities
+        </td>
+      </tr><tr>
+        <td>
+          310
+        </td>
+        <td>
+          358
+        </td>
+        <td>
+          11059
+          -
+          11070
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          humanCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          humanCities
+        </td>
+      </tr><tr>
+        <td>
+          310
+        </td>
+        <td>
+          357
+        </td>
+        <td>
+          11037
+          -
+          11053
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          isEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          aiCities.isEmpty
+        </td>
+      </tr><tr>
+        <td>
+          310
+        </td>
+        <td>
+          359
+        </td>
+        <td>
+          11059
+          -
+          11070
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          humanCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          humanCities
+        </td>
+      </tr><tr>
+        <td>
+          310
+        </td>
+        <td>
+          356
+        </td>
+        <td>
+          11037
+          -
+          11045
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          aiCities
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          aiCities
+        </td>
+      </tr><tr>
+        <td>
+          312
+        </td>
+        <td>
+          373
+        </td>
+        <td>
+          11083
+          -
+          11346
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          collect
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.collect:\r\n        case (city, coords)\r\n          if city.getOwner == Owner.HUMAN &amp;&amp;\r\n            coords.exists(adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI)\r\n              .flatMap(_._2), worldMap.getSizeOfTheMap).toSet.contains)\r\n        =&gt; city
+        </td>
+      </tr><tr>
+        <td>
+          312
+        </td>
+        <td>
+          360
+        </td>
+        <td>
+          11083
+          -
+          11346
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          collect
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.collect:\r\n        case (city, coords)\r\n          if city.getOwner == Owner.HUMAN &amp;&amp;\r\n            coords.exists(adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI)\r\n              .flatMap(_._2), worldMap.getSizeOfTheMap).toSet.contains)\r\n        =&gt; city
+        </td>
+      </tr><tr>
+        <td>
+          312
+        </td>
+        <td>
+          372
+        </td>
+        <td>
+          11110
+          -
+          11329
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case (city, coords)\r\n          if city.getOwner == Owner.HUMAN &amp;&amp;\r\n            coords.exists(adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI)\r\n              .flatMap(_._2), worldMap.getSizeOfTheMap).toSet.contains)
+        </td>
+      </tr><tr>
+        <td>
+          313
+        </td>
+        <td>
+          361
+        </td>
+        <td>
+          11144
+          -
+          11157
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOwner
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          city.getOwner
+        </td>
+      </tr><tr>
+        <td>
+          314
+        </td>
+        <td>
+          367
+        </td>
+        <td>
+          11230
+          -
+          11234
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          314
+        </td>
+        <td>
+          363
+        </td>
+        <td>
+          11203
+          -
+          11313
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          adjacentTo
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI)\r\n              .flatMap(_._2), worldMap.getSizeOfTheMap)
+        </td>
+      </tr><tr>
+        <td>
+          314
+        </td>
+        <td>
+          366
+        </td>
+        <td>
+          11230
+          -
+          11243
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOwner
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1.getOwner
+        </td>
+      </tr><tr>
+        <td>
+          314
+        </td>
+        <td>
+          362
+        </td>
+        <td>
+          11189
+          -
+          11329
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          exists
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          coords.exists(adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI)\r\n              .flatMap(_._2), worldMap.getSizeOfTheMap).toSet.contains)
+        </td>
+      </tr><tr>
+        <td>
+          314
+        </td>
+        <td>
+          371
+        </td>
+        <td>
+          11203
+          -
+          11328
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          contains
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI)\r\n              .flatMap(_._2), worldMap.getSizeOfTheMap).toSet.contains
+        </td>
+      </tr><tr>
+        <td>
+          314
+        </td>
+        <td>
+          365
+        </td>
+        <td>
+          11214
+          -
+          11256
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          filter
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.filter(_._1.getOwner == Owner.AI)
+        </td>
+      </tr><tr>
+        <td>
+          315
+        </td>
+        <td>
+          364
+        </td>
+        <td>
+          11214
+          -
+          11286
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.filter(_._1.getOwner == Owner.AI)\r\n              .flatMap(_._2)
+        </td>
+      </tr><tr>
+        <td>
+          315
+        </td>
+        <td>
+          370
+        </td>
+        <td>
+          11203
+          -
+          11319
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toSet
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI)\r\n              .flatMap(_._2), worldMap.getSizeOfTheMap).toSet
+        </td>
+      </tr><tr>
+        <td>
+          315
+        </td>
+        <td>
+          369
+        </td>
+        <td>
+          11288
+          -
+          11312
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getSizeOfTheMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.getSizeOfTheMap
+        </td>
+      </tr><tr>
+        <td>
+          315
+        </td>
+        <td>
+          368
+        </td>
+        <td>
+          11281
+          -
+          11285
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _2
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          _._2
+        </td>
+      </tr><tr>
+        <td>
+          324
+        </td>
+        <td>
+          387
+        </td>
+        <td>
+          11584
+          -
+          11607
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          changeACityOfTheMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def changeACityOfTheMap
+        </td>
+      </tr><tr>
+        <td>
+          325
+        </td>
+        <td>
+          379
+        </td>
+        <td>
+          11653
+          -
+          11657
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          325
+        </td>
+        <td>
+          378
+        </td>
+        <td>
+          11653
+          -
+          11665
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getName
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1.getName
+        </td>
+      </tr><tr>
+        <td>
+          325
+        </td>
+        <td>
+          377
+        </td>
+        <td>
+          11639
+          -
+          11682
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          find
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.find(_._1.getName == city.getName)
+        </td>
+      </tr><tr>
+        <td>
+          325
+        </td>
+        <td>
+          380
+        </td>
+        <td>
+          11669
+          -
+          11681
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getName
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          city.getName
+        </td>
+      </tr><tr>
+        <td>
+          326
+        </td>
+        <td>
+          382
+        </td>
+        <td>
+          11712
+          -
+          11760
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          filterNot
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.filterNot(_._1.getName == city.getName)
+        </td>
+      </tr><tr>
+        <td>
+          326
+        </td>
+        <td>
+          376
+        </td>
+        <td>
+          11639
+          -
+          11780
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.find(_._1.getName == city.getName)\r\n        .map((_, coords) =&gt; worldMap.filterNot(_._1.getName == city.getName) + (city -&gt; coords))
+        </td>
+      </tr><tr>
+        <td>
+          326
+        </td>
+        <td>
+          385
+        </td>
+        <td>
+          11747
+          -
+          11759
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getName
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          city.getName
+        </td>
+      </tr><tr>
+        <td>
+          326
+        </td>
+        <td>
+          381
+        </td>
+        <td>
+          11712
+          -
+          11778
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          +
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          worldMap.filterNot(_._1.getName == city.getName) + (city -&gt; coords
+        </td>
+      </tr><tr>
+        <td>
+          326
+        </td>
+        <td>
+          384
+        </td>
+        <td>
+          11731
+          -
+          11735
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          _1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1
+        </td>
+      </tr><tr>
+        <td>
+          326
+        </td>
+        <td>
+          383
+        </td>
+        <td>
+          11731
+          -
+          11743
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getName
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          _._1.getName
+        </td>
+      </tr><tr>
+        <td>
+          326
+        </td>
+        <td>
+          386
+        </td>
+        <td>
+          11764
+          -
+          11778
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          -&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          city -&gt; coords
+        </td>
+      </tr><tr>
+        <td>
+          327
+        </td>
+        <td>
+          375
+        </td>
+        <td>
+          11639
+          -
+          11810
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          getOrElse
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          worldMap.find(_._1.getName == city.getName)\r\n        .map((_, coords) =&gt; worldMap.filterNot(_._1.getName == city.getName) + (city -&gt; coords))\r\n        .getOrElse(worldMap)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>
