@@ -27,7 +27,21 @@ permettendo un'interfaccia pulita e intuitiva.
 * **Metodi di estensione (`extension`)**: permettono di definire operazioni su `City` come se fossero metodi dell’oggetto stesso.
 * **Pattern immutabile**: ogni modifica (es. infezione, sabotaggio) restituisce una nuova istanza della città, rispettando il paradigma funzionale.
 * **Utilizzo del `trait` per l’interfaccia**: separazione tra definizione dell’interfaccia (`CityInterface`) e implementazione concreta (`CityImpl`).
-* **Scala 3 syntax**
+
+### Metodi presenti
+| Metodo                       | Descrizione                                                          |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `createWorldState(...)`      | Costruttore principale, inizializza il mondo                         |
+| `updatePlayer(...)`          | Ritorna un nuovo stato con AI aggiornato                             |
+| `updateHuman(...)`           | Ritorna un nuovo stato con Human aggiornato                          |
+| `updateMap(...)`             | Ritorna un nuovo stato con una mappa modificata                      |
+| `updateTurn`                 | Incrementa il turno                                                  |
+| `isGameOver`                 | Valuta condizioni di fine partita (infezione, kill switch, capitali) |
+| `attackableCities`           | Fornisce le città attaccabili con probabilità di successo            |
+| `probabilityByCityandAction` | Percentuale di successo per un’azione su una città                   |
+| `AIOptions / HumanOptions`   | Azioni disponibili per ogni giocatore                                |
+| `infectionState`             | Stato dell’infezione nel mondo                                       |
+| `AIUnlockedAbilities`        | Abilità sbloccate dal giocatore AI                                   |
 
 ---
 
@@ -35,8 +49,6 @@ permettendo un'interfaccia pulita e intuitiva.
 
 ```mermaid
 classDiagram
-  direction TB
-
   %% Enumerations
   class Owner {
     <<enum>>
@@ -87,9 +99,15 @@ classDiagram
 
 Il modulo `WorldMapModule` definisce la rappresentazione e le logiche di costruzione della mappa di gioco. 
 Ogni mappa è costituita da un insieme di città, ognuna delle quali è associata a una serie di coordinate 
-(o “tile”) che rappresentano la sua posizione spaziale. 
+ che rappresentano la sua posizione spaziale. 
 Il modulo supporta sia la creazione deterministica che quella casuale della mappa, 
 offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
+
+---
+
+## WorldMap type
+* La scelta di definire `WorldMap` come `opaque type WorldMap = Set[(City, Set[Coord])]` consente di rappresentare la mappa come un'associazione diretta tra ogni città e le sue coordinate spaziali.
+* `Coord` è definito come una tupla `(Int, Int)` e rappresenta una singola cella della griglia di gioco, utile per localizzare le città sulla mappa.
 
 ---
 
@@ -98,11 +116,27 @@ offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
 * **Tipo opaco (`opaque type`)**: l’intera mappa (`WorldMap`) è incapsulata come un set opaco di coppie (Città, Coordinate), migliorando la sicurezza del tipo e l’incapsulamento.
 * **Trait astratto**: `CreateModuleType` definisce un'interfaccia per strategie di costruzione della mappa.
 * **Implementazioni modulari**:
-    * `DeterministicMapModule`: costruzione ordinata e prevedibile.
-    * `UndeterministicMapModule`: costruzione casuale usando monadi di stato e generatore pseudo-casuale.
-* **Uso della `State` monad**: gestisce lo stato interno del generatore di numeri casuali senza effetti collaterali.
+    * `DeterministicMapModule`: costruzione ordinata e prevedibile attraverso metodi ricorsivi tail.
+    * `UndeterministicMapModule`: costruzione pseudo-casuale della mappa tramite una `LazyList`, che permette la generazione differita delle mappe fino a trovare una configurazione valida secondo i vincoli specificati. Utilizza costrutti funzionali come il `for ... yield` per creare nuove istanze di mappe candidate.
 * **Ricorsione con `@tailrec`**: garantisce efficienza e sicurezza durante l’espansione delle città nella mappa.
 * **Estensioni su `WorldMap`**: metodi di accesso e modifica funzionale della mappa, come ricerca di città, conteggio, sostituzione, rilevamento di città adiacenti infette.
+
+---
+
+### Metodi presenti
+| Metodo                        | Descrizione                                                            |
+| ----------------------------- | ---------------------------------------------------------------------- |
+| `getSizeOfTheMap`             | Calcola la dimensione massima della griglia a partire dalle coordinate |
+| `getCityByName(name: String)` | Ritorna la città con nome corrispondente, se esiste                    |
+| `numberOfCityInfected()`      | Conta le città controllate dall’AI                                     |
+| `numberOfCity()`              | Ritorna il numero totale di città                                      |
+| `findInMap(f)`                | Trova la prima città che soddisfa un predicato                         |
+| `aiCities`                    | Restituisce tutte le città controllate dall’AI                         |
+| `humanCities`                 | Restituisce tutte le città controllate dall’umano                      |
+| `capitalConqueredCounter`     | Conta le capitali conquistate dall’AI                                  |
+| `getAdjacentCities`           | Trova le città umane adiacenti a quelle infette                        |
+| `changeACityOfTheMap(city)`   | Sostituisce una città con una nuova istanza mantenendone le coordinate |
+
 
 ---
 
@@ -110,7 +144,7 @@ offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
 
 ```mermaid
 classDiagram
-    class WorldMapModule {
+  class WorldMapModule {
         <<object>>
         +createWorldMap(size: Int): WorldMap
     }
@@ -132,8 +166,7 @@ classDiagram
 
     class WorldMap {
         <<opaque type>>
-        type = Set[(City, Set[(Int, Int)])]
-    }
+}
 
     class WorldMap~extension~ {
         +getSizeOfTheMap(): Int
@@ -160,8 +193,13 @@ classDiagram
 
 ## Descrizione
 
-Il modulo `GameController` funge da punto centrale per la gestione del ciclo di gioco. Si occupa di utilizzare i componenti core (modello, vista) e orchestrare il turno di gioco,
-in cui l'intelligenza artificiale compie un'azione, seguita da un'azione del giocatore umano. 
+Il modulo `GameController` rappresenta il punto di orchestrazione principale dell'intero flusso di gioco. 
+Coordina:
+- La generazione dello stato iniziale del mondo (`WorldState`)
+- Le azioni dell'intelligenza artificiale (`PlayerAI`)
+- Le decisioni del giocatore umano (`PlayerHuman`)
+- L’interazione tramite interfaccia (CLI)
+
 Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stato globale del gioco (`GameState`).
 
 ---
@@ -173,9 +211,9 @@ Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stat
 * **Turno di gioco**:
 
     1. Rendering e input da parte dell’utente.
-    2. Esecuzione dell’azione dell’IA(se il calcolo della probabilità di riuscita da esito positivo).
-    3. Esecuzione dell’azione difensiva umana.
-  4. 
+    2. Esecuzione dell’azione dell’IA(se il calcolo della probabilità di riuscita da esito positivo) richiamando il metodo ExecuteAction di PlayerAI.
+    3. Esecuzione dell’azione difensiva umana (da parte del computer con una logica basata sulla difficoltà oppure con l'input dell'utente in caso della modalità multiplyer)  richiamando il metodo ExecuteAction di PlayerHuman.
+  
 * **Sistema di input resiliente**: gestisce input non validi ricorsivamente (funzione `renderTurn`).
 * **Estensibilità**: l’uso di  `AiAction`, `HumanAction`e `GameView` come astrazioni facilita l'aggiunta di nuove strategie o modalità di interfaccia utente.
 
@@ -185,48 +223,63 @@ Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stat
 
 ```mermaid
 classDiagram
-    class GameController {
-        <<object>>
-        +buildGameState(): GameState
-        +gameTurn(): State[GameState, Unit]
-    }
+class GameController {
+<<object>>
++buildGameState(): GameState
++gameTurn(): State[GameState, Unit]
+}
 
-    class GameStateImpl {
-        +worldState: WorldState
-    }
+class GameStateImpl {
+-worldState: WorldState
+}
 
-    class GameState {
-        <<opaque type>>
-        type = GameStateImpl
-    }
+class GameState {
+<<opaque type>>
++GameState = GameStateImpl
+}
 
-    class TurnResult {
-        -playerAction: AiAction
-        -playerProb: Int
-        -humanAction: Option~HumanAction~
-    }
+class PlayerAI {
++executeAction(): ExecuteActionResult
++getPossibleAction(): List[AiAction]
+}
 
-    class AiAction
-    class HumanAction
-    class State~S, A~
-    class WorldState
-    class GameSettings
-    class CLIView
+class PlayerHuman {
++executeAction(): ExecuteActionResult
++decideActionByStrategy(): HumanAction
++getPossibleAction(): List[HumanAction]
+}
 
-    GameController --> GameState : defines
-    GameController --> GameStateImpl : wraps
-    GameController --> TurnResult : uses
-    GameController --> WorldState : uses
-    GameController --> State : functional core
-    GameController --> CLIView : renders
-    GameController --> GameSettings : uses
-    GameController --> AiAction : uses
-    GameController --> HumanAction : uses
-    GameStateImpl --> WorldState : contains
-    GameState --> GameStateImpl : opaque
-    GameController --> "renderTurn()" : invokes
-    GameController --> "doPlayerAction()" : invokes
-    GameController --> "doHumanAction()" : invokes
+class CLIView {
++renderGameTurn(): GameTurnInput
++renderEndGame(winner: String): Unit
+}
+
+class InputHandler {
++getActionFromChoice(): Either[InputHandlingError, Action]
+}
+
+class WorldState {
++updateTurn(): WorldState
++isGameOver(): (Boolean, Option[String])
++updatePlayer(): WorldState
++updateMap(): WorldState
++playerAI: PlayerAI
++playerHuman: PlayerHuman
++worldMap: WorldMap
+}
+
+class WorldMap
+
+GameController --> GameStateImpl  
+GameStateImpl --> WorldState: GameStateImpl
+GameController --> WorldState : uses
+GameController --> CLIView : renders
+GameController --> InputHandler : processes input
+GameController --> State : functional model
+WorldState --> PlayerAI
+WorldState --> PlayerHuman
+WorldState --> WorldMap
+GameStateImpl --> GameState : opaqued as
 ```
 
 
