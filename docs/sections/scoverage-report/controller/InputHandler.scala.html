@@ -1,0 +1,1327 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          controller\InputHandler.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package controller
+</span>2 <span style=''>
+</span>3 <span style=''>import InputHandling.{InputHandlingError, InputParsingError, InvalidChoice}
+</span>4 <span style=''>import model.strategy.*
+</span>5 <span style=''>import model.strategy.{AiAction, HumanAction}
+</span>6 <span style=''>import scala.StringContext
+</span>7 <span style=''>/** Handles errors during user input parsing or validation. */
+</span>8 <span style=''>object InputHandling:
+</span>9 <span style=''>
+</span>10 <span style=''>  sealed trait InputHandlingError
+</span>11 <span style=''>  case class InvalidChoice(choice: Int, availableRange: Range) extends InputHandlingError
+</span>12 <span style=''>  case class InputParsingError(input: String, message: String) extends InputHandlingError
+</span>13 <span style=''>
+</span>14 <span style=''>  object InputHandlingError:
+</span>15 <span style=''>    extension (e: InputHandlingError)
+</span>16 <span style=''>      </span><span style='background: #F0ADAD'>def userMessage</span><span style=''>: String = e match
+</span>17 <span style=''>        </span><span style='background: #F0ADAD'>case InvalidChoice(choice, range)</span><span style=''> =&gt;
+</span>18 <span style=''>          </span><span style='background: #F0ADAD'>s&quot;Invalid choice: $choice. Please enter a number between ${range.min} and ${range.max}.&quot;</span><span style=''>
+</span>19 <span style=''>        </span><span style='background: #F0ADAD'>case InputParsingError(input, msg)</span><span style=''> =&gt;
+</span>20 <span style=''>          </span><span style='background: #F0ADAD'>s&quot;Input format error: $input. $msg&quot;</span><span style=''>
+</span>21 <span style=''>
+</span>22 <span style=''>object InputHandler:
+</span>23 <span style=''>
+</span>24 <span style=''>  /** Context used for action resolution */
+</span>25 <span style=''>  sealed trait ActionContext
+</span>26 <span style=''>  case class CityContext(cityName: String, applicableCities: Set[String]) extends ActionContext
+</span>27 <span style=''>  case object NoContext extends ActionContext
+</span>28 <span style=''>
+</span>29 <span style=''>  /** Typeclass for resolving a base action using context into a fully initialized one */
+</span>30 <span style=''>  trait ActionResolver[A &lt;: TurnAction]:
+</span>31 <span style=''>    def resolve(base: A, context: ActionContext): Either[InputHandlingError, A]
+</span>32 <span style=''>
+</span>33 <span style=''>  /** Generic handler to convert a choice into a validated action */
+</span>34 <span style=''>  </span><span style='background: #AEF1AE'>def getActionFromChoice</span><span style=''>[A &lt;: TurnAction](
+</span>35 <span style=''>                                            choice: Int,
+</span>36 <span style=''>                                            context: ActionContext,
+</span>37 <span style=''>                                            availableActions: List[A]
+</span>38 <span style=''>                                          )(using resolver: ActionResolver[A]): Either[InputHandlingError, A] =
+</span>39 <span style=''>    </span><span style='background: #AEF1AE'>for {
+</span>40 <span style=''></span><span style='background: #AEF1AE'>      action &lt;- </span><span style='background: #F0ADAD'>availableActions.lift(choice)
+</span>41 <span style=''></span><span style='background: #F0ADAD'>        .toRight(InvalidChoice(choice, availableActions.indices))</span><span style='background: #AEF1AE'>
+</span>42 <span style=''></span><span style='background: #AEF1AE'>      resolved &lt;- </span><span style='background: #F0ADAD'>resolver.resolve(action, context)</span><span style='background: #AEF1AE'>
+</span>43 <span style=''></span><span style='background: #AEF1AE'>    } yield resolved</span><span style=''>
+</span>44 <span style=''>
+</span>45 <span style=''>  /** Resolver for AiActions */
+</span>46 <span style=''>  given aiActionResolver: ActionResolver[AiAction] with
+</span>47 <span style=''>    </span><span style='background: #AEF1AE'>def resolve</span><span style=''>(action: AiAction, ctx: ActionContext): Either[InputHandlingError, AiAction] =
+</span>48 <span style=''>      ctx match
+</span>49 <span style=''>        </span><span style='background: #AEF1AE'>case CityContext(cityName, applicableCities)</span><span style=''> =&gt;
+</span>50 <span style=''>          action match
+</span>51 <span style=''>            </span><span style='background: #AEF1AE'>case _: Sabotage | _: Infect</span><span style=''> =&gt;
+</span>52 <span style=''>              </span><span style='background: #F0ADAD'>Either</span><span style='background: #AEF1AE'>.cond(
+</span>53 <span style=''></span><span style='background: #AEF1AE'>                applicableCities.contains(cityName),
+</span>54 <span style=''></span><span style='background: #AEF1AE'>                action match
+</span>55 <span style=''></span><span style='background: #AEF1AE'>                  </span><span style='background: #F0ADAD'>case _: Sabotage</span><span style='background: #AEF1AE'> =&gt; Sabotage(</span><span style='background: #F0ADAD'>List(cityName)</span><span style='background: #AEF1AE'>)
+</span>56 <span style=''></span><span style='background: #AEF1AE'>                  case _: Infect   =&gt; Infect(</span><span style='background: #F0ADAD'>List</span><span style='background: #AEF1AE'>(cityName))
+</span>57 <span style=''></span><span style='background: #AEF1AE'>                  </span><span style='background: #F0ADAD'>case _</span><span style='background: #AEF1AE'> =&gt; action,
+</span>58 <span style=''></span><span style='background: #AEF1AE'>                InputParsingError(cityName, s&quot;The city '$cityName' is not attackable.&quot;)
+</span>59 <span style=''></span><span style='background: #AEF1AE'>              )</span><span style=''>
+</span>60 <span style=''>            </span><span style='background: #AEF1AE'>case Evolve</span><span style=''> =&gt; </span><span style='background: #F0ADAD'>Right</span><span style=''>(Evolve)
+</span>61 <span style=''>        </span><span style='background: #F0ADAD'>case _</span><span style=''> =&gt;
+</span>62 <span style=''>          </span><span style='background: #F0ADAD'>Left</span><span style=''>(InputParsingError(&quot;Context&quot;, &quot;Invalid context provided for AiAction.&quot;))
+</span>63 <span style=''>
+</span>64 <span style=''>  /** Resolver for HumanActions */
+</span>65 <span style=''>  given humanActionResolver: ActionResolver[HumanAction] with
+</span>66 <span style=''>    </span><span style='background: #F0ADAD'>def resolve</span><span style=''>(action: HumanAction, ctx: ActionContext): Either[InputHandlingError, HumanAction] =
+</span>67 <span style=''>      ctx match
+</span>68 <span style=''>        </span><span style='background: #F0ADAD'>case CityContext(cityName, ownedCities)</span><span style=''> =&gt;
+</span>69 <span style=''>          val targets = </span><span style='background: #F0ADAD'>List(cityName)</span><span style=''>
+</span>70 <span style=''>          action match
+</span>71 <span style=''>            </span><span style='background: #F0ADAD'>case _: CityDefense</span><span style=''> =&gt;
+</span>72 <span style=''>              </span><span style='background: #F0ADAD'>Either.cond(
+</span>73 <span style=''></span><span style='background: #F0ADAD'>                targets.nonEmpty,
+</span>74 <span style=''></span><span style='background: #F0ADAD'>                CityDefense(targets),
+</span>75 <span style=''></span><span style='background: #F0ADAD'>                InputParsingError(&quot;Targets&quot;, &quot;Some targets are not your cities.&quot;)
+</span>76 <span style=''></span><span style='background: #F0ADAD'>              )</span><span style=''>
+</span>77 <span style=''>            </span><span style='background: #F0ADAD'>case _: GlobalDefense</span><span style=''> =&gt;
+</span>78 <span style=''>              </span><span style='background: #F0ADAD'>Either.cond(
+</span>79 <span style=''></span><span style='background: #F0ADAD'>                targets.nonEmpty,
+</span>80 <span style=''></span><span style='background: #F0ADAD'>                GlobalDefense(ownedCities.toList),
+</span>81 <span style=''></span><span style='background: #F0ADAD'>                InputParsingError(&quot;Targets&quot;, &quot;Some targets are not your cities.&quot;)
+</span>82 <span style=''></span><span style='background: #F0ADAD'>              )</span><span style=''>
+</span>83 <span style=''>            </span><span style='background: #F0ADAD'>case DevelopKillSwitch</span><span style=''> =&gt; </span><span style='background: #F0ADAD'>Right</span><span style=''>(DevelopKillSwitch)
+</span>84 <span style=''>        </span><span style='background: #F0ADAD'>case _</span><span style=''> =&gt;
+</span>85 <span style=''>          </span><span style='background: #F0ADAD'>Left</span><span style=''>(InputParsingError(&quot;Context&quot;, &quot;Invalid context provided for HumanAction.&quot;))
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          95
+        </td>
+        <td>
+          582
+          -
+          597
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          userMessage
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          def userMessage
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          89
+        </td>
+        <td>
+          625
+          -
+          658
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case InvalidChoice(choice, range)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          92
+        </td>
+        <td>
+          749
+          -
+          758
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          max
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          range.max
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          91
+        </td>
+        <td>
+          732
+          -
+          741
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          min
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          range.min
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          90
+        </td>
+        <td>
+          673
+          -
+          761
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;Invalid choice: $choice. Please enter a number between ${range.min} and ${range.max}.&quot;
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          93
+        </td>
+        <td>
+          771
+          -
+          805
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case InputParsingError(input, msg)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          94
+        </td>
+        <td>
+          820
+          -
+          855
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          s&quot;Input format error: $input. $msg&quot;
+        </td>
+      </tr><tr>
+        <td>
+          33
+        </td>
+        <td>
+          103
+        </td>
+        <td>
+          1392
+          -
+          1415
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          getActionFromChoice
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def getActionFromChoice
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          96
+        </td>
+        <td>
+          1750
+          -
+          1944
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          flatMap
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          for {\r\n      action &lt;- availableActions.lift(choice)\r\n        .toRight(InvalidChoice(choice, availableActions.indices))\r\n      resolved &lt;- resolver.resolve(action, context)\r\n    } yield resolved
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          98
+        </td>
+        <td>
+          1773
+          -
+          1802
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          availableActions.lift(choice)
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          99
+        </td>
+        <td>
+          1773
+          -
+          1794
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          lift
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          availableActions.lift
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          100
+        </td>
+        <td>
+          1843
+          -
+          1867
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          indices
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          availableActions.indices
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          97
+        </td>
+        <td>
+          1773
+          -
+          1869
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          toRight
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          availableActions.lift(choice)\r\n        .toRight(InvalidChoice(choice, availableActions.indices))
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          101
+        </td>
+        <td>
+          1877
+          -
+          1944
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          map
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          resolved &lt;- resolver.resolve(action, context)\r\n    } yield resolved
+        </td>
+      </tr><tr>
+        <td>
+          41
+        </td>
+        <td>
+          102
+        </td>
+        <td>
+          1889
+          -
+          1922
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          resolve
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          resolver.resolve(action, context)
+        </td>
+      </tr><tr>
+        <td>
+          46
+        </td>
+        <td>
+          121
+        </td>
+        <td>
+          2042
+          -
+          2053
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          resolve
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def resolve
+        </td>
+      </tr><tr>
+        <td>
+          48
+        </td>
+        <td>
+          104
+        </td>
+        <td>
+          2158
+          -
+          2202
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case CityContext(cityName, applicableCities)
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          105
+        </td>
+        <td>
+          2243
+          -
+          2271
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case _: Sabotage | _: Infect
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          107
+        </td>
+        <td>
+          2290
+          -
+          2296
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Either
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Either
+        </td>
+      </tr><tr>
+        <td>
+          51
+        </td>
+        <td>
+          106
+        </td>
+        <td>
+          2290
+          -
+          2655
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          cond
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Either.cond(\r\n                applicableCities.contains(cityName),\r\n                action match\r\n                  case _: Sabotage =&gt; Sabotage(List(cityName))\r\n                  case _: Infect   =&gt; Infect(List(cityName))\r\n                  case _ =&gt; action,\r\n                InputParsingError(cityName, s&quot;The city '$cityName' is not attackable.&quot;)\r\n              )
+        </td>
+      </tr><tr>
+        <td>
+          52
+        </td>
+        <td>
+          108
+        </td>
+        <td>
+          2320
+          -
+          2355
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          contains
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          applicableCities.contains(cityName)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          110
+        </td>
+        <td>
+          2435
+          -
+          2449
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List(cityName)
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          109
+        </td>
+        <td>
+          2406
+          -
+          2422
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _: Sabotage
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          111
+        </td>
+        <td>
+          2435
+          -
+          2439
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          113
+        </td>
+        <td>
+          2497
+          -
+          2511
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(cityName)
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          112
+        </td>
+        <td>
+          2470
+          -
+          2484
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case _: Infect
+        </td>
+      </tr><tr>
+        <td>
+          55
+        </td>
+        <td>
+          114
+        </td>
+        <td>
+          2497
+          -
+          2501
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          56
+        </td>
+        <td>
+          115
+        </td>
+        <td>
+          2532
+          -
+          2538
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          116
+        </td>
+        <td>
+          2595
+          -
+          2637
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          s
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          s&quot;The city '$cityName' is not attackable.&quot;
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          118
+        </td>
+        <td>
+          2684
+          -
+          2689
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Right
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Right
+        </td>
+      </tr><tr>
+        <td>
+          59
+        </td>
+        <td>
+          117
+        </td>
+        <td>
+          2669
+          -
+          2680
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case Evolve
+        </td>
+      </tr><tr>
+        <td>
+          60
+        </td>
+        <td>
+          119
+        </td>
+        <td>
+          2707
+          -
+          2713
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          120
+        </td>
+        <td>
+          2728
+          -
+          2732
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Left
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Left
+        </td>
+      </tr><tr>
+        <td>
+          65
+        </td>
+        <td>
+          138
+        </td>
+        <td>
+          2911
+          -
+          2922
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          resolve
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          def resolve
+        </td>
+      </tr><tr>
+        <td>
+          67
+        </td>
+        <td>
+          122
+        </td>
+        <td>
+          3033
+          -
+          3072
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case CityContext(cityName, ownedCities)
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          124
+        </td>
+        <td>
+          3101
+          -
+          3105
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          123
+        </td>
+        <td>
+          3101
+          -
+          3115
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List(cityName)
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          125
+        </td>
+        <td>
+          3153
+          -
+          3172
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _: CityDefense
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          127
+        </td>
+        <td>
+          3191
+          -
+          3197
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Either
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Either
+        </td>
+      </tr><tr>
+        <td>
+          71
+        </td>
+        <td>
+          126
+        </td>
+        <td>
+          3191
+          -
+          3377
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          cond
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Either.cond(\r\n                targets.nonEmpty,\r\n                CityDefense(targets),\r\n                InputParsingError(&quot;Targets&quot;, &quot;Some targets are not your cities.&quot;)\r\n              )
+        </td>
+      </tr><tr>
+        <td>
+          72
+        </td>
+        <td>
+          128
+        </td>
+        <td>
+          3221
+          -
+          3237
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          nonEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          targets.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          76
+        </td>
+        <td>
+          129
+        </td>
+        <td>
+          3391
+          -
+          3412
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _: GlobalDefense
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          131
+        </td>
+        <td>
+          3431
+          -
+          3437
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Either
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Either
+        </td>
+      </tr><tr>
+        <td>
+          77
+        </td>
+        <td>
+          130
+        </td>
+        <td>
+          3431
+          -
+          3630
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          cond
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Either.cond(\r\n                targets.nonEmpty,\r\n                GlobalDefense(ownedCities.toList),\r\n                InputParsingError(&quot;Targets&quot;, &quot;Some targets are not your cities.&quot;)\r\n              )
+        </td>
+      </tr><tr>
+        <td>
+          78
+        </td>
+        <td>
+          132
+        </td>
+        <td>
+          3461
+          -
+          3477
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          nonEmpty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          targets.nonEmpty
+        </td>
+      </tr><tr>
+        <td>
+          79
+        </td>
+        <td>
+          133
+        </td>
+        <td>
+          3510
+          -
+          3528
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          toList
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          ownedCities.toList
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          134
+        </td>
+        <td>
+          3644
+          -
+          3666
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case DevelopKillSwitch
+        </td>
+      </tr><tr>
+        <td>
+          82
+        </td>
+        <td>
+          135
+        </td>
+        <td>
+          3670
+          -
+          3675
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Right
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Right
+        </td>
+      </tr><tr>
+        <td>
+          83
+        </td>
+        <td>
+          136
+        </td>
+        <td>
+          3704
+          -
+          3710
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          case _
+        </td>
+      </tr><tr>
+        <td>
+          84
+        </td>
+        <td>
+          137
+        </td>
+        <td>
+          3725
+          -
+          3729
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          Left
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          Left
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

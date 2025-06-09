@@ -1,0 +1,598 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          model\strategy\HumanAction.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package model.strategy
+</span>2 <span style=''>
+</span>3 <span style=''>/**
+</span>4 <span style=''> * Represents a turn-based action that can be performed by a human player.
+</span>5 <span style=''> * All human actions have an optional list of targets (cities or regions),
+</span>6 <span style=''> * and a name for display or logging purposes.
+</span>7 <span style=''> */
+</span>8 <span style=''>sealed trait HumanAction extends TurnAction:
+</span>9 <span style=''>  /**
+</span>10 <span style=''>   * The list of targets affected by this action.
+</span>11 <span style=''>   * This can be a list of city names or other game entities.
+</span>12 <span style=''>   */
+</span>13 <span style=''>  def targets: List[ActionTarget]
+</span>14 <span style=''>
+</span>15 <span style=''>  /**
+</span>16 <span style=''>   * Returns the name of the action as a string.
+</span>17 <span style=''>   */
+</span>18 <span style=''>  </span><span style='background: #AEF1AE'>def name</span><span style=''>: String = this match
+</span>19 <span style=''>    </span><span style='background: #AEF1AE'>case CityDefense(_)</span><span style=''> =&gt; &quot;CityDefense&quot;
+</span>20 <span style=''>    </span><span style='background: #AEF1AE'>case GlobalDefense(_)</span><span style=''> =&gt; &quot;GlobalDefense&quot;
+</span>21 <span style=''>    </span><span style='background: #AEF1AE'>case DevelopKillSwitch</span><span style=''> =&gt; &quot;DevelopKillSwitch&quot;
+</span>22 <span style=''>
+</span>23 <span style=''>
+</span>24 <span style=''>/**
+</span>25 <span style=''> * Companion object for HumanAction.
+</span>26 <span style=''> * Provides predefined instances and constructors for user-facing logic.
+</span>27 <span style=''> */
+</span>28 <span style=''>object HumanAction:
+</span>29 <span style=''>  /**
+</span>30 <span style=''>   * List of all possible human actions (used for UI, validation, etc.).
+</span>31 <span style=''>   */
+</span>32 <span style=''>  val allActions: List[HumanAction] = </span><span style='background: #F0ADAD'>List</span><span style='background: #AEF1AE'>(CityDefense(), GlobalDefense(), DevelopKillSwitch)</span><span style=''>
+</span>33 <span style=''>
+</span>34 <span style=''>  /**
+</span>35 <span style=''>   * Creates a CityDefense action with the specified targets.
+</span>36 <span style=''>   *
+</span>37 <span style=''>   * @param targets list of cities to defend
+</span>38 <span style=''>   * @return a CityDefense action instance
+</span>39 <span style=''>   */
+</span>40 <span style=''>  </span><span style='background: #AEF1AE'>def cityDefense</span><span style=''>(targets: List[ActionTarget]) : HumanAction = CityDefense(targets)
+</span>41 <span style=''>
+</span>42 <span style=''>  /**
+</span>43 <span style=''>   * Creates a GlobalDefense action with the specified targets.
+</span>44 <span style=''>   *
+</span>45 <span style=''>   * @param targets list of cities affected by global defense
+</span>46 <span style=''>   * @return a GlobalDefense action instance
+</span>47 <span style=''>   */
+</span>48 <span style=''>  </span><span style='background: #AEF1AE'>def globalDefense</span><span style=''>(targets: List[ActionTarget]): HumanAction = GlobalDefense(targets)
+</span>49 <span style=''>
+</span>50 <span style=''>  /**
+</span>51 <span style=''>   * Creates a DevelopKillSwitch action.
+</span>52 <span style=''>   *
+</span>53 <span style=''>   * @return a singleton instance of DevelopKillSwitch
+</span>54 <span style=''>   */
+</span>55 <span style=''>  </span><span style='background: #AEF1AE'>def developKillSwitch</span><span style=''>(): HumanAction = DevelopKillSwitch
+</span>56 <span style=''>
+</span>57 <span style=''>/**
+</span>58 <span style=''> * Represents an action where the player defends specific cities.
+</span>59 <span style=''> *
+</span>60 <span style=''> * @param targets list of city targets to apply defense to
+</span>61 <span style=''> */
+</span>62 <span style=''>case class CityDefense(targets: List[ActionTarget] = </span><span style='background: #AEF1AE'>List.empty</span><span style=''>) extends HumanAction
+</span>63 <span style=''>
+</span>64 <span style=''>/**
+</span>65 <span style=''> * Represents a global defense action that applies lower-level protection to all cities.
+</span>66 <span style=''> *
+</span>67 <span style=''> * @param targets list of city targets affected by global defense
+</span>68 <span style=''> */
+</span>69 <span style=''>case class GlobalDefense(targets: List[ActionTarget] = </span><span style='background: #AEF1AE'>List.empty</span><span style=''>) extends HumanAction
+</span>70 <span style=''>
+</span>71 <span style=''>/**
+</span>72 <span style=''> * Represents an action to invest in developing the kill switch technology.
+</span>73 <span style=''> * This action has no targets.
+</span>74 <span style=''> */
+</span>75 <span style=''>case object DevelopKillSwitch extends HumanAction:
+</span>76 <span style=''>  </span><span style='background: #AEF1AE'>override def targets</span><span style=''>: List[ActionTarget] = </span><span style='background: #AEF1AE'>List.empty</span><span style=''>
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          511
+        </td>
+        <td>
+          513
+          -
+          521
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          name
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def name
+        </td>
+      </tr><tr>
+        <td>
+          18
+        </td>
+        <td>
+          508
+        </td>
+        <td>
+          548
+          -
+          567
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case CityDefense(_)
+        </td>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          509
+        </td>
+        <td>
+          590
+          -
+          611
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case GlobalDefense(_)
+        </td>
+      </tr><tr>
+        <td>
+          20
+        </td>
+        <td>
+          510
+        </td>
+        <td>
+          636
+          -
+          658
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case DevelopKillSwitch
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          514
+        </td>
+        <td>
+          961
+          -
+          972
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          CityDefense
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          513
+        </td>
+        <td>
+          956
+          -
+          960
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          512
+        </td>
+        <td>
+          956
+          -
+          1011
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(CityDefense(), GlobalDefense(), DevelopKillSwitch)
+        </td>
+      </tr><tr>
+        <td>
+          31
+        </td>
+        <td>
+          515
+        </td>
+        <td>
+          976
+          -
+          989
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          GlobalDefense
+        </td>
+      </tr><tr>
+        <td>
+          39
+        </td>
+        <td>
+          516
+        </td>
+        <td>
+          1190
+          -
+          1205
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          cityDefense
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def cityDefense
+        </td>
+      </tr><tr>
+        <td>
+          47
+        </td>
+        <td>
+          517
+        </td>
+        <td>
+          1471
+          -
+          1488
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          globalDefense
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def globalDefense
+        </td>
+      </tr><tr>
+        <td>
+          54
+        </td>
+        <td>
+          518
+        </td>
+        <td>
+          1679
+          -
+          1700
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          developKillSwitch
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def developKillSwitch
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          519
+        </td>
+        <td>
+          1933
+          -
+          1937
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          521
+        </td>
+        <td>
+          1933
+          -
+          1933
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          $lessinit$greater$default$1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          61
+        </td>
+        <td>
+          520
+        </td>
+        <td>
+          1933
+          -
+          1943
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List.empty
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          523
+        </td>
+        <td>
+          2194
+          -
+          2204
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List.empty
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          522
+        </td>
+        <td>
+          2194
+          -
+          2198
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          68
+        </td>
+        <td>
+          524
+        </td>
+        <td>
+          2194
+          -
+          2194
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          $lessinit$greater$default$1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          525
+        </td>
+        <td>
+          2445
+          -
+          2449
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          527
+        </td>
+        <td>
+          2402
+          -
+          2422
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          targets
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def targets
+        </td>
+      </tr><tr>
+        <td>
+          75
+        </td>
+        <td>
+          526
+        </td>
+        <td>
+          2445
+          -
+          2455
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List.empty
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

@@ -1,0 +1,593 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          model\strategy\AiAction.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>package model.strategy
+</span>2 <span style=''>
+</span>3 <span style=''>/** Represents actions specifically for AI players */
+</span>4 <span style=''>sealed trait AiAction extends TurnAction :
+</span>5 <span style=''>  /**
+</span>6 <span style=''>   * The list of targets (e.g., cities) that the action is intended to affect.
+</span>7 <span style=''>   */
+</span>8 <span style=''>  def targets: List[ActionTarget]
+</span>9 <span style=''>
+</span>10 <span style=''>  /**
+</span>11 <span style=''>   * The name of the action
+</span>12 <span style=''>   *
+</span>13 <span style=''>   * @return A string representing the action type.
+</span>14 <span style=''>   */
+</span>15 <span style=''>  </span><span style='background: #AEF1AE'>def name</span><span style=''>: String = this match
+</span>16 <span style=''>    </span><span style='background: #AEF1AE'>case Infect(_)</span><span style=''> =&gt; &quot;Infect&quot;
+</span>17 <span style=''>    </span><span style='background: #AEF1AE'>case Sabotage(_)</span><span style=''> =&gt; &quot;Sabotage&quot;
+</span>18 <span style=''>    </span><span style='background: #AEF1AE'>case Evolve</span><span style=''> =&gt; &quot;Evolve&quot;
+</span>19 <span style=''>
+</span>20 <span style=''>/**
+</span>21 <span style=''> * Companion object for [[AiAction]].
+</span>22 <span style=''> * Provides utility methods for working with AI actions.
+</span>23 <span style=''> */
+</span>24 <span style=''>object AiAction :
+</span>25 <span style=''>  /**
+</span>26 <span style=''>   * A complete list of all possible AI actions.
+</span>27 <span style=''>   */
+</span>28 <span style=''>  val allActions: List[AiAction] = </span><span style='background: #F0ADAD'>List</span><span style='background: #AEF1AE'>(Infect(), Sabotage(), Evolve)</span><span style=''>
+</span>29 <span style=''>
+</span>30 <span style=''>  /**
+</span>31 <span style=''>   * Factory method to create an Infect action with the specified targets.
+</span>32 <span style=''>   *
+</span>33 <span style=''>   * @param targets A list of targets (e.g., city names).
+</span>34 <span style=''>   * @return An instance of [[Infect]].
+</span>35 <span style=''>   */
+</span>36 <span style=''>  </span><span style='background: #AEF1AE'>def infect</span><span style=''>(targets: List[ActionTarget]): AiAction = Infect(targets)
+</span>37 <span style=''>
+</span>38 <span style=''>  /**
+</span>39 <span style=''>   * Factory method to create a Sabotage action with the specified targets.
+</span>40 <span style=''>   *
+</span>41 <span style=''>   * @param targets A list of targets (e.g., city names).
+</span>42 <span style=''>   * @return An instance of [[Sabotage]].
+</span>43 <span style=''>   */
+</span>44 <span style=''>  </span><span style='background: #AEF1AE'>def sabotage</span><span style=''>(targets: List[ActionTarget]): AiAction = Sabotage(targets)
+</span>45 <span style=''>
+</span>46 <span style=''>  /**
+</span>47 <span style=''>   * Factory method to create an Evolve action.
+</span>48 <span style=''>   *
+</span>49 <span style=''>   * @return An instance of [[Evolve]].
+</span>50 <span style=''>   */
+</span>51 <span style=''>  </span><span style='background: #AEF1AE'>def evolve</span><span style=''>(): AiAction = Evolve
+</span>52 <span style=''>
+</span>53 <span style=''>/**
+</span>54 <span style=''> * Action that allows the AI to attempt infection of one or more target cities.
+</span>55 <span style=''> *
+</span>56 <span style=''> * @param targets The list of cities to infect.
+</span>57 <span style=''> */
+</span>58 <span style=''>case class Infect(targets: List[ActionTarget] = </span><span style='background: #AEF1AE'>List.empty</span><span style=''>) extends AiAction
+</span>59 <span style=''>
+</span>60 <span style=''>/**
+</span>61 <span style=''> * Action that allows the AI to sabotage one or more target cities.
+</span>62 <span style=''> *
+</span>63 <span style=''> * @param targets The list of cities to sabotage.
+</span>64 <span style=''> */
+</span>65 <span style=''>case class Sabotage(targets: List[ActionTarget] = </span><span style='background: #AEF1AE'>List.empty</span><span style=''>) extends AiAction
+</span>66 <span style=''>
+</span>67 <span style=''>/**
+</span>68 <span style=''> * Action that allows the AI to evolve by unlocking a new ability.
+</span>69 <span style=''> */
+</span>70 <span style=''>case object Evolve extends AiAction :
+</span>71 <span style=''>  </span><span style='background: #AEF1AE'>override def targets</span><span style=''>: List[ActionTarget] = </span><span style='background: #AEF1AE'>List.empty</span><span style=''>
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          14
+        </td>
+        <td>
+          484
+        </td>
+        <td>
+          360
+          -
+          368
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          name
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def name
+        </td>
+      </tr><tr>
+        <td>
+          15
+        </td>
+        <td>
+          481
+        </td>
+        <td>
+          395
+          -
+          409
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case Infect(_)
+        </td>
+      </tr><tr>
+        <td>
+          16
+        </td>
+        <td>
+          482
+        </td>
+        <td>
+          427
+          -
+          443
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case Sabotage(_)
+        </td>
+      </tr><tr>
+        <td>
+          17
+        </td>
+        <td>
+          483
+        </td>
+        <td>
+          463
+          -
+          474
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          case Evolve
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          487
+        </td>
+        <td>
+          720
+          -
+          726
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Infect
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          486
+        </td>
+        <td>
+          715
+          -
+          719
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          488
+        </td>
+        <td>
+          730
+          -
+          738
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          $lessinit$greater$default$1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          Sabotage
+        </td>
+      </tr><tr>
+        <td>
+          27
+        </td>
+        <td>
+          485
+        </td>
+        <td>
+          715
+          -
+          749
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List(Infect(), Sabotage(), Evolve)
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          489
+        </td>
+        <td>
+          951
+          -
+          961
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          infect
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def infect
+        </td>
+      </tr><tr>
+        <td>
+          43
+        </td>
+        <td>
+          490
+        </td>
+        <td>
+          1223
+          -
+          1235
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          sabotage
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def sabotage
+        </td>
+      </tr><tr>
+        <td>
+          50
+        </td>
+        <td>
+          491
+        </td>
+        <td>
+          1410
+          -
+          1420
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          evolve
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          def evolve
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          492
+        </td>
+        <td>
+          1637
+          -
+          1641
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          494
+        </td>
+        <td>
+          1637
+          -
+          1637
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          $lessinit$greater$default$1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          57
+        </td>
+        <td>
+          493
+        </td>
+        <td>
+          1637
+          -
+          1647
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List.empty
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          496
+        </td>
+        <td>
+          1853
+          -
+          1863
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List.empty
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          495
+        </td>
+        <td>
+          1853
+          -
+          1857
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          64
+        </td>
+        <td>
+          497
+        </td>
+        <td>
+          1853
+          -
+          1853
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          $lessinit$greater$default$1
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          499
+        </td>
+        <td>
+          2047
+          -
+          2057
+        </td>
+        <td>
+          Select
+        </td>
+        <td>
+          empty
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List.empty
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          498
+        </td>
+        <td>
+          2047
+          -
+          2051
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          List
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          List
+        </td>
+      </tr><tr>
+        <td>
+          70
+        </td>
+        <td>
+          500
+        </td>
+        <td>
+          2004
+          -
+          2024
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          targets
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #AEF1AE">
+          override def targets
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>

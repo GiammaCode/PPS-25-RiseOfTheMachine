@@ -1,0 +1,371 @@
+<html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title id="title">
+          StartGame.scala.html
+        </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/css/theme.default.min.css" type="text/css"/><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.20.1/js/jquery.tablesorter.min.js"></script><link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" type="text/css"/><script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {$(".tablesorter").tablesorter();});
+      </script>
+        <style>
+          table.codegrid { font-family: monospace; font-size: 12px; width: auto!important; }table.statementlist { width: auto!important; font-size: 13px; } table.codegrid td { padding: 0!important; border: 0!important } table td.linenumber { width: 40px!important; } 
+        </style>
+      </head>
+      <body style="font-family: monospace;">
+        <ul class="nav nav-tabs">
+          <li>
+            <a href="#codegrid" data-toggle="tab">Codegrid</a>
+          </li>
+          <li>
+            <a href="#statementlist" data-toggle="tab">Statement List</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="codegrid">
+            <pre style='font-size: 12pt; font-family: courier, monospace;'>1 <span style=''>/**
+</span>2 <span style=''> * Entry point for starting the game.
+</span>3 <span style=''> *
+</span>4 <span style=''> * This object handles the initial setup and manages the main game loop.
+</span>5 <span style=''> */
+</span>6 <span style=''>import controller.GameController.GameState
+</span>7 <span style=''>import model.util.GameSettings.*
+</span>8 <span style=''>import view.ViewModule.CLIView
+</span>9 <span style=''>
+</span>10 <span style=''>import scala.annotation.tailrec
+</span>11 <span style=''>
+</span>12 <span style=''>object StartGame:
+</span>13 <span style=''>
+</span>14 <span style=''>  /**
+</span>15 <span style=''>   * Starts the game by:
+</span>16 <span style=''>   *  - Rendering the game mode menu to configure settings
+</span>17 <span style=''>   *  - Initializing the game state
+</span>18 <span style=''>   *  - Entering the recursive game loop
+</span>19 <span style=''>   */
+</span>20 <span style=''>  </span><span style='background: #F0ADAD'>def startGame</span><span style=''>(): Unit =
+</span>21 <span style=''>
+</span>22 <span style=''>    given GameSettings = </span><span style='background: #F0ADAD'>CLIView.renderGameModeMenu()</span><span style=''>
+</span>23 <span style=''>
+</span>24 <span style=''>    import controller.GameController
+</span>25 <span style=''>
+</span>26 <span style=''>    val initialState = </span><span style='background: #F0ADAD'>GameController.buildGameState</span><span style=''>
+</span>27 <span style=''>
+</span>28 <span style=''>    /**
+</span>29 <span style=''>     * The main game loop, which processes turns recursively until the game is over.
+</span>30 <span style=''>     *
+</span>31 <span style=''>     * @param state The current state of the game
+</span>32 <span style=''>     * @return The final state when the game is over
+</span>33 <span style=''>     */
+</span>34 <span style=''>    </span><span style='background: #F0ADAD'>@tailrec
+</span>35 <span style=''></span><span style='background: #F0ADAD'>    def gameLoop</span><span style=''>(state: GameState): GameState =
+</span>36 <span style=''>      if </span><span style='background: #F0ADAD'>state.isGameOver</span><span style=''> then </span><span style='background: #F0ADAD'>state</span><span style=''>
+</span>37 <span style=''>      else
+</span>38 <span style=''>        </span><span style='background: #F0ADAD'>val (newState, _) = GameController.gameTurn.run(state)
+</span>39 <span style=''></span><span style='background: #F0ADAD'>        gameLoop(newState)</span><span style=''>
+</span>40 <span style=''>
+</span>41 <span style=''>    </span><span style='background: #F0ADAD'>gameLoop(initialState)</span><span style=''>
+</span></pre>
+          </div>
+          <div class="tab-pane" id="statementlist">
+            <table cellspacing="0" cellpadding="0" class="table statementlist">
+      <tr>
+        <th>Line</th>
+        <th>Stmt Id</th>
+        <th>Pos</th>
+        <th>Tree</th>
+        <th>Symbol</th>
+        <th>Tests</th>
+        <th>Code</th>
+      </tr><tr>
+        <td>
+          19
+        </td>
+        <td>
+          13
+        </td>
+        <td>
+          476
+          -
+          489
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          startGame
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          def startGame
+        </td>
+      </tr><tr>
+        <td>
+          21
+        </td>
+        <td>
+          2
+        </td>
+        <td>
+          528
+          -
+          556
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          renderGameModeMenu
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          CLIView.renderGameModeMenu()
+        </td>
+      </tr><tr>
+        <td>
+          25
+        </td>
+        <td>
+          3
+        </td>
+        <td>
+          623
+          -
+          652
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          buildGameState
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          GameController.buildGameState
+        </td>
+      </tr><tr>
+        <td>
+          34
+        </td>
+        <td>
+          11
+        </td>
+        <td>
+          877
+          -
+          903
+        </td>
+        <td>
+          DefDef
+        </td>
+        <td>
+          gameLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          @tailrec\r\n    def gameLoop
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          5
+        </td>
+        <td>
+          967
+          -
+          972
+        </td>
+        <td>
+          Ident
+        </td>
+        <td>
+          state
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          state
+        </td>
+      </tr><tr>
+        <td>
+          35
+        </td>
+        <td>
+          4
+        </td>
+        <td>
+          945
+          -
+          961
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          isGameOver
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          state.isGameOver
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          8
+        </td>
+        <td>
+          998
+          -
+          1011
+        </td>
+        <td>
+          Typed
+        </td>
+        <td>
+          newState
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          (newState, _)
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          7
+        </td>
+        <td>
+          1014
+          -
+          1037
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          gameTurn
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          GameController.gameTurn
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          10
+        </td>
+        <td>
+          994
+          -
+          1076
+        </td>
+        <td>
+          Block
+        </td>
+        <td>
+          &lt;none&gt;
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          val (newState, _) = GameController.gameTurn.run(state)\r\n        gameLoop(newState)
+        </td>
+      </tr><tr>
+        <td>
+          37
+        </td>
+        <td>
+          6
+        </td>
+        <td>
+          1014
+          -
+          1048
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          apply
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          GameController.gameTurn.run(state)
+        </td>
+      </tr><tr>
+        <td>
+          38
+        </td>
+        <td>
+          9
+        </td>
+        <td>
+          1058
+          -
+          1076
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          gameLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          gameLoop(newState)
+        </td>
+      </tr><tr>
+        <td>
+          40
+        </td>
+        <td>
+          12
+        </td>
+        <td>
+          1084
+          -
+          1106
+        </td>
+        <td>
+          Apply
+        </td>
+        <td>
+          gameLoop
+        </td>
+        <td>
+          
+        </td>
+        <td style="background: #F0ADAD">
+          gameLoop(initialState)
+        </td>
+      </tr>
+    </table>
+          </div>
+        </div>
+      </body>
+    </html>
