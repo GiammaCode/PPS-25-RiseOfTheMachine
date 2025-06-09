@@ -2,12 +2,19 @@ package view
 
 import model.map.WorldMapModule.WorldMap
 
+trait Formatter:
+  def printBoxedContent(title: String, body: List[String]): Unit
+  def printBoxedMenu(title: String, options: List[String]): Unit
+  def printAsciiTitle(text: String): Unit
+  def printMap(map: WorldMap, conquered: Set[String]): Unit
+
+
 /**
  * CLIFormatter is a utility object that provides reusable functions
  * for rendering stylized CLI elements such as boxes, menus, and ASCII titles.
  * It helps enforce visual consistency and reduces duplication in CLI views.
  */
-object CLIFormatter:
+object CLIFormatter extends Formatter:
 
   /**
    * Prints a boxed section to the console with a title and multiline body.
