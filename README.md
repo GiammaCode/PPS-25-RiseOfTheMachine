@@ -50,13 +50,15 @@ Il giocatore umano deve difendere le città da un'IA ostile tramite azioni strat
 - [Scala 3](https://www.scala-lang.org/download/)
 - [sbt (Scala Build Tool)](https://www.scala-sbt.org/)
 
-### Avviare il gioco
-
+### Avviare il gioco attraverso il file .jar
+Si può scaricare direttamente il file .jar dalla sezione [release](https://github.com/GiammaCode/PPS-25-RiseOfTheMachine/releases) di Github.
+Per avviarlo bisogna poi andare nella cartella dove si è scaricato il file e eseguire i seguenti comandi all'interno della Cmd (no Powershell).
 ```bash
-git clone https://github.com/GiammaCode/PPS-25-RiseOfTheMachine.git
-cd PPS-25-RiseOfTheMachine
-sbt run
+chcp 65001
+java -Dfile.encoding=UTF-8 -jar RiseOfTheMachine.jar
 ```
+
+in questo modo le emoji sono visibili anche da terminale
 
 ## Documentazione
 Si può visionare la documentazione ufficiale del progetto al seguente link delle github pages
@@ -75,14 +77,7 @@ Si può visionare la documentazione ufficiale del progetto al seguente link dell
 ## Licenza
 Distribuito sotto licenza **MIT** – vedi il file [LICENSE](LICENSE) per i dettagli.
 
-## Comandi per eseguire il .
 
-```bash
-chcp 65001
-java -Dfile.encoding=UTF-8 -jar PPS-24-RiseOfTheMachine-assembly-0.1.0-SNAPSHOT.jar
-```
-
-in questo modo le emoji sono visibili anche da terminale
 
 
 
