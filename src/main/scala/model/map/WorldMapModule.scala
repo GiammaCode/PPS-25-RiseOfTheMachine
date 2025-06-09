@@ -131,7 +131,7 @@ object WorldMapModule:
       if remaining.isEmpty then LazyList(cityPlaced)
       else
         for
-          start <- LazyList.from(remaining)
+          start <- Random.shuffle(remaining.toList).to(LazyList)
           isCapital = remainingCapitals > 0 && doesTheActionGoesRight(probabilityOfBeingCapital)
           tiles = growCity(start, randomMaxSize(isCapital), remaining, size)
           city = createCity(letterAt(letterOffset, isCapital), tiles.size, isCapital)
@@ -181,8 +181,18 @@ object WorldMapModule:
      * Generates the full map and returns the first valid one that fills the map grid.
      */
     override def createMap(size: Int): WorldMap =
-      val fullMaps: LazyList[WorldMap] = placeCities(size, getSetOfCoords(size))
-      fullMaps.find(m => m.flatMap(_._2).size == size * size).get
+      val minNumberOfCity = 10
+      val minCapitalSize = 3
+      val maxAttempts = 1000
+      val maps = placeCities(size, getSetOfCoords(size)).take(maxAttempts)
+      maps.find(m =>
+        m.numberOfCity() >= minNumberOfCity &&
+        m.count( c => c._1.isCapital) == nCapital  &&
+        m.forall(c => !c._1.isCapital || c._2.size >= minCapitalSize))
+        .orElse(
+          maps.find(m => m.flatMap(_._2).size == size * size)).get
+
+
 
   /**
    * Generates a set of all coordinates (x, y) within a square grid of the given size.
