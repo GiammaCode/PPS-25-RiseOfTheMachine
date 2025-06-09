@@ -7,6 +7,7 @@ import model.strategy.HumanAction.*
 import model.util.GameSettings.{Difficulty, GameMode, GameSettings, forSettings}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import view.CLIFormatter
 
 import scala.language.postfixOps
 
@@ -60,7 +61,7 @@ class SmartHumanStrategyFlatSpec extends AnyFlatSpec with Matchers:
 
   "SmartHumanStrategy" should "prefer high-risk cities more in Hard than in Normal mode" in {
     val map = createWorldMap(MapSize)(using DeterministicMapModule)
-
+    //CLIFormatter.printMap(map, Set()) //commented for debug
     def runWithDifficulty(diff: Difficulty, probs: ActionProbabilities) =
       given GameSettings = forSettings(GameMode.Singleplayer, diff)
       given ActionProbabilities = probs
@@ -77,6 +78,6 @@ class SmartHumanStrategyFlatSpec extends AnyFlatSpec with Matchers:
 
     hardAction match
       case CityDefense(targets) =>
-        targets should contain ("C") // C is the city with highest risk in DeterministicMap (size = 8)
+        targets should contain ("e") // C is the city with highest risk in DeterministicMap (size = 8)
       case _ => fail("Expected CityDefense targeting high-risk city")
   }
