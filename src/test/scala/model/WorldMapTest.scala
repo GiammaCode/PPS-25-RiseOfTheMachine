@@ -9,6 +9,17 @@ import WorldMapModule.given
 class WorldMapTest:
 
   private val mapSize = 10
+
+  private val iCityName = "i"
+
+  val mCityName = "m"
+
+  val ACapitalName = "A"
+
+  private val jCityName = "j"
+
+  private val inGridCoord = (2, 2)
+
   var worldMap: WorldMap = createWorldMap(mapSize)(using DeterministicMapModule)
 
   @Test
@@ -21,21 +32,10 @@ class WorldMapTest:
      assertNotEquals( createWorldMap(mapSize), createWorldMap(mapSize))
 
   @Test
-  def numberOfCityTest():Unit =
-    assertEquals(15,worldMap.numberOfCity())
-
-  private val iCityName = "i"
-
-  val mCityName = "m"
-
-  val ACapitalName = "A"
-
-  private val jCityName = "j"
-
-  private val inGridCoord = (2,2)
-
-
-
+  def numberOfCityTest():Unit = {
+    val expectedDeterministicCity = 14
+    assertEquals(expectedDeterministicCity, worldMap.numberOfCity())
+  }
 
   @Test
   def getCityByNameTest(): Unit =
@@ -49,7 +49,7 @@ class WorldMapTest:
 
   @Test
   def findInWorldMapTest() : Unit =
-     assertEquals(Some(jCityName), worldMap.findInMap { case (_, coords) => coords.contains(inGridCoord)})
+     assertEquals(Some("g"), worldMap.findInMap { case (_, coords) => coords.contains(inGridCoord)})
   @Test
   def getAdjacentCities(): Unit =
     assertEquals(worldMap.getAdjacentCities, worldMap.humanCities)

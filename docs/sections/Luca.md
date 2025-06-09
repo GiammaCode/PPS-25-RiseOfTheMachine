@@ -222,14 +222,12 @@ classDiagram
     GameController --> GameSettings : uses
     GameController --> AiAction : uses
     GameController --> HumanAction : uses
-
     GameStateImpl --> WorldState : contains
     GameState --> GameStateImpl : opaque
     GameController --> "renderTurn()" : invokes
     GameController --> "doPlayerAction()" : invokes
     GameController --> "doHumanAction()" : invokes
 ```
-
 
 
 
