@@ -10,7 +10,6 @@ Il team si è incontrato in loco per rivedere i risultati del secondo sprint e p
 Durante l'incontro è stato deciso il rilascio della seconda release: **V2.0.0**.
 
 **Durata dell'incontro:** circa 2 ore
-
 ---
 
 ## Obiettivi dello Sprint

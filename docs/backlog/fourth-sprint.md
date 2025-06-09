@@ -13,7 +13,12 @@ Il team si è incontrato in loco per rivedere i risultati del secondo sprint e p
 
 ## Obiettivi Sprint
 
-Rilasciare la versione di gioco finale, soddisfacendo tutte le richieste del committente
+- Sviluppare la view in maniera più efficiente
+- Migliorare il sistema di probabilità
+- Migliore implementazione della mappa
+- Sviluppo e correzione della documentazione
+- Rilasciare la versione di gioco finale, soddisfacendo tutte le 
+richieste del committente
 
 
 ---
@@ -21,7 +26,7 @@ Rilasciare la versione di gioco finale, soddisfacendo tutte le richieste del com
 ## Planning & Comunicazione
 
 
-**Deadline sprint:** 6/06/2025
+**Deadline sprint:** 10/06/2025
 
 ---
 
@@ -47,7 +52,7 @@ Rilasciare la versione di gioco finale, soddisfacendo tutte le richieste del com
 
 ---
 
-## Sprint Review – 07/06/2025
+## Sprint Review – 09/06/2025
 
 ### Risultati ottenuti:
 Il team ha raggiunto tutti gli obiettivi previsti completando cosi il progetto.  
