@@ -152,7 +152,9 @@ object WorldMapModule:
       val defaultCellsCity = 3
       val maxBonusCells = 3
       val defaultCellsCapital = 4
-      defaultCellsCity + Random.nextInt(maxBonusCells) + (if isCapital then defaultCellsCapital else 0)
+      val noOtherCells = 0
+
+      defaultCellsCity + Random.nextInt(maxBonusCells) + (if isCapital then defaultCellsCapital else noOtherCells)
 
     /**
      * Grows a city from a start tile to a maximum size by exploring adjacent tiles.
@@ -177,7 +179,7 @@ object WorldMapModule:
       expand(List(start), Set(start))
 
     /**
-     * Generates the full map and returns the first valid one that fills the map grid.
+     * Generates the a lazy list of map and returns the first valid one that fills the map grid and respect the parameter.
      */
     override def createMap(size: Int): WorldMap =
       val minNumberOfCity = 10
@@ -190,8 +192,6 @@ object WorldMapModule:
         m.forall(c => !c._1.isCapital || c._2.size >= minCapitalSize))
         .orElse(
           maps.find(m => m.flatMap(_._2).size == size * size)).get
-
-
 
   /**
    * Generates a set of all coordinates (x, y) within a square grid of the given size.

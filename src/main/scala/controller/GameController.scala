@@ -31,15 +31,6 @@ object GameController:
    */
   case class GameStateImpl(worldState: WorldState)
 
-  /**
-   * Represents the result of a game turn,
-   * including the AI action, success probability, and human action (if any).
-   */
-  private case class TurnResult(
-                                 playerAction: AiAction,
-                                 playerProb: Int,
-                                 humanAction: Option[HumanAction]
-                               )
 
   /**
    * Opaque type that represents the current state of the game.
@@ -105,6 +96,16 @@ object GameController:
         .updateMap(actionResult.getCities)
       (gs.copy(worldState = updatedState), ())
     )
+
+  /**
+   * Represents the result of a game turn,
+   * including the AI action, success probability, and human action (if any).
+   */
+  private case class TurnResult(
+                                 playerAction: AiAction,
+                                 playerProb: Int,
+                                 humanAction: Option[HumanAction]
+                               )
 
   /**
    * Renders a turn and processes user input to determine actions.
