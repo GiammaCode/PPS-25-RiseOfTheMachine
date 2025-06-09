@@ -39,8 +39,7 @@ import scala.util.Random
 object WorldMapModule:
 
 
-  private val nCapital = 5
-
+  private val nCapital = 4
 /**
    * Opaque type representing the entire game map as a set of pairs:
    * - City data
