@@ -26,6 +26,7 @@ Entrambi permettono test unitari e di integrazione e sono compatibili con sbt.
 ## Copertura del codice
 Per misurare il grado di copertura, è stato usato **scoverage**, uno strumento integrabile con sbt.
 
-👉 [Visualizza Report Scoverage](scoverage-report/index.html)
+[📊 Report Scoverage](scoverage-report/index.html){: .btn .btn-blue }
+
 
 ## Esempi di codice
