@@ -2,7 +2,6 @@ package model.map
 
 import model.map.CityModule.*
 import model.map.CityModule.CityImpl.*
-import model.util.States.State.State
 import model.util.Util.{doesTheActionGoesRight, letterAt}
 
 import scala.annotation.tailrec
@@ -39,145 +38,197 @@ import scala.util.Random
 
 object WorldMapModule:
 
-  /**
+
+  private val nCapital = 4
+/**
    * Opaque type representing the entire game map as a set of pairs:
    * - City data
    * - Set of coordinates (tiles) associated with the city
    */
 
-  opaque type WorldMap = Set[(City, Set[(Int, Int)])]
+  private type Coord = (Int, Int)
+
+  opaque type WorldMap = Set[(City, Set[Coord])]
 
   /**
    * Strategy trait for creating a world map.
    */
+
+  /**
+   * Trait that defines the interface for map creation modules.
+   */
   trait CreateModuleType:
 
     /**
-     * Creates a world map of a given size.
+     * Creates a world map of a specified size.
      *
-     * @param size the dimension (width/height) of the map
-     * @return a new WorldMap instance
+     * @param size the width and height of the square map grid
+     * @return a new [[WorldMap]] instance
      */
     def createMap(size: Int): WorldMap
 
   /**
-   * Implementation of [[CreateModuleType]] using deterministic tile allocation.
-   * Cities are created in a grid-like fashion.
+   * Deterministic implementation of [[CreateModuleType]].
+   * Creates a predictable, reproducible world map layout.
    */
   object DeterministicMapModule extends CreateModuleType:
+
     override def createMap(size: Int): WorldMap =
 
-      def allTiles: Set[(Int, Int)] =
-        (for x <- 0 until size; y <- 0 until size yield (x, y)).toSet
-
-      def expandCity(start: (Int, Int), available: Set[(Int, Int)], desiredSize: Int): Set[(Int, Int)] =
+      /**
+       * Expands a city from a starting coordinate up to a desired size,
+       * ensuring all cells are connected.
+       */
+      def expandCity(start: Coord, available: Set[Coord], desiredSize: Int): Set[Coord] =
         @tailrec
-        def expandLoop(frontier: List[(Int, Int)], visited: Set[(Int, Int)]): Set[(Int, Int)] =
+        def expandLoop(frontier: List[Coord], visited: Set[Coord]): Set[Coord] =
           if visited.size >= desiredSize || frontier.isEmpty then visited
           else
             val next = frontier.head
-            val newNeighbors = adjacentTo(Set(next),size).toSet.intersect(available).diff(visited)
+            val newNeighbors = adjacentTo(Set(next), size).toSet.intersect(available).diff(visited)
             expandLoop(frontier.tail ++ newNeighbors, visited + next)
 
         expandLoop(List(start), Set(start)).intersect(available)
 
+      /**
+       * Recursively builds the map by placing cities one by one.
+       */
       @tailrec
-      def createMapLoop(index: Int, available: Set[(Int, Int)], acc: Set[(City, Set[(Int, Int)])]): Set[(City, Set[(Int, Int)])] =
+      def createMapLoop(index: Int, available: Set[Coord], acc: WorldMap): WorldMap =
+        val maxCellPossible = 10
         if available.isEmpty then acc
         else
-          val isCapital = index < 5
+          val isCapital = index < nCapital
           val name = letterAt(index, isCapital)
           val city = createCity(name, size, isCapital)
           val start = available.head
-          val maxCitySize = math.min(10, available.size)
+          val maxCitySize = math.min(maxCellPossible, available.size)
           val tiles = expandCity(start, available, maxCitySize)
           if tiles.size < 0 then createMapLoop(index + 1, available -- tiles, acc)
           else createMapLoop(index + 1, available -- tiles, acc + (city -> tiles))
 
-      createMapLoop(0, allTiles, Set.empty)
+      createMapLoop(0, getSetOfCoords(size), Set.empty)
 
   /**
-   * Implementation of [[CreateModuleType]] using randomized logic and a state monad.
-   * City placement, size, and shape vary on each execution.
+   * Undeterministic implementation of [[CreateModuleType]].
+   * Randomly generates cities and their territories.
    */
   object UndeterministicMapModule extends CreateModuleType:
 
-      opaque type RNGState[A] = State[Random, A]
+    /**
+     * Recursively places cities on the map, randomly determining their position and size.
+     */
+    private def placeCities(
+                             size: Int,
+                             remaining: Set[Coord],
+                             letterOffset: Int = 0,
+                             cityPlaced: WorldMap = Set.empty,
+                             remainingCapitals: Int = nCapital
+                           ): LazyList[WorldMap] =
 
-      private def randomInt(max: Int): RNGState[Int] =
-        State(rng => (rng, rng.nextInt(max)))
+      val probabilityOfBeingCapital = 50
+      if remaining.isEmpty then LazyList(cityPlaced)
+      else
+        for
+          start <- Random.shuffle(remaining.toList).to(LazyList)
+          isCapital = remainingCapitals > 0 && doesTheActionGoesRight(probabilityOfBeingCapital)
+          tiles = growCity(start, randomMaxSize(isCapital), remaining, size)
+          city = createCity(letterAt(letterOffset, isCapital), tiles.size, isCapital)
+          updatedCityPlaced = cityPlaced + (city -> tiles)
+          updatedRemaining = remaining -- tiles
+          result <- placeCities(
+            size,
+            updatedRemaining,
+            letterOffset + 1,
+            updatedCityPlaced,
+            if isCapital then remainingCapitals - 1 else remainingCapitals
+          )
+        yield result
 
+    /**
+     * Generates a random size for a city depending on whether it is a capital.
+     */
+    private def randomMaxSize(isCapital: Boolean): Int =
+      val defaultCellsCity = 3
+      val maxBonusCells = 3
+      val defaultCellsCapital = 4
+      val noOtherCells = 0
 
-      private def shuffleList[A](list: List[A]): RNGState[List[A]] =
-        State(rng => (rng, rng.shuffle(list)))
+      defaultCellsCity + Random.nextInt(maxBonusCells) + (if isCapital then defaultCellsCapital else noOtherCells)
 
-
-      private def randomCitySize(isCapital:Boolean): RNGState[Int] =
-        if isCapital
-        then randomInt(3).map(_ + 7)
-        else randomInt(3).map(_ + 3)
-
-
-
-      private def generateCityTiles(start: (Int, Int), desiredSize: Int, occupied: Set[(Int, Int)], size: Int): RNGState[Set[(Int, Int)]] =
-        def expand(frontier: List[(Int, Int)], current: Set[(Int, Int)]): RNGState[Set[(Int, Int)]] =
-          if current.size >= desiredSize || frontier.isEmpty then State(rng => (rng, current))
-          else
-            val neighbors = validNeighbors(frontier.headOption.toList, size, occupied ++ current)
-            shuffleList(neighbors).flatMap(shuffled =>
-              val next = shuffled.take(desiredSize - current.size)
-              expand(frontier.tail ++ next, current ++ next)
-            )
-        expand(List(start), Set(start))
-
-      private def chooseStartingPoint(acc: WorldMap, occupied: Set[(Int, Int)], mapSize: Int): RNGState[(Int, Int)] =
-        if acc.isEmpty then
-          for
-            x <- randomInt(mapSize)
-            y <- randomInt(mapSize)
-          yield (x, y)
+    /**
+     * Grows a city from a start tile to a maximum size by exploring adjacent tiles.
+     */
+    private def growCity(start: Coord,
+                         maxSize: Int,
+                         available: Set[Coord],
+                         mapSize: Int
+                        ): Set[Coord] =
+      @tailrec
+      def expand(frontier: List[Coord], built: Set[Coord]): Set[Coord] =
+        if built.size >= maxSize || frontier.isEmpty then built
         else
-          val allCoords = acc.flatMap(_._2)
-          val possibleStarts = adjacentTo(allCoords, mapSize).filterNot(occupied.contains)
-          if possibleStarts.isEmpty then
-            State(rng => (rng, allCoords.head)) // fallback se non ci sono spazi adiacenti
-          else
-            shuffleList(possibleStarts).map(_.head)
+          val next = frontier.head
+          val neighbors = adjacentTo(built, mapSize).filter(c =>
+            c._1 >= 0 && c._2 >= 0 &&
+              c._1 < mapSize && c._2 < mapSize &&
+              available.contains(c) && !built.contains(c)
+          )
+          expand(frontier.tail ++ neighbors, built + next)
 
-      private def generateMapState(mapSize: Int, capitalCount: Int): RNGState[WorldMap] =
-        def loop(n: Int, capitalsLeft: Int, acc: WorldMap, occupied: Set[(Int, Int)]): RNGState[WorldMap] =
-          val remainingTiles = mapSize * mapSize - occupied.size
-          if remainingTiles == 0  then State(rng => (rng, acc))
-          else
-            val isCapital = capitalsLeft > 0 && doesTheActionGoesRight(50)
-            for
-              size <- randomCitySize(isCapital)
-              start <- chooseStartingPoint(acc, occupied, mapSize)
-              tiles <- generateCityTiles(start, size, occupied, mapSize)
-              city = createCity(letterAt(n, isCapital), size,isCapital)
-              next <- loop(n + 1, if isCapital then capitalsLeft - 1 else capitalsLeft, acc + (city -> tiles), occupied ++ tiles)
-            yield next
-        loop(0, capitalCount, Set.empty, Set.empty)
+      expand(List(start), Set(start))
 
-      def createMap(citySize: Int): WorldMap =
-        val (finalRng, worldMap) = generateMapState(citySize,citySize/2).run(Random())
-        worldMap
+    /**
+     * Generates the a lazy list of map and returns the first valid one that fills the map grid and respect the parameter.
+     */
+    override def createMap(size: Int): WorldMap =
+      val minNumberOfCity = 10
+      val minCapitalSize = 3
+      val maxAttempts = 1000
+      val maps = placeCities(size, getSetOfCoords(size)).take(maxAttempts)
+      maps.find(m =>
+        m.numberOfCity() >= minNumberOfCity &&
+        m.count( c => c._1.isCapital) == nCapital  &&
+        m.forall(c => !c._1.isCapital || c._2.size >= minCapitalSize))
+        .orElse(
+          maps.find(m => m.flatMap(_._2).size == size * size)).get
 
-  private def validNeighbors(tiles: Iterable[(Int, Int)], size: Int, exclude: Set[(Int, Int)] = Set.empty): List[(Int, Int)] =
-    tiles.toList
-      .flatMap((x, y) => List((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)))
-      .filter((x, y) =>
-        x >= 0 && y >= 0 && x < size && y < size &&
-          !exclude.contains((x, y))
-      )
-      .distinct
+  /**
+   * Generates a set of all coordinates (x, y) within a square grid of the given size.
+   */
+  private def getSetOfCoords(size: Int): Set[Coord] =
+    (for
+      x <- 0 until size
+      y <- 0 until size
+    yield (x, y)).toSet
 
-  private def adjacentTo(tiles: Set[(Int, Int)], size: Int): List[(Int, Int)] =
-    validNeighbors(tiles, size, tiles)
+  /**
+   * Returns valid neighboring coordinates that are not blocked, based on a seed set.
+   */
+  private def validNeighbors(seeds: List[Coord], size: Int, blocked: Set[Coord]): List[Coord] =
+    for
+      (x, y) <- seeds
+      dx <- -1 to 1
+      dy <- -1 to 1
+      if dx != 0 || dy != 0
+      nx = x + dx
+      ny = y + dy
+      if 0 <= nx && nx < size
+      if 0 <= ny && ny < size
+      if !blocked.contains((nx, ny))
+    yield (nx, ny)
 
+  /**
+   * Computes the set of adjacent coordinates to a given set of tiles,
+   * excluding those already occupied.
+   */
+  private def adjacentTo(tiles: Set[Coord], size: Int): List[Coord] =
+    validNeighbors(tiles.toList, size, tiles)
 
+  /**
+   * Given instance of [[CreateModuleType]] that provides an undeterministic map generator.
+   */
   given undeterministicMap: CreateModuleType = UndeterministicMapModule
-
   /**
    * Factory method to create a map using a selected module.
    *
@@ -196,7 +247,8 @@ object WorldMapModule:
      *
      * @return an integer representing the width/height of the square map
      */
-    def getSizeOfTheMap: Int = worldMap.flatMap(_._2).foldLeft(0)((acc, xy) => math.max(acc, math.max(xy._1, xy._2))) + 1
+    def getSizeOfTheMap: Int =
+      worldMap.flatMap(_._2).foldLeft(0)((acc, xy) => math.max(acc, math.max(xy._1, xy._2))) + 1
 
     /**
      * Retrieves a city by its name, if it exists.
@@ -227,7 +279,7 @@ object WorldMapModule:
      * @param f predicate function for filtering (City, TileSet) pairs
      * @return Option[String] of the city name if match found
      */
-    def findInMap(f: (City, Set[(Int, Int)]) => Boolean): Option[String] =
+    def findInMap(f: (City, Set[Coord]) => Boolean): Option[String] =
       worldMap.find(f.tupled).flatMap((city, coords) => coords.headOption.map(_ => city.getName))
 
     /**
@@ -235,14 +287,20 @@ object WorldMapModule:
      *
      * @return a Set of infected cities
      */
-    def AiCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.AI).map(_._1)
+    def aiCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.AI).map(_._1)
 
     /**
      * Returns all cities currently owned by humans.
      *
      * @return a Set of human-controlled cities
      */
-    def HumanCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
+    def humanCities: Set[City] = worldMap.filter(_._1.getOwner == Owner.HUMAN).map(_._1)
+    /**
+     * Counts the number of capitals currently infected (AI-controlled).
+     *
+     * @return the number of infected capitals
+     */
+    def capitalConqueredCounter: Int = worldMap.count(map => map._1.isCapital && map._1.getOwner == Owner.AI)
 
     /**
      * Identifies human cities that are adjacent to any infected (AI) city.
@@ -250,11 +308,12 @@ object WorldMapModule:
      * @return a Set of human cities next to infected cities
      */
     def getAdjacentCities: Set[City] =
-      if AiCities.isEmpty then HumanCities
+      if aiCities.isEmpty then humanCities
       else worldMap.collect:
         case (city, coords)
           if city.getOwner == Owner.HUMAN &&
-            coords.exists(adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI).flatMap(_._2), worldMap.getSizeOfTheMap).toSet.contains)
+            coords.exists(adjacentTo(worldMap.filter(_._1.getOwner == Owner.AI)
+              .flatMap(_._2), worldMap.getSizeOfTheMap).toSet.contains)
         => city
 
     /**
@@ -267,6 +326,8 @@ object WorldMapModule:
       worldMap.find(_._1.getName == city.getName)
         .map((_, coords) => worldMap.filterNot(_._1.getName == city.getName) + (city -> coords))
         .getOrElse(worldMap)
+
+
 
 
 

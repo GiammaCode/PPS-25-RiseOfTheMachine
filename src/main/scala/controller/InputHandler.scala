@@ -3,7 +3,7 @@ package controller
 import InputHandling.{InputHandlingError, InputParsingError, InvalidChoice}
 import model.strategy.*
 import model.strategy.{AiAction, HumanAction}
-
+import scala.StringContext
 /** Handles errors during user input parsing or validation. */
 object InputHandling:
 
@@ -77,7 +77,7 @@ object InputHandler:
             case _: GlobalDefense =>
               Either.cond(
                 targets.nonEmpty,
-                GlobalDefense(targets),
+                GlobalDefense(ownedCities.toList),
                 InputParsingError("Targets", "Some targets are not your cities.")
               )
             case DevelopKillSwitch => Right(DevelopKillSwitch)

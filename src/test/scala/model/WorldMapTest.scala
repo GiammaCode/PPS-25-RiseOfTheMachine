@@ -8,43 +8,71 @@ import org.junit.Test
 import WorldMapModule.given
 class WorldMapTest:
 
-  var worldMap: WorldMap = createWorldMap(10)(using DeterministicMapModule)
+  private val mapSize = 10
+
+  private val iCityName = "i"
+
+  val mCityName = "m"
+
+  val ACapitalName = "A"
+
+  private val jCityName = "j"
+
+  private val inGridCoord = (2, 2)
+
+  var worldMap: WorldMap = createWorldMap(mapSize)(using DeterministicMapModule)
 
   @Test
   def creationOfDeterministicMap(): Unit =
-    assertEquals( createWorldMap(10)(using DeterministicMapModule), createWorldMap(10)(using DeterministicMapModule))
+    assertEquals( createWorldMap(mapSize)(using DeterministicMapModule), createWorldMap(mapSize)(using DeterministicMapModule))
 
 
   @Test
   def creationOfUndeterministicMap(): Unit =
-     assertNotEquals( createWorldMap(10), createWorldMap(10))
+     assertNotEquals( createWorldMap(mapSize), createWorldMap(mapSize))
 
   @Test
-  def numberOfCityTest():Unit =
-    assertEquals(15,worldMap.numberOfCity())
+  def numberOfCityTest():Unit = {
+    val expectedDeterministicCity = 14
+    assertEquals(expectedDeterministicCity, worldMap.numberOfCity())
+  }
 
   @Test
   def getCityByNameTest(): Unit =
-    assertEquals("i",worldMap.getCityByName("i").get.getName)
+    assertEquals(iCityName,worldMap.getCityByName(iCityName).get.getName)
 
   @Test
   def getNumberoOfInfectedCity: Unit =
     assertEquals(0,worldMap.numberOfCityInfected())
-    assertEquals(1,worldMap.changeACityOfTheMap(worldMap.getCityByName("i").get.infectCity()).numberOfCityInfected())
+    assertEquals(1,worldMap.changeACityOfTheMap(worldMap.getCityByName(iCityName).get.infectCity()).numberOfCityInfected())
+
+
   @Test
   def findInWorldMapTest() : Unit =
-     assertEquals(Some("j"), worldMap.findInMap { case (_, coords) => coords.contains(2,2)})
+     assertEquals(Some("g"), worldMap.findInMap { case (_, coords) => coords.contains(inGridCoord)})
   @Test
   def getAdjacentCities(): Unit =
-    assertEquals(worldMap.getAdjacentCities, worldMap.HumanCities)
-    val newWorldMAp = worldMap.changeACityOfTheMap(worldMap.getCityByName("m").get.infectCity())
-    assertNotEquals(newWorldMAp.getAdjacentCities,newWorldMAp.HumanCities)
-    assertEquals(Set("m"), newWorldMAp.AiCities.map(_.getName))
+    assertEquals(worldMap.getAdjacentCities, worldMap.humanCities)
+    val newWorldMAp = worldMap.changeACityOfTheMap(worldMap.getCityByName(mCityName).get.infectCity())
+    assertNotEquals(newWorldMAp.getAdjacentCities,newWorldMAp.humanCities)
+    assertEquals(Set(mCityName), newWorldMAp.aiCities.map(_.getName))
 
   @Test
   def changeACityOfTheMap(): Unit =
-      assertEquals(worldMap.getCityByName("i").get.infectCity(), worldMap.changeACityOfTheMap(worldMap.getCityByName("i").get.infectCity()).getCityByName("i").get)
-      assertNotEquals(worldMap.getCityByName("i").get.infectCity(), worldMap.changeACityOfTheMap(worldMap.getCityByName("j").get.infectCity()).getCityByName("j").get)
+      assertEquals(
+        worldMap.getCityByName(iCityName).get.infectCity(),
+        worldMap.changeACityOfTheMap(worldMap.getCityByName(iCityName).get.infectCity()).getCityByName(iCityName).get
+      )
+
+      assertNotEquals(
+        worldMap.getCityByName(iCityName).get.infectCity(),
+        worldMap.changeACityOfTheMap(worldMap.getCityByName(jCityName).get.infectCity()).getCityByName(jCityName).get
+      )
+
+  @Test
+  def conquerCapitalTest(): Unit =
+    assertEquals(0,worldMap.capitalConqueredCounter)
+    assertEquals(1,worldMap.changeACityOfTheMap(worldMap.getCityByName(ACapitalName).get.infectCity()).capitalConqueredCounter)
 
 
 

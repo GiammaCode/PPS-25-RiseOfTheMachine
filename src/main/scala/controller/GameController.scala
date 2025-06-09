@@ -1,102 +1,169 @@
+/**
+ * == GameController ==
+ * The main controller that manages the game loop, player (AI and human) actions,
+ * the generation of the initial game state, and the turn-by-turn logic.
+ *
+ * == Main Types ==
+ * - [[GameState]]: an opaque type representing the internal game state.
+ *
+ * == Main Functions ==
+ * - [[buildGameState]]: initializes the game state.
+ * - [[gameTurn]]: processes a full game turn.
+ *
+ * == Scope ==
+ * This controller is designed for use with a CLI interface, but is abstract enough
+ * to be reused in other UIs as well.
+ */
 package controller
 
 import controller.InputHandler.CityContext
 import controller.InputHandling.InputHandlingError
-import model.map.WorldMapModule.createWorldMap
+import model.map.WorldMapModule.{CreateModuleType, createWorldMap}
 import model.map.WorldState.{WorldState, createWorldState}
-import model.strategy
 import model.strategy.*
 import model.util.GameSettings.GameSettings
-import model.util.Util.doesTheActionGoesRight
-import view.ViewModule.CLIView
 
 object GameController:
+
   /**
-   * Crea un nuovo controller di gioco con i componenti predefiniti
-   *
-   * @return Un nuovo GameController
+   * Concrete implementation of the opaque [[GameState]] type.
+   * Encapsulates the game's world state.
    */
-  case class GameStateImpl(worldState: WorldState,
-                           humanStrategy: PlayerStrategy[HumanAction])
+  case class GameStateImpl(worldState: WorldState)
 
-  private case class TurnResult(playerAction: AiAction,
-                                 playerProb: Int,
-                                 humanAction: Option[HumanAction])
 
+  /**
+   * Opaque type that represents the current state of the game.
+   * Only exposes controlled operations via extension methods.
+   */
   opaque type GameState = GameStateImpl
 
-  import model.map.WorldMapModule.given
-  import model.util.GameSettings.given
-  given GameSettings = CLIView.renderGameModeMenu()
+  private val startSizeOfTheMap = 8
+  private val startingTurn = 0
 
-  def buildGameState(): GameState =
+  /**
+   * Builds the initial game state using the given game settings and map module.
+   *
+   * @param settings the game settings, provided using the `using` clause
+   * @param mapModule the module used to create the game map (e.g., deterministic or random)
+   * @return a new [[GameState]]
+   */
+  def buildGameState(using settings: GameSettings, mapModule: CreateModuleType): GameState =
     GameStateImpl(
-      createWorldState(createWorldMap(10),
-      PlayerAI.fromStats,
-      PlayerHuman.fromStats),
-      SmartHumanStrategy)
+      createWorldState(
+        createWorldMap(startSizeOfTheMap)(using mapModule),
+        PlayerAI.fromStats,
+        PlayerHuman.fromSettings,
+        startingTurn
+      )
+    )
 
   import model.util.States.State.State
-  private def getGameState: State[GameState, GameState] =
-    State(gs => (gs, gs))
 
-  private def doPlayerAction(action: AiAction, prob: Int): State[GameState, Unit] = if doesTheActionGoesRight(prob)
-    then State ( gs =>
-        val currentWorldState = gs.worldState
-        val result = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
-        (gs.copy(worldState = currentWorldState.updatePlayer(result.getPlayer).updateMap(result.getCity)), ())
-        )
-    else State(gs => (gs,()))
+  /**
+   * Executes an AI action, updating the state if the probability check passes.
+   *
+   * @param action the AI action to execute
+   * @param prob the success probability of the action
+   * @return a state transformation
+   */
+  private[controller] def doPlayerAction(action: AiAction, prob: Int): State[GameState, Unit] =
+    import model.util.Util.doesTheActionGoesRight
+    if doesTheActionGoesRight(prob)
+    then State(gs =>
+      val currentWorldState = gs.worldState
+      val actionResult = currentWorldState.playerAI.executeAction(action, currentWorldState.worldMap)
+      val updatedWorldState = currentWorldState
+        .updatePlayer(actionResult.getPlayer)
+        .updateMap(actionResult.getCities)
+      (gs.copy(worldState = updatedWorldState), ())
+    )
+    else State(gs => (gs, ()))
 
-  private def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] = State (gs =>
-    val currentWorldState = gs.worldState
-    val action = maybeAction.getOrElse(gs.humanStrategy.decideAction(currentWorldState))
-    val result = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
-    val updatedState = gs.worldState.updateHuman(result.getPlayer).updateMap(result.getCity)
-    (gs.copy(worldState = updatedState), ())
-  )
+  /**
+   * Executes the human player's action. If none is provided, a default strategy is used.
+   *
+   * @param maybeAction an optional explicit action; if none, a strategy will decide
+   * @return a state transformation
+   */
+  private[controller] def doHumanAction(maybeAction: Option[HumanAction]): State[GameState, Unit] =
+    State(gs =>
+      val currentWorldState = gs.worldState
+      val action = maybeAction.getOrElse(currentWorldState.playerHuman.decideActionByStrategy(currentWorldState))
+      val actionResult = currentWorldState.playerHuman.executeAction(action, currentWorldState.worldMap)
+      val updatedState = currentWorldState
+        .updateHuman(actionResult.getPlayer)
+        .updateMap(actionResult.getCities)
+      (gs.copy(worldState = updatedState), ())
+    )
 
+  /**
+   * Represents the result of a game turn,
+   * including the AI action, success probability, and human action (if any).
+   */
+  private case class TurnResult(
+                                 playerAction: AiAction,
+                                 playerProb: Int,
+                                 humanAction: Option[HumanAction]
+                               )
 
-  private def renderTurn(): State[GameState, TurnResult] = State ( gs =>
-    val currentWorldState = gs.worldState
-    val ((aiChoiceIndex, aiTargetCity), humanInputOpt) = CLIView.renderGameTurn(currentWorldState)
+  /**
+   * Renders a turn and processes user input to determine actions.
+   *
+   * @return a [[TurnResult]] containing the resolved actions for the turn
+   */
+  private def renderTurn(using GameSettings): State[GameState, TurnResult] = State { gs =>
+    val currentWorldState = gs.worldState.updateTurn
+    import view.ViewModule.CLIView
+    val turnInput = CLIView.renderGameTurn(currentWorldState)
 
-    val context = CityContext(aiTargetCity, currentWorldState.attackableCities.map(_._1))
+    def resolveAction[A <: TurnAction](index: Int, city: String, options: List[A])(using InputHandler.ActionResolver[A]) =
+      InputHandler.getActionFromChoice(index, CityContext(city, currentWorldState.attackableCities.map(_._1)), options)
 
-    val playerResult = InputHandler.getActionFromChoice(
-      aiChoiceIndex,
-      context,
-      currentWorldState.playerAI.getPossibleAction)
-
-    val humanResultOpt = humanInputOpt.map(x =>
-      InputHandler.getActionFromChoice(
-        x._1,
-        CityContext(x._2, currentWorldState.attackableCities.map(_._1)),
-        currentWorldState.playerHuman.getPossibleAction))
+    val playerResult = resolveAction(turnInput.aiInput_action, turnInput.aiInput_city, currentWorldState.playerAI.getPossibleAction)
+    val humanResultOpt = turnInput.humanInput.map(resolveAction(_, _, currentWorldState.playerHuman.getPossibleAction))
 
     (playerResult, humanResultOpt) match
-      case (Right(playerAction), Some(Right(humanAction))) =>
-        val prob = currentWorldState.probabilityByCityandAction(aiTargetCity, playerAction)
-        (gs, TurnResult(playerAction, prob, Some(humanAction)))
-
-      case (Right(playerAction), None) =>
-        val prob = currentWorldState.probabilityByCityandAction(aiTargetCity, playerAction)
-        (gs, TurnResult(playerAction, prob, None))
-
+      case (Right(playerAction), humanOpt) if humanOpt.forall(_.isRight) =>
+        val probability = currentWorldState.probabilityByCityandAction(turnInput.aiInput_city, playerAction)
+        val humanActionOpt = humanOpt.flatMap(_.toOption)
+        (gs.copy(worldState = currentWorldState), TurnResult(playerAction, probability, humanActionOpt))
       case _ =>
         println("Invalid input. Retrying turn.")
-        renderTurn().run(gs)
-  )
-  def gameTurn(): State[GameState, Unit] =
+        renderTurn.run(gs)
+  }
+
+  /**
+   * Executes a full game turn by processing the AI and human actions.
+   *
+   * @return a transformation that updates the game state
+   */
+  def gameTurn(using GameSettings): State[GameState, Unit] =
     for
-      turn <- renderTurn()
-      _ <- doPlayerAction(turn.playerAction,turn.playerProb)
+      turn <- renderTurn
+      _ <- doPlayerAction(turn.playerAction, turn.playerProb)
       _ <- doHumanAction(turn.humanAction)
     yield ()
 
-  extension(gs: GameState)
-      def worldState: WorldState = gs.worldState
+  /**
+   * Extension methods for the opaque [[GameState]] type.
+   */
+  extension (gs: GameState)
 
+    /**
+     * Retrieves the current world state.
+     *
+     * @return the internal [[WorldState]]
+     */
+    def worldState: WorldState = gs.worldState
 
-
-
+    /**
+     * Checks if the game is over and renders the endgame screen if so.
+     *
+     * @return true if the game is over, false otherwise
+     */
+    def isGameOver: Boolean =
+      val (gameOver, winner) = worldState.isGameOver
+      import view.ViewModule.CLIView
+      if gameOver then CLIView.renderEndGame(winner.get)
+      gameOver

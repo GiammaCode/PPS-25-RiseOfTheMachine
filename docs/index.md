@@ -1,31 +1,51 @@
-# Paradigmi di Programmazione e Sviluppo
+---
+layout: home
+title: Rise of the Machine
+---
 
-M.S. Engineering and Computer Science
+# **Rise of the machine**
 
-Alma Mater Studiorum - University of Bologna
+<a href="https://github.com/GiammaCode/PPS-25-RiseOfTheMachine" target="_blank">
+  <button style="padding: 8px 16px; font-size: 16px; border: none; background-color: #24292e; color: white; border-radius: 6px; cursor: pointer;">
+    ⭐ View on GitHub
+  </button>
+</a>
 
-Campus of Cesena
+## **Paradigmi di Programmazione e Sviluppo**
+**M.S. Engineering and Computer Science**  
+**Alma Mater Studiorum – University of Bologna**  
+Campus of Cesena – Italy
 
-Italy
+---
 
-## Gruppo: 
-- Gianmaria Casamenti - gianmaria.casamenti@studio.unibo.it 
-- Luca Pasini - luca.pasini8@studio.unibo.it
-- Lorenzo Leoni - lorenzo.leoni5@studio.unibo.it
+## **Contributors**
 
-## Indice
-- [Introduction](sections/1_Introduction.md)
-- [Develope](sections/2_Development.md)
-- [Requirements](sections/3_Requirements.md)
-- [Architecture](sections/4_Architecture.md)
-- [Design](sections/5_Design.md)
-- [Implementation](sections/6_Implementation.md)
-- [Retrospective](sections/7_Retrospective.md)
-- [Sviluppo](sections/2_Development.md)
+- Gianmaria Casamenti – [gianmaria.casamenti@studio.unibo.it](mailto:gianmaria.casamenti@studio.unibo.it)
+- Luca Pasini – [luca.pasini8@studio.unibo.it](mailto:luca.pasini8@studio.unibo.it)
+- Lorenzo Leoni – [lorenzo.leoni5@studio.unibo.it](mailto:lorenzo.leoni5@studio.unibo.it)
 
+[![Gianmaria](https://github.com/GiammaCode.png?size=80)](https://github.com/GiammaCode)
+[![Luca](https://github.com/Paso2000.png?size=80)](https://github.com/Paso2000)
+[![Lorenzo](https://github.com/LoryBug.png?size=80)](https://github.com/LoryBug)
 
-## Meeting & Sprint Backlogs
-- [first-meeting](backlog/first-meeting.md)
-- [first-sprint](backlog/first-sprint.md)
-- [second-meeting](backlog/second-sprint.md)
-- [third-sprint](backlog/third-sprint.md)
+---
+
+## **Index**
+
+- [1️⃣ Introduzione](sections/1_Introduction.md)
+- [2️⃣ Sviluppo](sections/2_Development.md)
+- [3️⃣ Requisiti](sections/3_Requirements.md)
+- [4️⃣ Architettura](sections/4_Architecture.md)
+- [5️⃣ Design](sections/5_Design.md)
+- [6️⃣ Implementazione](sections/6_Implementation.md)
+- [7️⃣ Retrospettiva](sections/7_Retrospective.md)
+
+---
+
+## **Meeting & Sprint Backlogs**
+
+- [First Meeting](backlog/first-meeting.md)
+- [First Sprint](backlog/first-sprint.md)
+- [Second Sprint](backlog/second-sprint.md)
+- [Third Sprint](backlog/third-sprint.md)
+- [Fourth Sprint](backlog/fourth-sprint.md)

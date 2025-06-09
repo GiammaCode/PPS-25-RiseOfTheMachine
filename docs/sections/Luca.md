@@ -1,10 +1,22 @@
+---
+layout: default
+title: Luca Implementazione
+nav_order: 16
+---
+
 # `CityModule`
 
 ## Descrizione
 
-Il modulo `CityModule` rappresenta la logica relativa alla gestione delle città all'interno del gioco, modellando proprietà come nome, dimensione, proprietà (umano o IA), difesa e capitale. È possibile creare città, infettarle (trasformandole in città dell'IA), sabotarle o rafforzarne la difesa.
+Il modulo `CityModule` rappresenta la logica relativa alla gestione delle città all'interno del gioco,
+modellando proprietà come nome, dimensione, possessore della città (umano o IA),
+difesa e se nel gioco viene definita come capitale. 
+È possibile creare città, infettarle (trasformandole in città dell'IA), sabotarle o rafforzarne la difesa.
 
-È progettato con un approccio funzionale, sfruttando tipi opachi per incapsulare i dettagli interni e mantenere l’immutabilità. Le funzionalità sono fornite tramite metodi di estensione, permettendo un'interfaccia pulita e intuitiva.
+
+È progettato con un approccio funzionale, sfruttando tipi opachi per incapsulare i dettagli interni 
+e mantenere l’immutabilità. Le funzionalità sono fornite tramite metodi di estensione, 
+permettendo un'interfaccia pulita e intuitiva.
 
 ---
 
@@ -19,30 +31,41 @@ Il modulo `CityModule` rappresenta la logica relativa alla gestione delle città
 
 ---
 
-## Diagramma UML
+## Diagramma delle classi
 
-```plantuml
-@startuml
-package model.map {
-  enum Owner {
-    AI
-    HUMAN
+```mermaid
+classDiagram
+  direction TB
+
+  %% Enumerations
+  class Owner {
+    <<enum>>
+    +AI
+    +HUMAN
   }
 
-  interface CityInterface {
+  %% Traits and objects
+  class CityInterface {
+    <<trait>>
     +type City
     +createCity(name: String, size: Int, isCapital: Boolean): City
-    +getName(city: City): String
-    +getSize(city: City): Int
-    +getOwner(city: City): Owner
-    +getDefense(city: City): Int
-    +isCapital(city: City): Boolean
-    +infectCity(city: City): City
-    +sabotateCity(city: City, playerAttack: Int): City
-    +defenseCity(city: City): City
+    +getName(): String
+    +getSize(): Int
+    +getOwner(): Owner
+    +getDefense(): Int
+    +isCapital(): Boolean
+    +infectCity(): City
+    +sabotateCity(playerAttack: Int): City
+    +defenseCity(defenseImprove: Int): City
   }
 
-  class CityImplImpl {
+  class CityImpl {
+    <<object>>
+    +createCity(name: String, size: Int, isCapital: Boolean): City
+  }
+
+  %% Data class
+  class CityImplData {
     -name: String
     -size: Int
     -owner: Owner
@@ -50,13 +73,11 @@ package model.map {
     -defense: Int
   }
 
-  object CityImpl {
-    +createCity(name: String, size: Int, isCapital: Boolean): City
-  }
+  %% Relationships
+  CityImpl --> CityInterface
+  CityImplData ..|> CityInterface : implements
+  CityImplData --> Owner
 
-  CityImplImpl ..|> CityInterface
-}
-@enduml
 ```
 
 
@@ -64,7 +85,11 @@ package model.map {
 
 ## Descrizione
 
-Il modulo `WorldMapModule` definisce la rappresentazione e le logiche di costruzione della mappa di gioco. Ogni mappa è costituita da un insieme di città, ognuna delle quali è associata a una serie di coordinate (o “tile”) che rappresentano la sua posizione spaziale. Il modulo supporta sia la creazione deterministica che quella casuale della mappa, offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
+Il modulo `WorldMapModule` definisce la rappresentazione e le logiche di costruzione della mappa di gioco. 
+Ogni mappa è costituita da un insieme di città, ognuna delle quali è associata a una serie di coordinate 
+(o “tile”) che rappresentano la sua posizione spaziale. 
+Il modulo supporta sia la creazione deterministica che quella casuale della mappa, 
+offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
 
 ---
 
@@ -73,7 +98,6 @@ Il modulo `WorldMapModule` definisce la rappresentazione e le logiche di costruz
 * **Tipo opaco (`opaque type`)**: l’intera mappa (`WorldMap`) è incapsulata come un set opaco di coppie (Città, Coordinate), migliorando la sicurezza del tipo e l’incapsulamento.
 * **Trait astratto**: `CreateModuleType` definisce un'interfaccia per strategie di costruzione della mappa.
 * **Implementazioni modulari**:
-
     * `DeterministicMapModule`: costruzione ordinata e prevedibile.
     * `UndeterministicMapModule`: costruzione casuale usando monadi di stato e generatore pseudo-casuale.
 * **Uso della `State` monad**: gestisce lo stato interno del generatore di numeri casuali senza effetti collaterali.
@@ -82,80 +106,128 @@ Il modulo `WorldMapModule` definisce la rappresentazione e le logiche di costruz
 
 ---
 
-## Diagramma UML
+## Diagramma delle classi
 
-```plantuml
-@startuml
-package model.map {
+```mermaid
+classDiagram
+    class WorldMapModule {
+        <<object>>
+        +createWorldMap(size: Int): WorldMap
+    }
 
-  class WorldMap <<opaque>>
+    class CreateModuleType {
+        <<trait>>
+        +createMap(size: Int): WorldMap
+    }
 
-  interface CreateModuleType {
-    +createMap(size: Int): WorldMap
-  }
+    class DeterministicMapModule {
+        <<object>>
+        +createMap(size: Int): WorldMap
+    }
 
-  object DeterministicMapModule {
-    +createMap(size: Int): WorldMap
-  }
+    class UndeterministicMapModule {
+        <<object>>
+        +createMap(size: Int): WorldMap
+    }
 
-  object UndeterministicMapModule {
-    +createMap(size: Int): WorldMap
-  }
+    class WorldMap {
+        <<opaque type>>
+        type = Set[(City, Set[(Int, Int)])]
+    }
 
-  WorldMapModule --> CreateModuleType
-  DeterministicMapModule ..|> CreateModuleType
-  UndeterministicMapModule ..|> CreateModuleType
-}
-@enduml
+    class WorldMap~extension~ {
+        +getSizeOfTheMap(): Int
+        +getCityByName(name: String): Option[City]
+        +numberOfCityInfected(): Int
+        +numberOfCity(): Int
+        +findInMap(f): Option[String]
+        +aiCities: Set[City]
+        +humanCities: Set[City]
+        +capitalConqueredCounter(): Int
+        +getAdjacentCities: Set[City]
+        +changeACityOfTheMap(city: City): WorldMap
+    }
+
+    WorldMapModule --> CreateModuleType : uses
+    WorldMapModule --> DeterministicMapModule : implements
+    WorldMapModule --> UndeterministicMapModule : implements
+    WorldMapModule --> WorldMap : defines
+    DeterministicMapModule ..|> CreateModuleType
+    UndeterministicMapModule ..|> CreateModuleType
 ```
 
 # `GameController`
 
 ## Descrizione
 
-Il modulo `GameController` funge da punto centrale per la gestione del ciclo di gioco. Si occupa di inizializzare i componenti core (modello, vista) e orchestrare il turno di gioco, in cui l'intelligenza artificiale compie un'azione, seguita da un'azione del giocatore umano. Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stato globale del gioco (`GameState`).
+Il modulo `GameController` funge da punto centrale per la gestione del ciclo di gioco. Si occupa di utilizzare i componenti core (modello, vista) e orchestrare il turno di gioco,
+in cui l'intelligenza artificiale compie un'azione, seguita da un'azione del giocatore umano. 
+Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stato globale del gioco (`GameState`).
 
 ---
 
 ## Caratteristiche funzionali
 
-* **Pattern `apply()`**: costruttore statico che inizializza il gioco con implementazioni predefinite di modello e vista.
-* **`GameState`**: case class che incapsula lo stato del mondo (`WorldState`) e la vista (`GameView`), servendo da contesto per l'intero flusso di gioco.
+* **`GameState`**: opaque type che incapsula lo stato del mondo (`WorldState`), servendo da contesto per l'intero flusso di gioco.
 * **Monade `State`**: tutte le azioni (IA, giocatore, rendering) sono modellate come trasformazioni pure dello stato, promuovendo testabilità e immutabilità.
 * **Turno di gioco**:
 
     1. Rendering e input da parte dell’utente.
-    2. Esecuzione dell’azione dell’IA.
+    2. Esecuzione dell’azione dell’IA(se il calcolo della probabilità di riuscita da esito positivo).
     3. Esecuzione dell’azione difensiva umana.
+  4. 
 * **Sistema di input resiliente**: gestisce input non validi ricorsivamente (funzione `renderTurn`).
-* **Estensibilità**: l’uso di `AiAction` e `GameView` come astrazioni facilita l'aggiunta di nuove strategie o modalità di interfaccia utente.
+* **Estensibilità**: l’uso di  `AiAction`, `HumanAction`e `GameView` come astrazioni facilita l'aggiunta di nuove strategie o modalità di interfaccia utente.
 
 ---
 
-## Diagramma UML
+## Diagramma Delle Classi
 
-```plantuml
-@startuml
-package controller {
+```mermaid
+classDiagram
+    class GameController {
+        <<object>>
+        +buildGameState(): GameState
+        +gameTurn(): State[GameState, Unit]
+    }
 
-  object GameController {
-    +apply(): GameState
-  }
+    class GameStateImpl {
+        +worldState: WorldState
+    }
 
-  class GameState {
-    -worldState: WorldState
-    -view: GameView
-    +gameTurn(): State[GameState, Unit]
-  }
+    class GameState {
+        <<opaque type>>
+        type = GameStateImpl
+    }
 
-  GameController --> GameState
+    class TurnResult {
+        -playerAction: AiAction
+        -playerProb: Int
+        -humanAction: Option~HumanAction~
+    }
 
-  GameState --> model.map.WorldState.WorldState
-  GameState --> view.ViewModule.GameView
-}
-@enduml
+    class AiAction
+    class HumanAction
+    class State~S, A~
+    class WorldState
+    class GameSettings
+    class CLIView
+
+    GameController --> GameState : defines
+    GameController --> GameStateImpl : wraps
+    GameController --> TurnResult : uses
+    GameController --> WorldState : uses
+    GameController --> State : functional core
+    GameController --> CLIView : renders
+    GameController --> GameSettings : uses
+    GameController --> AiAction : uses
+    GameController --> HumanAction : uses
+    GameStateImpl --> WorldState : contains
+    GameState --> GameStateImpl : opaque
+    GameController --> "renderTurn()" : invokes
+    GameController --> "doPlayerAction()" : invokes
+    GameController --> "doHumanAction()" : invokes
 ```
-
 
 
 

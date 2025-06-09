@@ -1,7 +1,29 @@
 package model.util
 
+import model.strategy.ActionProbabilities
+
 object GameSettings:
 
+  object DifficultyConstants:
+    // AI Stats per difficulty
+    val EasyInfectionPower = 10
+    val EasySabotagePower = 50
+
+    val NormalInfectionPower = 6
+    val NormalSabotagePower = 40
+
+    val HardInfectionPower = 3
+    val HardSabotagePower = 30
+
+    // Human Stats per difficulty
+    val EasyKillSwitch = 0
+    val NormalKillSwitch = 5
+    val HardKillSwitch = 20
+
+    // Human actions weight
+    val EasyModeProbabilities: ActionProbabilities = ActionProbabilities(70, 30, 0)
+    val NormalModeProbabilities: ActionProbabilities = ActionProbabilities(33, 33, 34)
+    val HardModeProbabilities: ActionProbabilities = ActionProbabilities(40, 30, 30)
 
   enum Difficulty:
     case Easy, Normal, Hard
@@ -26,7 +48,8 @@ object GameSettings:
    * @param killSwitch Represents the effectiveness or cooldown of the kill switch feature.
    */
   final case class HumanStats(
-                               killSwitch: Int
+                               killSwitch: Int,
+                               actionsWeight: ActionProbabilities
                              )
 
   /**
@@ -46,18 +69,20 @@ object GameSettings:
 
   import Difficulty._
   import GameMode._
+  import DifficultyConstants._
 
   private val aiConfigs: Map[Difficulty, AIStats] = Map(
-    Easy -> AIStats(infectionPower = 10, sabotagePower = 50),
-    Normal -> AIStats(infectionPower = 6, sabotagePower = 40),
-    Hard -> AIStats(infectionPower = 3, sabotagePower = 30)
+    Easy -> AIStats(infectionPower = EasyInfectionPower, sabotagePower = EasySabotagePower),
+    Normal -> AIStats(infectionPower = NormalInfectionPower, sabotagePower = NormalSabotagePower),
+    Hard -> AIStats(infectionPower = HardInfectionPower, sabotagePower = HardSabotagePower)
   )
 
   private val humanConfigs: Map[Difficulty, HumanStats] = Map(
-    Easy -> HumanStats(killSwitch = 0),
-    Normal -> HumanStats(killSwitch = 30),
-    Hard -> HumanStats(killSwitch = 50)
+    Easy -> HumanStats(killSwitch = EasyKillSwitch, actionsWeight = EasyModeProbabilities),
+    Normal -> HumanStats(killSwitch = NormalKillSwitch, actionsWeight = NormalModeProbabilities),
+    Hard -> HumanStats(killSwitch = HardKillSwitch, actionsWeight = HardModeProbabilities)
   )
+
   /**
    * Factory method to generate a full GameSettings instance based on mode and difficulty.
    *

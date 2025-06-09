@@ -2,10 +2,11 @@ package model.map
 
 import model.map.WorldMapModule.*
 import model.strategy.AiAbility.AiAbility
-import model.strategy.{AiAction, Evolve, Infect, PlayerAI, PlayerHuman, Sabotage}
-import model.util.Util.*
+import model.strategy.{AiAction, Evolve, Infect, PlayerAI, PlayerEntity, PlayerHuman, Sabotage}
 import model.map.CityModule.CityImpl.City
+import model.map.WorldState.playerAI
 import model.util.GameSettings.{Difficulty, GameSettings}
+
 /**
  * The `WorldState` module represents the full game state at a given turn.
  * It includes information about the world map, both players, and the current turn.
@@ -15,13 +16,24 @@ import model.util.GameSettings.{Difficulty, GameSettings}
  */
 object WorldState:
 
+  private val VictoryThresholdPercent = 50
+  private val MaxCapitalsConquered = 3
+  private val KillSwitchVictoryThreshold = 90
+
+  private val MinSuccessPercent = 5
+  private val MaxSuccessPercent = 95
+
+  private val EasyBaseSuccess = 110
+  private val NormalBaseSuccess = 100
+  private val HardBaseSuccess = 90
+
   /**
    * Internal representation of the world state.
    * Not visible to external modules.
    */
   private enum WorldStateImpl:
     case State(worldMap: WorldMap, playerAI: PlayerAI,
-               playerHuman: PlayerHuman, difficulty: Difficulty, turn: Int = 0)
+               playerHuman: PlayerHuman, difficulty: Difficulty, turn: Int)
 
   import WorldStateImpl.*
 
@@ -35,8 +47,8 @@ object WorldState:
    * @param playerHuman the human player
    * @return a new WorldState instance
    */
-  def createWorldState(worldMap: WorldMap, playerAI: PlayerAI, playerHuman: PlayerHuman)(using settings: GameSettings): WorldState =
-    State(worldMap, playerAI, playerHuman, settings.difficulty)
+  def createWorldState(worldMap: WorldMap, playerAI: PlayerAI, playerHuman: PlayerHuman, turn: Int)(using settings: GameSettings): WorldState =
+    State(worldMap, playerAI, playerHuman, settings.difficulty, turn)
 
   /**
    * Extension methods available on WorldState instances.
@@ -48,7 +60,7 @@ object WorldState:
      *
      * @return list of option strings
      */
-    def AiOptions: List[String] = playerAI.getPossibleAction.map(_.name) //TODO: fix and exit
+    def AiOptions: List[String] = playerAI.getPossibleAction.map(_.name)
     def HumanOptions: List[String] = playerHuman.getPossibleAction.map(_.name)
 
     /**
@@ -90,14 +102,19 @@ object WorldState:
      * Checks whether the game is over.
      * The game ends if more than 10 cities are infected.
      *
-     * @return true if game over, false otherwise
+     * @return true if game over, false otherwise and who wins the game
      */
-    def isGameOver: Boolean = ws match
-      case State(map, _, human, _, _) =>
-        val valueToWin: Int = 70
-        val killSwitchCompleted: Int = 100
-        map.numberOfCityInfected().toDouble / map.numberOfCityInfected().toDouble * 100 >= 70 ||
-          human.killSwitch == killSwitchCompleted
+    def isGameOver: (Boolean, Option[PlayerEntity]) = ws match
+      case State(map, ai, human, _, _) =>
+        val totalCities = map.numberOfCity()
+        val conqueredPercentage = (map.numberOfCityInfected().toDouble / totalCities) * 100
+        val killSwitchProgress = human.killSwitch
+        val capitalConquered = map.capitalConqueredCounter
+
+        if conqueredPercentage >= VictoryThresholdPercent || capitalConquered == MaxCapitalsConquered then (true, Some(ai))
+        else if killSwitchProgress >= KillSwitchVictoryThreshold then (true, Some(human))
+        else (false, None)
+
 
     /**
      * Returns a set of attackable cities with infection and sabotage success rates.
@@ -151,7 +168,7 @@ object WorldState:
      * @return a new WorldState with the new AI
      */
     def updatePlayer(newAI: PlayerAI): WorldState = ws match
-      case State(map, _, human, t, _) => State(map, newAI, human, t)
+      case State(map, _, human, difficulty, turn) => State(map, newAI, human, difficulty, turn)
 
     /**
      * Creates a new WorldState with an updated human player.
@@ -160,19 +177,31 @@ object WorldState:
      * @return a new WorldState with the new Human
      */
     def updateHuman(newHuman: PlayerHuman): WorldState = ws match
-      case State(map, ai, _, t, _) => State(map, ai, newHuman, t)
+      case State(map, ai, _, difficulty, turn) => State(map, ai, newHuman, difficulty, turn)
 
     /**
      * Creates a new WorldState with an updated city in the map.
      * The new city replaces the existing one with the same name.
      *
-     * @param newCity the updated City instance
+     * @param newCities the updated City instance
      * @return a new WorldState with the updated map
      */
-    def updateMap(newCity: Option[City]): WorldState = ws match
-      case State(map, ai, human, t, _) =>
-        val updatedMap = newCity.map(map.changeACityOfTheMap).getOrElse(map)
-        State(updatedMap, ai, human, t)
+    def updateMap(newCities: Option[List[City]]): WorldState = ws match
+      case State(map, ai, human, difficulty, turn) =>
+        val updatedMap = newCities match
+          case Some(cityList) => cityList.foldLeft(map)((m, city) => m.changeACityOfTheMap(city))
+          case None           => map
+        State(updatedMap, ai, human, difficulty, turn)
+    /**
+     * Creates a new WorldState with an updated play turn.
+     *
+     * @return a new WorldState with the updated turn
+     */
+    def updateTurn: WorldState = ws match
+      case State(map, ai, human, difficulty, turn) =>
+        val newTurn = turn + 1
+        State (map, ai, human, difficulty, newTurn)
+
 
     /**
      * Returns the success percentage for a given city and action type.
@@ -183,11 +212,11 @@ object WorldState:
      */
     def probabilityByCityandAction(cityName: String, action: AiAction): Int =
       attackableCities.find(_._1 == cityName).map{
-        case(_,infect, sabotage) => action match
-          case Infect(_) => infect
-          case Sabotage(_) => sabotage
-          case Evolve => 100
-      }.getOrElse(0)
+        case(_,infectChance, sabotageChance) => action match
+          case Infect(_) => infectChance
+          case Sabotage(_) => sabotageChance
+          case Evolve => NormalBaseSuccess
+      }.getOrElse(NormalBaseSuccess)
 
     /**
      * Private method to calculate a percentage of success
@@ -197,10 +226,13 @@ object WorldState:
      * @param playerAttackValue the value of player attack
      * @return a value to success
      */
-    private def calculatePercentageOfSuccess(cityDefense: Int, playerAttackValue: Int, difficulty: Difficulty): Int = difficulty match
-      case Difficulty.Easy => 110 - cityDefense + playerAttackValue
-      case Difficulty.Normal => 100 - cityDefense + playerAttackValue
-      case Difficulty.Hard => 90 - cityDefense + playerAttackValue
+    private def calculatePercentageOfSuccess(cityDefense: Int, playerAttackValue: Int, difficulty: Difficulty): Int =
+      val rawValue = difficulty match
+      case Difficulty.Easy => EasyBaseSuccess - cityDefense + playerAttackValue
+      case Difficulty.Normal => NormalBaseSuccess - cityDefense + playerAttackValue
+      case Difficulty.Hard => HardBaseSuccess - cityDefense + playerAttackValue
+
+      Math.max(MinSuccessPercent, Math.min(MaxSuccessPercent, rawValue))
 
 
 

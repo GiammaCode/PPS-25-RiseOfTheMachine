@@ -3,9 +3,11 @@ package view
 import model.map.WorldMapModule.WorldMap
 import model.map.WorldState.WorldState
 import model.strategy.AiAbility.AiAbility
-import model.strategy.{PlayerAI, PlayerHuman}
-import model.util.GameSettings._
+import model.strategy.*
+import model.util.GameSettings.*
+import view.ViewModule.GameTurnInput.GameTurnInput
 
+import scala.annotation.tailrec
 import scala.io.StdIn
 
 /**
@@ -13,6 +15,16 @@ import scala.io.StdIn
  * and a concrete implementation for command-line interaction (CLIView).
  */
 object ViewModule:
+
+  object GameTurnInput:
+    opaque type GameTurnInput = ((Int, String), Option[(Int, String)])
+
+    def apply(aiInput: (Int, String), humanInput: Option[(Int, String)]): GameTurnInput = (aiInput, humanInput)
+
+    extension (input: GameTurnInput)
+      def aiInput_action: Int = input._1._1
+      def aiInput_city: String = input._1._2
+      def humanInput: Option[(Int, String)] = input._2
 
   /**
    * Trait representing the view layer of the game.
@@ -35,13 +47,23 @@ object ViewModule:
      * @param gameMode   the game mode (Singleplayer or Multiplayer), passed implicitly.
      * @return a tuple containing the AI player's action and optionally the human player's action.
      */
-    def renderGameTurn(worldState: WorldState)(using GameSettings): ((Int, String), Option[(Int, String)])
+    def renderGameTurn(worldState: WorldState)(using GameSettings): GameTurnInput
+
+    def renderEndGame(winner: PlayerEntity): Unit
 
   /**
    * CLIView is the command-line implementation of GameView.
    * It renders all game content to the terminal and handles user input via StdIn.
    */
-  object CLIView extends GameView:
+  object CLIView extends GameView with Formatter:
+    override def printBoxedContent(title: String, body: List[String]): Unit =
+      CLIFormatter.printBoxedContent(title, body)
+    override def printBoxedMenu(title: String, options: List[String]): Unit =
+      CLIFormatter.printBoxedMenu(title, options)
+    override def printAsciiTitle(text: String): Unit =
+      CLIFormatter.printAsciiTitle(text)
+    override def printMap(map: WorldMap, conquered: Set[String]): Unit =
+      CLIFormatter.printMap(map, conquered)
 
     /**
      * Prompts the player to choose the game mode, then (if Singleplayer)
@@ -50,73 +72,97 @@ object ViewModule:
      * @return a tuple containing the chosen GameMode and Difficulty
      */
     override def renderGameModeMenu(): GameSettings =
-      println(
-        """|🎮 Welcome to Rise of the Machine
-           |──────────────────────────────────────────
-           |  💥 Select game mode:
-           |  1. Single Player
-           |  2. Multiplayer
-           |──────────────────────────────────────────
-           |Insert your choice >""".stripMargin
-      )
-      val selectedMode: GameMode = StdIn.readLine().trim match
-        case "1" => GameMode.Singleplayer
-        case "2" => GameMode.Multiplayer
-        case _ =>
-          println("Invalid input. Defaulting to Single Player.")
-          GameMode.Singleplayer
-
-      val selectedDifficulty: Difficulty = selectedMode match
+      printAsciiTitle("RISE OF THE MACHINE")
+      val mode = askGameMode()
+      val selectedDifficulty: Difficulty = mode match
         case GameMode.Singleplayer =>
-          println(
-            """|──────────────────────────────────────────
-               |  📊 Select Difficulty Level
-               |  1. Easy
-               |  2. Normal
-               |  3. Hard
-               |──────────────────────────────────────────
-               |Insert your choice >""".stripMargin
-          )
+          printBoxedMenu("📊 Select difficulty level", List("Easy", "Normal", "Hard"))
           StdIn.readLine().trim match
-            case "1" => Difficulty.Easy
-            case "2" => Difficulty.Normal
-            case "3" => Difficulty.Hard
+            case "0" => Difficulty.Easy
+            case "1" => Difficulty.Normal
+            case "2" => Difficulty.Hard
             case _ =>
               println("Invalid input. Defaulting to Normal difficulty")
               Difficulty.Normal
 
         case GameMode.Multiplayer => Difficulty.Normal
 
-      forSettings(selectedMode, selectedDifficulty)
+      forSettings(mode, selectedDifficulty)
 
     /**
      * Renders the current game turn, including map, infection status,
      * unlocked AI abilities, and the list of previous actions.
      *
-     * Then prompts the player (AI and optionally Human) to choose an action.
+     * Then prompts the player (AI and optionally Human) to choose an action. -
      *
      * @param worldState the current world state
      * @param gameMode   the selected game mode (implicit)
      * @return a tuple: (AIPlayer input, Optional HumanPlayer input)
      */
-    override def renderGameTurn(worldState: WorldState)(using gameSettings: GameSettings): ((Int, String), Option[(Int, String)]) =
+    override def renderGameTurn(worldState: WorldState)(using gameSettings: GameSettings): GameTurnInput =
       renderTurn(worldState.turn)
-      renderMap(worldState.worldMap)
-      renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities)
+      renderMap(worldState.worldMap, worldState.playerAI.conqueredCities)
+      renderStatus(worldState.infectionState, worldState.AIUnlockedAbilities, worldState.playerHuman.killSwitch)
       renderProbability(worldState.attackableCities)
       renderComplessiveAction(worldState.playerHuman, worldState.playerAI)
       gameSettings.gameMode match
         case GameMode.Singleplayer =>
-          println("\n AI PLAYER TURN")
-          val aiMove = renderActionMenu(worldState.AiOptions)
-          ((aiMove), None)
+          val aiMove = renderActionMenu("AI PLAYER TURN", worldState.AiOptions)
+          GameTurnInput(aiMove, None)
 
         case GameMode.Multiplayer =>
-          println("\n AI PLAYER TURN")
-          val aiMove = renderActionMenu(worldState.AiOptions)
-          println("\n HUMAN PLAYER TURN")
-          val humanMove = renderActionMenu(worldState.HumanOptions)
-          ((aiMove), Some(humanMove))
+          val aiMove = renderActionMenu("AI PLAYER TURN", worldState.AiOptions)
+          val humanMove = renderActionMenu("HUMAN PLAYER TURN", worldState.HumanOptions)
+          GameTurnInput(aiMove, Some(humanMove))
+
+    /**
+     * Displays the end-game message based on the winning player.
+     *
+     * This method takes a `PlayerEntity` (either a `PlayerHuman` or `PlayerAI`) and prints
+     * a corresponding message to indicate who won the game.
+     *
+     * @param winner the player entity that has fulfilled the victory condition (AI or Human)
+     */
+    override def renderEndGame(winner: PlayerEntity): Unit = winner match
+      case _: PlayerHuman =>
+        printBoxedContent("🌍  HUMANS SAVED THE WORLD!",
+          List("✅ The kill switch was activated.",
+            "\uD83E\uDDEC Humanity survives... for now."
+          ))
+      case _: PlayerAI =>
+        printBoxedContent("🤖  AI CONQUERED THE WORLD!", List(
+          "💥 The world has fallen.",
+          "🔒 Resistance was futile"
+        ))
+
+    /**
+     * Recursively displays the game mode selection menu and handles user input.
+     *
+     * If "Tutorial" is selected, the tutorial content is shown and the menu is re-displayed.
+     * If "Exit" is selected, the application terminates.
+     * If an invalid input is entered, the menu is shown again.
+     *
+     * The method guarantees that a valid GameMode is returned.
+     *
+     * @return the selected GameMode (Singleplayer or Multiplayer)
+     */
+    @tailrec
+    private def askGameMode(): GameMode =
+      printBoxedMenu("📊 Select game mode", List("Single Player", "Multiplayer", "Tutorial", "Exit"))
+      StdIn.readLine().trim match
+        case "0" => GameMode.Singleplayer
+        case "1" => GameMode.Multiplayer
+        case "2" =>
+          renderTutorial
+          println("\nPress ENTER to continue...")
+          StdIn.readLine()
+          askGameMode()
+        case "3" =>
+          println("Exiting game. Goodbye!")
+          sys.exit(0)
+        case _ =>
+          println("Invalid input. Please try again.")
+          askGameMode()
 
     /**
      * Prints the current turn number in a stylized header.
@@ -131,14 +177,9 @@ object ViewModule:
      *
      * @param worldMap the current WorldMap
      */
-    private def renderMap(worldMap: WorldMap): Unit =
-      val mapString = (0 until worldMap.getSizeOfTheMap).map { y =>
-        (0 until worldMap.getSizeOfTheMap).map { x =>
-          worldMap.findInMap { case (_, coords) => coords.contains((x, y)) }.
-            getOrElse("/")
-        }.mkString(" ")
-      }.mkString("\n    ")
-      println("    " + mapString)
+    private def renderMap(worldMap: WorldMap, AIconqueredCities: Set[String]): Unit =
+      println("    🗺️  World Map")
+      printMap(worldMap, AIconqueredCities)
 
     /**
      * Displays the infection progress and unlocked abilities of the AI.
@@ -146,13 +187,15 @@ object ViewModule:
      * @param infectionState tuple of (infected cities, total cities)
      * @param abilities      the currently unlocked AiAbilities
      */
-    private def renderStatus(infectionState: (Int, Int), abilities: Set[AiAbility]): Unit =
-      val percentageDone = infectionState._1.toDouble / infectionState._2 * 100
-      println(s"Infected city: ${infectionState._1}/${infectionState._2} --> $percentageDone%.2f%%".format(percentageDone))
-      println(
-        Option.when(abilities.nonEmpty)(s"Abilities unlocked: ${abilities.mkString(", ")}")
-          .getOrElse("0 abilities unlocked")
-      )
+    private def renderStatus(infectionState: (Int, Int), abilities: Set[AiAbility], killSwitch: Int): Unit =
+      val percentageInfected = (infectionState._1.toDouble / infectionState._2 * 100).toInt
+      val abilitiesOutput = if abilities.nonEmpty then abilities.mkString(", ") else "0 unlocked"
+      val killSwitchProgress = s"$killSwitch%"
+      printBoxedContent("📊 Statistics",
+        List(f"🦠 Infected Cities:  $percentageInfected%3d%%",
+          f"🤖 AI Abilities:        ${abilitiesOutput.padTo(25, ' ')}",
+          f"🧪 Develop KillSwitch:  ${killSwitchProgress.padTo(25, ' ')}"
+        ))
 
     /**
      * Renders the infection and sabotage probabilities for each attackable city.
@@ -160,41 +203,16 @@ object ViewModule:
      * @param cities a set of tuples (cityName, infectionChance, sabotageChance)
      */
     private def renderProbability(cities: Set[(String, Int, Int)]): Unit =
-      val formatted = cities.map {
-        case (name, infect, sabotage) => s"[$name --> I:$infect%, S:$sabotage%]"
-      }.mkString("cities probability:  ", " ", "")
-      println(formatted)
-
-    /**
-     * Renders a stylized menu of available actions to the terminal.
-     * Allows the user to input an action index and optionally a city name.
-     *
-     * @param options the list of action names to display
-     * @return a tuple (actionIndex, targetCityName)
-     */
-    private def renderActionMenu(options: List[String]): (Int, String) =
-      println("╭──────────────────────────────╮")
-      println("│       Select your action     │")
-      options.zipWithIndex.foreach { case (option, index) =>
-        println(f"│ $index%2d. $option%-20s     │")
-      }
-      println("╰──────────────────────────────╯")
-      print("Insert your action > ")
-
-      val input = StdIn.readLine().trim.split("\\s+").toList
-
-      input match
-        case actionStr :: cityStr :: _ =>
-          val actionIndex = actionStr.toIntOption.getOrElse(-1)
-          (actionIndex, cityStr)
-
-        case actionStr :: Nil =>
-          val actionIndex = actionStr.toIntOption.getOrElse(-1)
-          (actionIndex, "")
-
-        case _ =>
-          println("Invalid input. Defaulting to (0, \"\")")
-          (0, "")
+      if cities.nonEmpty then
+        val formatted = cities.toSeq
+          .sortBy(_._1)
+          .map { case (name, infect, sabotage) =>
+            f"- 📍 $name%-3s | 🦠Infect: $infect%3d%% | 🧨Sabotage: $sabotage%3d%%"
+          }
+          .mkString("\n")
+        println("Cities probability:\n" + formatted)
+      else
+        println("No attackable cities.")
 
     /**
      * Displays the executed actions of both Human and AI players.
@@ -203,6 +221,92 @@ object ViewModule:
      * @param ai    the AI player
      */
     private def renderComplessiveAction(human: PlayerHuman, ai: PlayerAI): Unit =
-      println("\n🧾 Action Summary")
-      println(s"🧍 Human: ${human.executedActions.mkString(" || ")}")
-      println(s"🤖 AI   : ${ai.executedActions.mkString(" || ")}")
+      def formatAction(action: TurnAction): String = action match
+        case Infect(targets) => s"Infect(${targets.mkString(", ")})"
+        case Sabotage(targets) => s"Sabotage(${targets.mkString(", ")})"
+        case Evolve => "Evolve"
+        case DevelopKillSwitch => "DevelopKillSwitch"
+        case CityDefense(targets) => s"CityDefense(${targets.mkString(", ")})"
+        case GlobalDefense(targets) => s"GlobalDefense"
+
+      printBoxedContent("🧾 Action Summary (last 7 actions)", List(
+        s"Human: ${human.executedActions.take(7).map(formatAction).mkString(" || ")}",
+        s"AI   : ${ai.executedActions.take(7).map(formatAction).mkString(" || ")}"
+      ))
+
+    /**
+     * Renders a stylized menu of available actions to the terminal.
+     * Allows the user to input an action index and optionally a city name.
+     *
+     * @param options the list of action names to display
+     * @return a tuple (actionIndex, targetCityName)
+     */
+    private def renderActionMenu(player: String, options: List[String]): (Int, String) =
+      printBoxedMenu(player, options)
+      val input = StdIn.readLine().trim.split("\\s+").toList
+      input match
+        case actionStr :: cityStr :: _ =>
+          val actionIndex = actionStr.toIntOption.getOrElse(-1)
+          (actionIndex, cityStr)
+        case actionStr :: Nil =>
+          val actionIndex = actionStr.toIntOption.getOrElse(-1)
+          (actionIndex, "")
+        case _ =>
+          println("Invalid input. Defaulting to (0, \"\")")
+          (0, "")
+
+    /**
+     * Renders a stylized game's tutorial
+     * Print a box with instructions
+     */
+    private def renderTutorial: Unit =
+      printBoxedContent("TUTORIAL – RISE OF THE MACHINE", List(
+        "Welcome! This tutorial will guide you through your first steps in the game.",
+        "",
+        "🎮 GAME MODE:",
+        "At startup, select the game mode:",
+        "  0. Single Player",
+        "  1. Multiplayer",
+        "  2. Tutorial",
+        "  3. Exit",
+        "Default chosen is Single Player.",
+        "",
+        "🎯 DIFFICULTY LEVEL:",
+        "After selecting the mode, choose a difficulty:",
+        "  0. Easy    → Passive AI",
+        "  1. Normal  → Balanced challenge",
+        "  2. Hard    → Aggressive and strategic AI",
+        "Default chosen is Normal difficulty.",
+        "",
+        "🌍 WORLD MAP:",
+        "A grid displays the world map with city letters as identifiers.",
+        "",
+        "📊 STATISTICS:",
+        "- Infected cities",
+        "- Unlocked AI abilities",
+        "- Human KillSwitch progress",
+        "",
+        "📈 ATTACKABLE CITIES:",
+        "For each city, you can see:",
+        "  💉 Infection success chance",
+        "  🛠️  Sabotage success chance",
+        "",
+        "🧠 HUMAN TURN:",
+        "Available actions:",
+        "  1. Defend vulnerable cities",
+        "  2. Launch global defense",
+        "  3. Develop the KillSwitch",
+        "",
+        "🤖 AI TURN:",
+        "Available actions:",
+        "  1. Infect to conquer a city",
+        "  2. Sabotage to weaken a city",
+        "  3. Evolve to unlock new abilities",
+        "",
+        "🏁 WIN CONDITIONS:",
+        "- The AI wins if it infects 50% of cities or conquers 3 capitals",
+        "- The human wins if the KillSwitch reaches 90% progress",
+        "",
+        "📝 TIP:",
+        "Check success rates, defend key cities, and adapt your strategy!"
+      ))

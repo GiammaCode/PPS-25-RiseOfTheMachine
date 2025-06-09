@@ -1,10 +1,15 @@
+---
+layout: default
+title: 3° sprint
+nav_order: 11
+---
+
 # third Sprint Planning – 08/05/2025
 
 Il team si è incontrato in loco per rivedere i risultati del secondo sprint e pianificare le attività successive.  
 Durante l'incontro è stato deciso il rilascio della seconda release: **V2.0.0**.
 
 **Durata dell'incontro:** circa 2 ore
-
 ---
 
 ## Obiettivi dello Sprint
@@ -40,7 +45,7 @@ Durante l'incontro è stato deciso il rilascio della seconda release: **V2.0.0**
 ### Lorenzo Leoni
 
 - Aggiunta del supporto multiplayer all'**InputHandler** e creazione delle **turnAction** generiche
-- Introduzione di `GameSettings` al posto delle classi `GameDifficulty` e `GameMode`
+- Introduzione di `GameSettings` per la gestione della difficoltà e dei GameMode.
 - Aggiunta del supporto a **ScalaTest** e generazione del **fat JAR**
 
 ### Luca Pasini
@@ -56,4 +61,5 @@ Durante l'incontro è stato deciso il rilascio della seconda release: **V2.0.0**
 ### Risultati ottenuti
 
 Il team ha raggiunto tutti gli obiettivi previsti.  
-Il sistema risulta attualmente **giocabile** e con le modifiche sostanziali apportate in questo sprint si procederà con il rilascio della nuova versione **2.0.0**.
+Il sistema risulta attualmente **giocabile** e con le modifiche sostanziali apportate in 
+questo sprint si procederà con il rilascio della nuova versione **3.0.0**.
