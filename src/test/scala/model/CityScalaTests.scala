@@ -9,17 +9,21 @@ import org.scalatest.matchers.should.Matchers
 
 class CityScalaTests extends AnyFunSuite with Matchers:
 
-    test("createCity should initialize a city with correct values") {
-      val city = createCity("Rome", 3, isCapital = true)
+  private val baseCityDefence = 40
+  private val moltiplicator = 5
+  private val citySize = 3
+
+  test("createCity should initialize a city with correct values") {
+      val city = createCity("Rome", citySize, isCapital = true)
 
       city.getName shouldBe "Rome"
-      city.getSize shouldBe 3
+      city.getSize shouldBe citySize
       city.getOwner shouldBe HUMAN
-      city.getDefense shouldBe 40 + (3 * 5) // 55
+      city.getDefense shouldBe baseCityDefence + (citySize * moltiplicator) // 55
     }
 
     test("infectCity should change owner to AI") {
-      val city = createCity("Milan", 2, isCapital = false)
+      val city = createCity("Milan", baseCityDefence, isCapital = false)
       val infected = city.infectCity()
 
       infected.getOwner shouldBe AI
@@ -27,29 +31,32 @@ class CityScalaTests extends AnyFunSuite with Matchers:
     }
 
     test("sabotateCity should reduce defense by given amount") {
-      val city = createCity("Venice", 4, isCapital = false)
-      val sabotaged = city.sabotateCity(15)
+      val city = createCity("Venice", citySize, isCapital = false)
+      val playerAttack = 15
+      val sabotaged = city.sabotateCity(playerAttack)
 
-      val expectedDefense = (40 - 15) + (4 * 5) // 25 + 20 = 45
+      val expectedDefense = (baseCityDefence - playerAttack) + (citySize * moltiplicator) // 25 + 20 = 45
       sabotaged.getDefense shouldBe expectedDefense
     }
 
     test("defenseCity should increase base defense by 20") {
-      val city = createCity("Naples", 1, isCapital = false)
-      val defended = city.defenseCity(20)
+      val city = createCity("Naples", citySize, isCapital = false)
+      val defenseImprove = 20
+      val defended = city.defenseCity(defenseImprove)
 
-      val expectedDefense = (40 + 20) + (1 * 5) // 60 + 5 = 65
+      val expectedDefense = (baseCityDefence + defenseImprove) + (citySize * moltiplicator) // 60 + 5 = 65
       defended.getDefense shouldBe expectedDefense
     }
 
     test("city should remain immutable after operations") {
-      val city = createCity("Turin", 2, isCapital = false)
+      val city = createCity("Turin", citySize, isCapital = false)
       val infected = city.infectCity()
-      val sabotaged = city.sabotateCity(10)
+      val sabotagePower = 10
+      val sabotaged = city.sabotateCity(sabotagePower)
 
       city.getOwner shouldBe HUMAN
-      city.getDefense shouldBe 40 + (2 * 5) // 50
+      city.getDefense shouldBe baseCityDefence + (citySize * moltiplicator) // 50
 
       infected.getOwner shouldBe AI
-      sabotaged.getDefense shouldBe 30 + (2 * 5) // 40
+      sabotaged.getDefense shouldBe baseCityDefence + (citySize * moltiplicator) - sabotagePower // 40
     }

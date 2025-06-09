@@ -1,3 +1,9 @@
+---
+layout: default
+title: Lorenzo Implementazione
+nav_order: 15
+---
+
 # Intro
 
 Questa sezione contiene la descrizione delle classi da me implementate durante lo sviluppo del progetto.

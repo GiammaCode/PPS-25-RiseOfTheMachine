@@ -14,10 +14,10 @@ trait PlayerHuman extends PlayerEntity:
   /** Current progress of the kill switch development. */
   def killSwitch: Int
 
-  /** Set of cities currently defended by the player. */
+  /** Get of cities currently defended by the player. */
   def defendedCities: Set[String]
 
-  /** Set of cities conquered by the player. */
+  /** Get of cities conquered by the player. */
   def conqueredCities: Set[String]
 
   /** Returns the list of valid actions the player can take. */
@@ -42,9 +42,8 @@ trait PlayerHuman extends PlayerEntity:
  * Provides factory methods from settings or stats.
  */
 object PlayerHuman:
-  /**
-   * Creates a PlayerHuman instance from predefined human stats.
-   */
+
+  @deprecated("this method will be removed, user fromSetting instead, RotM 3.0")
   def fromStats(using stats: HumanStats): PlayerHuman =
     PlayerHumanImpl(killSwitch = stats.killSwitch)
 
@@ -83,7 +82,8 @@ private case class PlayerHumanImpl(
   /**
    * Applies the given action to the player and the world map, producing a result.
    */
-  override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] = action match
+  override def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self] =
+    action match
     case CityDefense(targets) =>
       val updated = withDefendedCities(targets.toSet).addAction(action)
       val defendedCities: List[City] = targets.flatMap(cityName =>
@@ -118,8 +118,7 @@ private case class PlayerHumanImpl(
    * Decides an action based on the current difficulty and game state using SmartHumanStrategy.
    */
   def decideActionByStrategy(worldState: WorldState): HumanAction =
-    given ActionProbabilities = actionsWeight
-    SmartHumanStrategy.decideAction(worldState)
+    SmartHumanStrategy.decideAction(worldState)(using actionsWeight)
 
   private def result(player: PlayerHumanImpl, city: Option[List[City]], message: String): ExecuteActionResult[Self] =
     ExecuteActionResult(player, city, List(message))

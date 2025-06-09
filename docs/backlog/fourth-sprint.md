@@ -36,11 +36,14 @@ Rilasciare la versione di gioco finale, soddisfacendo tutte le richieste del com
 - Sviluppo di una libreria di formattazione grafica
 
 ### Lorenzo Leoni
+- Bilanciamento dei valori di gioco del player in base alla difficoltà.
+- Creazione di un tipo apposito per la gestione del risultato delle azioni.
 
 
 ### Luca Pasini
 - inserimento della gestione della fine della partita in controller
 - Inserimento del vero e prorpio main che lancia il "loop delle partite" permettendo di uscire dal gioco solo con il tasto exit
+- Modifica profonda dell'algoritmo di creazione della mappa undeterministic
 
 ---
 

@@ -2,26 +2,37 @@
 
 ## Descrizione
 Il modulo `CLIView`, contenuto in `ViewModule.scala`, rappresenta la **vista testuale** del gioco *Rise of the Machine*.
-Implementa l'interfaccia `GameView` e consente l'interazione con il giocatore attraverso il terminale. 
-Ogni fase del gioco (menu, turni, stato, azioni) è resa accessibile tramite un'interfaccia utente testuale chiara e 
-coerente.
+Il sistema di visualizzazione del progetto è costruito per separare la logica della presentazione (formattazione 
+dell’output) dalla logica dell’interfaccia utente. 
+
+Questo approccio migliora modularità, estendibilità e testabilità del codice.
+L'architettura segue il principio di Single Responsibility: ogni componente ha un ruolo ben definito. 
+La view (CLIView) gestisce il cosa mostrare, mentre il formatter (CLIFormatter) si occupa del come.
+
 
 ---
 
 ## Aspetti Implementativi
 
 - Utilizza il pattern **strategy-view**, separando la logica del gioco dalla presentazione.
-- Implementa `GameView` come interfaccia funzionale, rendendo facile sostituire la vista CLI con altre (es. GUI).
-- Le funzionalità CLI sono modulari grazie a `CLIFormatter`, che offre:
-    - Menu formattati (`printBoxedMenu`)
-    - Blocchi informativi (`printBoxedContent`)
-    - ASCII art del titolo (`printAsciiTitle`)
-    - Mappa dinamica (`printMap`)
+- Mixin-based composition: tramite trait Formatter, le funzionalità sono aggiunte dinamicamente
+alle view (CLIView).
+- Delegation: CLIView implementa Formatter e delega le chiamate al modulo
+CLIFormatter.
+- Modular separation: il modulo di formattazione (CLIFormatter) è indipendente dalla view.
 
-- Usa funzioni **ricorsive** con `@tailrec` per rendere la logica dei menu robusta e priva di mutabilità (`askGameMode()`).
-- Input utente gestito con pattern matching e fallback intelligenti.
-- Il sistema è **completamente testabile** grazie alla separazione `input/output`.
+Interface abstraction: grazie al trait Formatter, è possibile creare più implementazioni alternative 
+(TestFormatter, GUIFormatter, ecc.).
 
+Esempio di una possibile implementazioni in caso di una GUI.
+```scala
+object GUIFormatter extends Formatter:
+  override def printBoxedContent(...) = renderInSwing(...)
+  //continue of code
+
+object GUIView extends GameView with Formatter:
+  // delega a GUIFormatter invece di CLIFormatter
+```
 ---
 
 ## Funzioni principali
@@ -48,28 +59,39 @@ Funzionalità principali della util CLIFormatter
 ---
 
 ## Diagramma dei componenti
+  ```mermaid
+  classDiagram
+    direction TB
 
-```mermaid
-classDiagram
-  class GameView {
-    +renderGameModeMenu(): GameSettings
-    +renderGameTurn(worldState): GameTurnInput
-    +renderEndGame(winner): Unit
-  }
+    class Formatter {
+        +printBoxedContent(title, body)
+        +printBoxedMenu(title, options)
+        +printAsciiTitle(text)
+        +printMap(map, conquered)
+    }
 
-  class CLIView {
-    -renderGameModeMenu(): GameSettings
-    -renderGameTurn(ws): GameTurnInput
-    -renderStatus(...)
-  }
+    class CLIFormatter {
+        +printBoxedContent(title, body)
+        +printBoxedMenu(title, options)
+        +printAsciiTitle(text)
+        +printMap(map, conquered)
+    }
 
-  class CLIFormatter {
-    +printBoxedContent(title, body)
-    +printBoxedMenu(title, options)
-    +printAsciiTitle(text)
-    +printMap(map, conquered)
-  }
+    class GameView {
+        +renderGameModeMenu(): GameSettings
+        +renderGameTurn(worldState): GameTurnInput
+        +renderEndGame(winner): Unit
+    }
 
-  CLIView --|> GameView : estende
-  CLIView --> CLIFormatter : usa
+    class CLIView {
+        +renderGameModeMenu(): GameSettings
+        +renderGameTurn(worldState): GameTurnInput
+        +renderEndGame(winner): Unit
+    }
+
+    CLIFormatter --|> Formatter
+    CLIView --> CLIFormatter: delega
+    CLIView --|> GameView: estende
+    CLIView --|> Formatter
 ```
+

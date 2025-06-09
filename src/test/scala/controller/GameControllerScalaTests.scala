@@ -1,57 +1,104 @@
 package controller
 
 import controller.GameController.*
+import model.map.CityModule.Owner
+import model.map.WorldMapModule
+import model.map.WorldMapModule.CreateModuleType
+import model.map.WorldState.WorldState
+import model.strategy.{AiAction, HumanAction}
 import model.util.GameSettings.{Difficulty, GameMode, GameSettings, forSettings}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
-import java.io.ByteArrayInputStream
-
 class GameControllerScalaTests extends AnyFunSuite with Matchers {
   given GameSettings = forSettings(GameMode.Singleplayer,Difficulty.Normal)
+  given CreateModuleType = WorldMapModule.DeterministicMapModule
+
   val gameState: GameState = buildGameState
+  val initialState: WorldState = gameState.worldState
+  val targetCityA = "A"
+  private val sicureProbability = 100
+  val increaseDefense = 20
+  val defenceDecreasedBySabotage = 40
+  val targetCityB = "B"
 
 
-  test("buildGameState should initialize a valid GameState") {
+
+
+
+  test("buildGameState should initialize a valid GameState"):
     gameState.worldState.playerAI should not be null
     gameState.worldState.playerHuman should not be null
     gameState.worldState.worldMap.numberOfCity() should be > 0
-  }
-
-  test("doPlayerAction should update the world state") {
-    val initialState = gameState.worldState
-
-    val simulatedInput = "0 i" // poi se serve anche per Human: + "1\nRome\n"
-    val in = new ByteArrayInputStream(simulatedInput.getBytes)
-
-    Console.withIn(in) {
-      // Choose a city to infect
-      val targetCity = initialState.worldMap.humanCities.head
-
-      val (updatedState, _) = gameTurn.run(gameState)
-      val updatedCity = updatedState.worldState.worldMap.getCityByName(targetCity.getName).get
-
-      updatedCity.getOwner shouldBe model.map.CityModule.Owner.AI
-    }
-  }
 
 
-  test("Simulate CLI input for gameTurn") {
-      // Simula input CLI: "0\n" per AI + niente per Human
-      val simulatedInput = "0 i" // poi se serve anche per Human: + "1\nRome\n"
-      val in = new ByteArrayInputStream(simulatedInput.getBytes)
+  test("test humanAction develop kill switch"):
+    val testAction: Option[HumanAction] = Some(HumanAction.developKillSwitch())
+    val ( updatedState,_) = doHumanAction(testAction).run(gameState)
+    assert(updatedState.worldState.playerHuman != gameState.worldState.playerHuman)
 
-      Console.withIn(in) {
-        // Setup settings e gameState
-        given GameSettings = forSettings(GameMode.Singleplayer, Difficulty.Normal)
 
-        // Esegui il turn
-        val (newState, result) = gameTurn.run(gameState)
+  test("test humanAction cityDefense"):
+    val testAction: Option[HumanAction] = Some(HumanAction.cityDefense(List(targetCityA)))
+    val (updatedState, _) = doHumanAction(testAction).run(gameState)
 
-        // Verifica che qualcosa sia cambiato
-        newState should not be None
+    updatedState.worldState.worldMap.getCityByName(targetCityA).get.getDefense shouldBe
+     gameState.worldState.worldMap.getCityByName(targetCityA).get.getDefense + increaseDefense
+
+
+  test("test humanAction globalDefence"):
+    val ListOfCity = List("A", "B", "C")
+    val testAction: Option[HumanAction] = Some(HumanAction.globalDefense(ListOfCity))
+    val (updatedState, _) = doHumanAction(testAction).run(gameState)
+
+    val globalDefenseBoost = 2
+    updatedState.worldState.worldMap.getCityByName(targetCityA).get.getDefense shouldBe
+      gameState.worldState.worldMap.getCityByName(targetCityA).get.getDefense + globalDefenseBoost
+
+    val wrongDefenseBoost = 5
+    updatedState.worldState.worldMap.getCityByName(targetCityB).get.getDefense should not be
+      gameState.worldState.worldMap.getCityByName(targetCityB).get.getDefense + wrongDefenseBoost
+
+
+
+
+  test("test player evolve"):
+    val (updatedState, _) = doPlayerAction(AiAction.evolve(),sicureProbability).run(gameState)
+    updatedState.worldState.playerAI should not be gameState.worldState.playerAI
+
+
+  test("test player infect"):
+    val (updatedState, _) = doPlayerAction(AiAction.infect(List(targetCityA)), sicureProbability).run(gameState)
+    updatedState.worldState.worldMap.getCityByName(targetCityA).get.getOwner shouldBe Owner.AI
+
+
+  test("test player sabotage"):
+    val (updatedState, _) = doPlayerAction(AiAction.sabotage(List(targetCityA)), sicureProbability).run(gameState)
+    updatedState.worldState.worldMap.getCityByName(targetCityA).get.getDefense shouldBe
+      gameState.worldState.worldMap.getCityByName(targetCityA).get.getDefense - defenceDecreasedBySabotage
+
+
+  test("test render turn"):
+    val simulatedInput = new java.io.ByteArrayInputStream("2\n".getBytes)
+    val outputBufferMenu = new java.io.ByteArrayOutputStream()
+    val outputBuffer = new java.io.ByteArrayOutputStream()
+
+    val result: Unit = Console.withIn(simulatedInput) {
+      Console.withOut(outputBuffer) {
+        val(updateState,_) = gameTurn.run(gameState)
+        1 shouldBe updateState.worldState.playerAI.executedActions.size
+        updateState.worldState.playerAI.executedActions.head shouldBe a [AiAction]
+        1 shouldBe updateState.worldState.playerHuman.executedActions.size
+        updateState.worldState.playerHuman.executedActions.head shouldBe a[HumanAction]
       }
     }
+
+
+
+
+
+
+
 
 
 }

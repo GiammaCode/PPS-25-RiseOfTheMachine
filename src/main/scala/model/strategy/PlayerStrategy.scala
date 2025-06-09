@@ -57,17 +57,6 @@ object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
    * @return the chosen HumanAction
    */
   override def decideAction(state: WorldState)(using probs: ActionProbabilities): HumanAction =
-    /**
-     * Easy strategy: passive defense with occasional global protection.
-     */
-    def decideEasy: HumanAction =
-      val defend = nonDefended(possibleTargets(state), state).take(1)
-      val actions = List(
-        Option.when(defend.nonEmpty)(CityDefense(defend)).map(_ -> probs.cityDefenseWeight),
-        Some(GlobalDefense()).map(_ -> probs.globalDefenseWeight)
-      ).flatten
-      chooseWeighted(actions)
-
     def decideWeighted(targetSelector: WorldState => List[String]): HumanAction =
       val targets = targetSelector(state)
       val defend = nonDefended(targets, state).take(1)
@@ -80,7 +69,7 @@ object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
       chooseWeighted(actions)
 
     state.difficulty match
-      case Difficulty.Easy => decideEasy
+      case Difficulty.Easy => decideWeighted(possibleTargets)
       case Difficulty.Normal => decideWeighted(possibleTargets)
       case Difficulty.Hard => decideWeighted(topRiskTargets)
 
@@ -105,7 +94,7 @@ object SmartHumanStrategy extends PlayerStrategy[HumanAction]:
       .sortBy { case (_, infect, sabotage) => -(infect + sabotage) }
       .map(_._1)
 
-  /**
+   /**
    * Filters out cities that are already defended by the human player.
    *
    * @param cities list of candidate city names
