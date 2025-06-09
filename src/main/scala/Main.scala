@@ -6,14 +6,10 @@
  */
 import StartGame.startGame
 
-object Main:
-
-  /**
-   * Main method that starts the application.
-   *
-   * It enters an infinite loop where the game is played repeatedly.
-   * After each game ends, it restarts automatically.
-   */
-  @main def playGame(): Unit =
-    while true do
-      startGame()
+object Main {
+  def main(args: Array[String]): Unit = {
+    while (true) {
+      StartGame.startGame()
+    }
+  }
+}

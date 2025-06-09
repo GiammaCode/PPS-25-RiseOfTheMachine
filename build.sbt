@@ -14,8 +14,8 @@ mainClass := Some("Main")
 assembly / mainClass := Some("Main")
 lazy val root = (project in file("."))
   .settings(
-    name := "PPS-24-RiseOfTheMachine",
-    version := "0.1.0-SNAPSHOT",
+    name := "RiseOfTheMachine",
+    version := "4.0.0-SNAPSHOT",
     libraryDependencies ++= Seq(
       "com.github.sbt" % "junit-interface" % "0.13.2" % Test,
       "org.scalatest" %% "scalatest" % "3.2.19" % Test,
