@@ -52,7 +52,6 @@ flowchart TD
 
 ## PlayerEntity
 
-**Link al codice** *da inserire manualmente*
 
 **Descrizione:**
 
@@ -82,7 +81,6 @@ classDiagram
 
 ## PlayerAI
 
-**Link al codice:** *(da inserire manualmente)*
 
 **Descrizione:**
 `PlayerAI` rappresenta il giocatore controllato dall'intelligenza artificiale nel gioco. Gestisce l'esecuzione di azioni specifiche come infezioni, sabotaggi e evoluzioni. Implementa il pattern **trait con case class immutabile** per separare l'interfaccia dalla sua implementazione, favorendo estendibilità e testabilità. Utilizza inoltre il pattern **companion object** per la costruzione istanze tramite parametri impliciti (type class pattern per la configurazione).
@@ -142,7 +140,6 @@ classDiagram
 
 ## TurnAction
 
-**Link al codice:** *(da inserire manualmente)*
 
 **Descrizione:**
 `TurnAction` rappresenta un'astrazione funzionale delle azioni che possono essere eseguite durante un turno di gioco. Definisce un'interfaccia semplice che espone i target su cui l'azione opera. Il tipo alias `ActionTarget` indica gli obiettivi di queste azioni (attualmente una stringa, ma potrebbe essere esteso in futuro per aumentare la robustezza del sistema). Il pattern utilizzato è quello di un **trait funzionale semplice con factory method nel companion object**, che facilita la creazione di istanze anonime e immutabili.
@@ -176,7 +173,6 @@ classDiagram
 
 ## AiAction
 
-**Link al codice:** *(da inserire manualmente)*
 
 **Descrizione:**
 `AiAction` è un trait sealed che rappresenta le azioni specifiche eseguibili dal playerAI nel gioco. Estende `TurnAction` e definisce tre tipi concreti di azioni: `Infect`, `Sabotage` e `Evolve`. Il pattern utilizzato è il **sealed trait con case class e case object**, che permette di definire un insieme chiuso di azioni possibili, garantendo sicurezza a compile-time e permettendo pattern matching esaustivo.
@@ -219,7 +215,6 @@ classDiagram
 
 ## ExecuteActionResult
 
-**Link al codice:** *(da inserire manualmente)*
 
 **Descrizione:**
 `ExecuteActionResult` è un tipo opaco che incapsula il risultato dell’esecuzione di un’azione di gioco effettuata da un’entità giocatore. Rappresenta una tripla contenente:
@@ -264,7 +259,6 @@ classDiagram
 
 ## GameSettings
 
-**Link al codice:** *(da inserire manualmente)*
 
 **Descrizione:**
 Il modulo `GameSettings` centralizza la configurazione generale del gioco, incapsulando le impostazioni legate alla difficoltà, alla modalità di gioco e ai parametri statistici per i giocatori IA e umani. Viene utilizzato un pattern modulare  per offrire configurazioni flessibili E riutilizzabili.
@@ -285,7 +279,6 @@ Ecco la documentazione per il file `InputHandler.scala`:
 
 ## InputHandler & InputHandling
 
-**Link al codice:** *(da inserire manualmente)*
 
 **Descrizione:**
 Questo modulo si occupa della validazione e trasformazione delle scelte utente in azioni concrete di gioco, distinguendo tra azioni dell’IA (`AiAction`) e azioni umane (`HumanAction`). Gestisce errori di parsing input, scelte non valide e risoluzione di azioni tramite contesto.

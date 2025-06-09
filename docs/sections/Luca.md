@@ -98,7 +98,6 @@ offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
 * **Tipo opaco (`opaque type`)**: l’intera mappa (`WorldMap`) è incapsulata come un set opaco di coppie (Città, Coordinate), migliorando la sicurezza del tipo e l’incapsulamento.
 * **Trait astratto**: `CreateModuleType` definisce un'interfaccia per strategie di costruzione della mappa.
 * **Implementazioni modulari**:
-
     * `DeterministicMapModule`: costruzione ordinata e prevedibile.
     * `UndeterministicMapModule`: costruzione casuale usando monadi di stato e generatore pseudo-casuale.
 * **Uso della `State` monad**: gestisce lo stato interno del generatore di numeri casuali senza effetti collaterali.
@@ -153,7 +152,6 @@ classDiagram
     WorldMapModule --> DeterministicMapModule : implements
     WorldMapModule --> UndeterministicMapModule : implements
     WorldMapModule --> WorldMap : defines
-    WorldMap --> "1" WorldMap~extension~ : extension
     DeterministicMapModule ..|> CreateModuleType
     UndeterministicMapModule ..|> CreateModuleType
 ```

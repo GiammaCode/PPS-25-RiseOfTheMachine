@@ -159,6 +159,7 @@ private case class PlayerAIImpl (
 
   /**
    * Performs the evolve action, unlocking a new ability if available.
+   * @return ExecutionActionResult containing the updated value
    */
   private def evolve: ExecuteActionResult[Self] =
     val updatedPlayer: PlayerAIImpl = AiAbility.allAbilities

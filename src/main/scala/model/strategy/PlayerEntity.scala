@@ -10,11 +10,16 @@ trait PlayerEntity :
     type ValidAction <: TurnAction
     type Self <: PlayerEntity
 
-    /** All actions this entity has executed. */
+    /**
+     * Get all of the executed actions
+     * @return All actions this entity has executed. */
     def executedActions: List[ValidAction]
 
-    /** All cities this entity has conquered. */
+    /**
+     * Get all conquered cities.
+     * @return All cities this entity has conquered. */
     def conqueredCities: Set[String]
 
-    /** Executes a valid action, returning the updated player entity. */
+    /** Executes a valid action,
+     * @return the updated ExecutionActionResult. */
     def executeAction(action: ValidAction, worldMap: WorldMap): ExecuteActionResult[Self]
