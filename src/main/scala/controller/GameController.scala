@@ -62,7 +62,7 @@ object GameController:
       createWorldState(
         createWorldMap(startSizeOfTheMap)(using mapModule),
         PlayerAI.fromStats,
-        PlayerHuman.fromStats,
+        PlayerHuman.fromSettings,
         startingTurn
       )
     )

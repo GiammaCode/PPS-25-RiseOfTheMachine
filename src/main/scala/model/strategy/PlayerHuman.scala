@@ -42,9 +42,8 @@ trait PlayerHuman extends PlayerEntity:
  * Provides factory methods from settings or stats.
  */
 object PlayerHuman:
-  /**
-   * Creates a PlayerHuman instance from predefined human stats.
-   */
+
+  @deprecated
   def fromStats(using stats: HumanStats): PlayerHuman =
     PlayerHumanImpl(killSwitch = stats.killSwitch)
 
@@ -119,8 +118,7 @@ private case class PlayerHumanImpl(
    * Decides an action based on the current difficulty and game state using SmartHumanStrategy.
    */
   def decideActionByStrategy(worldState: WorldState): HumanAction =
-    given ActionProbabilities = actionsWeight
-    SmartHumanStrategy.decideAction(worldState)
+    SmartHumanStrategy.decideAction(worldState)(using actionsWeight)
 
   private def result(player: PlayerHumanImpl, city: Option[List[City]], message: String): ExecuteActionResult[Self] =
     ExecuteActionResult(player, city, List(message))
