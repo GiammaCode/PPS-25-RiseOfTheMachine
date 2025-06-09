@@ -75,5 +75,14 @@ Si può visionare la documentazione ufficiale del progetto al seguente link dell
 ## Licenza
 Distribuito sotto licenza **MIT** – vedi il file [LICENSE](LICENSE) per i dettagli.
 
+## Comandi per eseguire il .
+
+```bash
+chcp 65001
+java -Dfile.encoding=UTF-8 -jar PPS-24-RiseOfTheMachine-assembly-0.1.0-SNAPSHOT.jar
+```
+
+in questo modo le emoji sono visibili anche da terminale
+
 
 

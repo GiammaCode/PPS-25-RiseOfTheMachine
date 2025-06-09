@@ -43,7 +43,9 @@ per ciascuno il grado di difficoltà di progettazione e/o implementazione e l’
 Prima della proposta del progetto, è avvenuto un incontro all’interno del quale sono stati decisi i seguenti
 fattori essenziali:
 
-* **Ruoli**:
+* **Ruoli**: Gianmaria Casamenti sarà il product Owner e Sviluppatore, Luca il committente e sviluppatore e Lorenzo sarà 
+Responsabile Test e sviluppatore.
+
 * **Specifiche**: sono stati decisi gli obiettivi funzionali, facendo attenzione alla loro fattibilità.
 
 ### **Sprint Planning**
