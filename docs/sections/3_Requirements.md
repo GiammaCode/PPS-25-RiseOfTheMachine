@@ -69,6 +69,7 @@ L'utente deve poter:
 I requisiti non funzionali individuati per il progetto sono:
 - Realizzazione di software estendibile e rivisitabile.
 
+- Il gioco dovrà rispondere in meno di 1 secondo in un'architettura con processore intel core i7 8th generazione 1.80 GHz e ram da 8GB 
 
 - Realizzazione di un'esperienza di gioco godibile (usabilità, bilanciamento). 
 
