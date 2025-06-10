@@ -29,19 +29,19 @@ permettendo un'interfaccia pulita e intuitiva.
 * **Utilizzo del `trait` per l’interfaccia**: separazione tra definizione dell’interfaccia (`CityInterface`) e implementazione concreta (`CityImpl`).
 
 ### Metodi presenti
-| Metodo                       | Descrizione                                                          |
-| ---------------------------- | -------------------------------------------------------------------- |
-| `createWorldState(...)`      | Costruttore principale, inizializza il mondo                         |
-| `updatePlayer(...)`          | Ritorna un nuovo stato con AI aggiornato                             |
-| `updateHuman(...)`           | Ritorna un nuovo stato con Human aggiornato                          |
-| `updateMap(...)`             | Ritorna un nuovo stato con una mappa modificata                      |
-| `updateTurn`                 | Incrementa il turno                                                  |
-| `isGameOver`                 | Valuta condizioni di fine partita (infezione, kill switch, capitali) |
-| `attackableCities`           | Fornisce le città attaccabili con probabilità di successo            |
-| `probabilityByCityandAction` | Percentuale di successo per un’azione su una città                   |
-| `AIOptions / HumanOptions`   | Azioni disponibili per ogni giocatore                                |
-| `infectionState`             | Stato dell’infezione nel mondo                                       |
-| `AIUnlockedAbilities`        | Abilità sbloccate dal giocatore AI                                   |
+
+| Metodo                              | Descrizione                                                           |
+|-------------------------------------|-----------------------------------------------------------------------|
+| `createCity(name, size, isCapital)` | Crea una nuova città con nome, dimensione e indicazione se è capitale |
+| `getName`                           | Restituisce il nome della città                                       | 
+| `getSize`                           | Restituisce la dimensione della città                                 | 
+| `getOwner`                          | Restituisce il proprietario attuale della città (`AI` o `HUMAN`)      | 
+| `getDefense`                        | Calcola la difesa totale della città                                  |
+| `isCapital`                         | Indica se la città è una capitale                                     |
+| `infectCity()`                      | Cambia il proprietario della città in `AI`                            | 
+| `sabotateCity(playerAttack)`        | Riduce la difesa della città di un valore passato                     | 
+| `defenseCity(defenseImprove)`       | Aumenta la difesa della città di un valore passato                    | 
+
 
 ---
 
@@ -124,6 +124,7 @@ offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
 ---
 
 ### Metodi presenti
+
 | Metodo                        | Descrizione                                                            |
 | ----------------------------- | ---------------------------------------------------------------------- |
 | `getSizeOfTheMap`             | Calcola la dimensione massima della griglia a partire dalle coordinate |
