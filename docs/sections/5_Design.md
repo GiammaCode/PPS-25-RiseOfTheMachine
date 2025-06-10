@@ -5,6 +5,9 @@ nav_order: 5
 ---
 
 # Design di Dettaglio
+L'architettura del sistema è progettata per garantire una chiara separazione delle responsabilità tra i diversi componenti. La struttura modulare permette di mantenere distinti la gestione dei dati e della logica di gioco, l'interfaccia utente e il coordinamento delle operazioni. Questa organizzazione favorisce la manutenibilità del codice, facilita eventuali modifiche e assicura un flusso ordinato delle informazioni attraverso i vari livelli del sistema, dalla raccolta dell'input utente fino all'aggiornamento dello stato di gioco e alla sua visualizzazione.
+
+Nel diagramma seguente è possibile vedere come i vari componenti del sistema interagiscono fra di loro ad alto livello.
 
 ```mermaid
 graph TD
