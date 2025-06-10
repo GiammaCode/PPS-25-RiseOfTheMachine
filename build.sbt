@@ -5,7 +5,7 @@ val scala3Version = "3.3.1"
 
 ThisBuild / scalaVersion := scala3Version
 
-coverageEnabled := true
+coverageEnabled := false
 
 //jar config
 assembly / assemblyJarName := "RiseOfTheMachine.jar"
