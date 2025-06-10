@@ -4,9 +4,8 @@ title: Luca's Files
 nav_order: 16
 ---
 
-# Model
 
-## Abstract
+# Abstract
 
 In questa parte si troveranno le parti di codice sviluppate da Luca Pasini.
 I moduli principali includono:
@@ -14,6 +13,8 @@ I moduli principali includono:
 * `CityModule`: gestione dello stato e delle operazioni sulle città;
 * `WorldMapModule`: costruzione e manipolazione della mappa di gioco;
 * `GameController`: coordinamento del flusso di gioco e delle interazioni tra i componenti.
+
+# Model
 
 ## `CityModule`
 
