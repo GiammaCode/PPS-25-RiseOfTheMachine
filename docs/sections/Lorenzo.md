@@ -272,7 +272,6 @@ Il modulo `GameSettings` centralizza la configurazione generale del gioco, incap
 * **Modularità e riusabilità**:
 
   * Le configurazioni sono mappate in base al livello di difficoltà con delle mappe (`aiConfigs`, `humanConfigs`), semplificando modifiche future o l'aggiunta di nuovi livelli.
-Ecco la documentazione per il file `InputHandler.scala`:
 
 ---
 # Controller
@@ -287,14 +286,12 @@ Questo modulo si occupa della validazione e trasformazione delle scelte utente i
 
 ## Pattern principali
 
-| Pattern/Funzionalità             | Dettagli                                                                                                     |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Typeclass (`ActionResolver`)** | Fornisce un'interfaccia generica per risolvere azioni da un contesto.                                        |
-| **Impliciti (`given`)**          | Implementazioni fornite automaticamente per `AiAction` e `HumanAction`.                                      |
-| **Error Handling**               | Usa un `sealed trait` per rappresentare gli errori (`InputHandlingError`) e fornisce messaggi utente chiari. |
-| **Contextual Resolution**        | Le azioni vengono risolte a seconda del contesto fornito (`CityContext`, `NoContext`).                       |
 
----
+ - **Typeclass (`ActionResolver`)**  Fornisce un'interfaccia generica per risolvere azioni da un contesto.                                        
+ - **Impliciti (`given`)**: Implementazioni fornite automaticamente per `AiAction` e `HumanAction`.
+-  **Error Handling**: Usa un `sealed trait` per rappresentare gli errori (`InputHandlingError`) e fornisce messaggi utente chiari. 
+- **Contextual Resolution**: Le azioni vengono risolte a seconda del contesto fornito (`CityContext`, `NoContext`).                     
+
 
 ## Comportamento dettagliato
 
