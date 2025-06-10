@@ -75,39 +75,35 @@ object WorldMapModule:
 
     override def createMap(size: Int): WorldMap =
 
-      /**
-       * Expands a city from a starting coordinate up to a desired size,
-       * ensuring all cells are connected.
-       */
-      def expandCity(start: Coord, available: Set[Coord], desiredSize: Int): Set[Coord] =
-        @tailrec
-        def expandLoop(frontier: List[Coord], visited: Set[Coord]): Set[Coord] =
-          if visited.size >= desiredSize || frontier.isEmpty then visited
-          else
-            val next = frontier.head
-            val newNeighbors = adjacentTo(Set(next), size).toSet.intersect(available).diff(visited)
-            expandLoop(frontier.tail ++ newNeighbors, visited + next)
-
-        expandLoop(List(start), Set(start)).intersect(available)
-
-      /**
-       * Recursively builds the map by placing cities one by one.
-       */
       @tailrec
-      def createMapLoop(index: Int, available: Set[Coord], acc: WorldMap): WorldMap =
-        val maxCellPossible = 10
-        if available.isEmpty then acc
+      def expandCity(frontier: List[Coord], visited: Set[Coord], available: Set[Coord], desiredSize: Int): Set[Coord] =
+        frontier match
+          case Nil => visited
+          case head :: tail if visited.size >= desiredSize => visited
+          case head :: tail =>
+            val neighbors = adjacentTo(Set(head), size)
+              .toSet
+              .intersect(available)
+              .diff(visited)
+            expandCity(tail ++ neighbors.toList, visited + head, available, desiredSize)
+
+      @tailrec
+      def createMapLoop(index: Int, available: Set[Coord], cityPlaced: WorldMap): WorldMap =
+        val maxSize = 10
+        if available.isEmpty then cityPlaced
         else
-          val isCapital = index < nCapital
-          val name = letterAt(index, isCapital)
-          val city = createCity(name, size, isCapital)
+          val city = createCity(letterAt(index, index < nCapital), size, index < nCapital)
           val start = available.head
-          val maxCitySize = math.min(maxCellPossible, available.size)
-          val tiles = expandCity(start, available, maxCitySize)
-          if tiles.size < 0 then createMapLoop(index + 1, available -- tiles, acc)
-          else createMapLoop(index + 1, available -- tiles, acc + (city -> tiles))
+          val maxCitySize = math.min(maxSize, available.size)
+          val tiles = expandCity(List(start), Set.empty, available, maxCitySize)
+
+          if tiles.nonEmpty then
+            createMapLoop(index + 1, available -- tiles, cityPlaced + (city -> tiles))
+          else
+            createMapLoop(index + 1, available -- tiles, cityPlaced)
 
       createMapLoop(0, getSetOfCoords(size), Set.empty)
+
 
   /**
    * Undeterministic implementation of [[CreateModuleType]].
