@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Luca Implementazione
+title: Luca's Files
 nav_order: 16
 ---
 
@@ -111,15 +111,17 @@ offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
 
 ---
 
-## Caratteristiche funzionali
+## Caratteristiche funzionali o avanzate
 
 * **Tipo opaco (`opaque type`)**: l’intera mappa (`WorldMap`) è incapsulata come un set opaco di coppie (Città, Coordinate), migliorando la sicurezza del tipo e l’incapsulamento.
 * **Trait astratto**: `CreateModuleType` definisce un'interfaccia per strategie di costruzione della mappa.
 * **Implementazioni modulari**:
-    * `DeterministicMapModule`: costruzione ordinata e prevedibile attraverso metodi ricorsivi tail.
-    * `UndeterministicMapModule`: costruzione pseudo-casuale della mappa tramite una `LazyList`, che permette la generazione differita delle mappe fino a trovare una configurazione valida secondo i vincoli specificati. Utilizza costrutti funzionali come il `for ... yield` per creare nuove istanze di mappe candidate.
-* **Ricorsione con `@tailrec`**: garantisce efficienza e sicurezza durante l’espansione delle città nella mappa.
-* **Estensioni su `WorldMap`**: metodi di accesso e modifica funzionale della mappa, come ricerca di città, conteggio, sostituzione, rilevamento di città adiacenti infette.
+    * `DeterministicMapModule`: costruzione ordinata e prevedibile attraverso metodi ricorsivi tail, modulo pensato soprattutto per la fase di testing.
+    * `UndeterministicMapModule`: costruzione pseudo-casuale della mappa tramite una `LazyList`, che permette la generazione differita delle mappe fino a trovare una configurazione valida secondo i vincoli specificati. 
+* **Ricorsione con `@tailrec`**: garantisce efficienza durante l’espansione delle città nella mappa, modulo utilizzato in produzione.
+* **Estensioni su `WorldMap`**: metodi forniti a coloro che andranno ad utilizzare questo tipo di dato consentendo la possibilità di accesso e modifica funzionale della mappa, come ricerca di città, conteggio, sostituzione, rilevamento di città adiacenti infette.
+* **Utilizzo di given**: decisione del modulo di costruzione della mappa grazie ai given
+* **Utilizzo di for..yeld monadici**: utlizzo di for..yeld monadici in diverse parti del codice come la creazione della mappa non deterministica con le `LazyList` oppure per la decisione degli diacenti e la cotruzione di set di coordinate.
 
 ---
 
@@ -200,6 +202,7 @@ Coordina:
 - Le azioni dell'intelligenza artificiale (`PlayerAI`)
 - Le decisioni del giocatore umano (`PlayerHuman`)
 - L’interazione tramite interfaccia (CLI)
+- Le logiche del GameSetting nel turno di gioco
 
 Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stato globale del gioco (`GameState`).
 
@@ -209,14 +212,16 @@ Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stat
 
 * **`GameState`**: opaque type che incapsula lo stato del mondo (`WorldState`), servendo da contesto per l'intero flusso di gioco.
 * **Monade `State`**: tutte le azioni (IA, giocatore, rendering) sono modellate come trasformazioni pure dello stato, promuovendo testabilità e immutabilità.
-* **Turno di gioco**:
-
-    1. Rendering e input da parte dell’utente.
-    2. Esecuzione dell’azione dell’IA(se il calcolo della probabilità di riuscita da esito positivo) richiamando il metodo ExecuteAction di PlayerAI.
-    3. Esecuzione dell’azione difensiva umana (da parte del computer con una logica basata sulla difficoltà oppure con l'input dell'utente in caso della modalità multiplyer)  richiamando il metodo ExecuteAction di PlayerHuman.
-  
 * **Sistema di input resiliente**: gestisce input non validi ricorsivamente (funzione `renderTurn`).
 * **Estensibilità**: l’uso di  `AiAction`, `HumanAction`e `GameView` come astrazioni facilita l'aggiunta di nuove strategie o modalità di interfaccia utente.
+
+---
+
+## Turno di gioco
+
+  1. Rendering e input da parte dell’utente.
+  2. Esecuzione dell’azione dell’IA(se il calcolo della probabilità di riuscita da esito positivo) richiamando il metodo ExecuteAction di PlayerAI.
+  3. Esecuzione dell’azione difensiva umana (da parte del computer con una logica basata sulla difficoltà oppure con l'input dell'utente in caso della modalità multiplyer)  richiamando il metodo ExecuteAction di PlayerHuman.
 
 ---
 
