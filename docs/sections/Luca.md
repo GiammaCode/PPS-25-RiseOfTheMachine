@@ -4,9 +4,20 @@ title: Luca's Files
 nav_order: 16
 ---
 
-# `CityModule`
+# Model
 
-## Descrizione
+## Abstract
+
+In questa parte si troveranno le parti di codice sviluppate da Luca Pasini.
+I moduli principali includono:
+
+* `CityModule`: gestione dello stato e delle operazioni sulle città;
+* `WorldMapModule`: costruzione e manipolazione della mappa di gioco;
+* `GameController`: coordinamento del flusso di gioco e delle interazioni tra i componenti.
+
+## `CityModule`
+
+### Descrizione
 
 Il modulo `CityModule` rappresenta la logica relativa alla gestione delle città all'interno del gioco,
 modellando proprietà come nome, dimensione, possessore della città (umano o IA),
@@ -20,7 +31,7 @@ permettendo un'interfaccia pulita e intuitiva.
 
 ---
 
-## Caratteristiche funzionali
+### Caratteristiche funzionali
 
 * **ADT (Algebraic Data Types)**: utilizzo di `enum` per rappresentare il tipo di proprietario (`Owner`), migliorando la sicurezza del tipo.
 * **Tipi opachi (`opaque type`)**: incapsulamento dell’implementazione interna di `City`, nascondendola all’esterno.
@@ -45,7 +56,7 @@ permettendo un'interfaccia pulita e intuitiva.
 
 ---
 
-## Diagramma delle classi
+### Diagramma delle classi
 
 ```mermaid
 classDiagram
@@ -92,10 +103,9 @@ classDiagram
 
 ```
 
+## `WorldMapModule`
 
-# `WorldMapModule`
-
-## Descrizione
+### Descrizione
 
 Il modulo `WorldMapModule` definisce la rappresentazione e le logiche di costruzione della mappa di gioco. 
 Ogni mappa è costituita da un insieme di città, ognuna delle quali è associata a una serie di coordinate 
@@ -105,13 +115,13 @@ offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
 
 ---
 
-## WorldMap type
+### WorldMap type
 * La scelta di definire `WorldMap` come `opaque type WorldMap = Set[(City, Set[Coord])]` consente di rappresentare la mappa come un'associazione diretta tra ogni città e le sue coordinate spaziali.
 * `Coord` è definito come una tupla `(Int, Int)` e rappresenta una singola cella della griglia di gioco, utile per localizzare le città sulla mappa.
 
 ---
 
-## Caratteristiche funzionali o avanzate
+### Caratteristiche funzionali o avanzate
 
 * **Tipo opaco (`opaque type`)**: l’intera mappa (`WorldMap`) è incapsulata come un set opaco di coppie (Città, Coordinate), migliorando la sicurezza del tipo e l’incapsulamento.
 * **Trait astratto**: `CreateModuleType` definisce un'interfaccia per strategie di costruzione della mappa.
@@ -143,7 +153,7 @@ offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
 
 ---
 
-## Diagramma delle classi
+### Diagramma delle classi
 
 ```mermaid
 classDiagram
@@ -192,9 +202,11 @@ classDiagram
     UndeterministicMapModule ..|> CreateModuleType
 ```
 
-# `GameController`
+# Controller
 
-## Descrizione
+## `GameController`
+
+### Descrizione
 
 Il modulo `GameController` rappresenta il punto di orchestrazione principale dell'intero flusso di gioco. 
 Coordina:
@@ -208,7 +220,7 @@ Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stat
 
 ---
 
-## Caratteristiche funzionali
+### Caratteristiche funzionali o avanzate
 
 * **`GameState`**: opaque type che incapsula lo stato del mondo (`WorldState`), servendo da contesto per l'intero flusso di gioco.
 * **Monade `State`**: tutte le azioni (IA, giocatore, rendering) sono modellate come trasformazioni pure dello stato, promuovendo testabilità e immutabilità.
@@ -217,7 +229,7 @@ Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stat
 
 ---
 
-## Turno di gioco
+### Turno di gioco
 
   1. Rendering e input da parte dell’utente.
   2. Esecuzione dell’azione dell’IA(se il calcolo della probabilità di riuscita da esito positivo) richiamando il metodo ExecuteAction di PlayerAI.
@@ -225,7 +237,7 @@ Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stat
 
 ---
 
-## Diagramma Delle Classi
+### Diagramma Delle Classi
 
 ```mermaid
 classDiagram
@@ -282,9 +294,9 @@ GameController --> WorldState : uses
 GameController --> CLIView : renders
 GameController --> InputHandler : processes input
 GameController --> State : functional model
-WorldState --> PlayerAI
-WorldState --> PlayerHuman
-WorldState --> WorldMap
+WorldState --> PlayerAI: uses
+WorldState --> PlayerHuman: uses
+WorldState --> WorldMap: uses
 GameStateImpl --> GameState : opaqued as
 ```
 

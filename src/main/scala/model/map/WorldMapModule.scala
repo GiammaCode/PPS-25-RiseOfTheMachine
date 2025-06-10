@@ -116,6 +116,22 @@ object WorldMapModule:
   object UndeterministicMapModule extends CreateModuleType:
 
     /**
+     * Generates the a lazy list of map and returns the first valid one that fills the map grid and respect the parameter.
+     */
+
+    override def createMap(size: Int): WorldMap =
+      val minNumberOfCity = 10
+      val minCapitalSize = 3
+      val maxAttempts = 1000
+      val maps = placeCities(size, getSetOfCoords(size)).take(maxAttempts)
+      maps.find(m =>
+          m.numberOfCity() >= minNumberOfCity &&
+            m.count(c => c._1.isCapital) == nCapital &&
+            m.forall(c => !c._1.isCapital || c._2.size >= minCapitalSize))
+        .orElse(
+          maps.find(m => m.flatMap(_._2).size == size * size)).get
+
+    /**
      * Recursively places cities on the map, randomly determining their position and size.
      */
     private def placeCities(
@@ -177,21 +193,6 @@ object WorldMapModule:
           expand(frontier.tail ++ neighbors, built + next)
 
       expand(List(start), Set(start))
-
-    /**
-     * Generates the a lazy list of map and returns the first valid one that fills the map grid and respect the parameter.
-     */
-    override def createMap(size: Int): WorldMap =
-      val minNumberOfCity = 10
-      val minCapitalSize = 3
-      val maxAttempts = 1000
-      val maps = placeCities(size, getSetOfCoords(size)).take(maxAttempts)
-      maps.find(m =>
-        m.numberOfCity() >= minNumberOfCity &&
-        m.count( c => c._1.isCapital) == nCapital  &&
-        m.forall(c => !c._1.isCapital || c._2.size >= minCapitalSize))
-        .orElse(
-          maps.find(m => m.flatMap(_._2).size == size * size)).get
 
   /**
    * Generates a set of all coordinates (x, y) within a square grid of the given size.
