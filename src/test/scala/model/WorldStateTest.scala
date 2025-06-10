@@ -40,7 +40,6 @@ class WorldStateTest:
   def testAttackableCities(): Unit =
     val state = createWorldState(worldMap, ai, human, 0)
     val attackables = state.attackableCities
-    println(attackables)
     assertTrue(attackables.nonEmpty)
     assertTrue(attackables.forall { case (_, inf, sab) =>
       inf >= 0 && sab >= 0
@@ -59,11 +58,9 @@ class WorldStateTest:
     //first city of the list
     val (cityName, expectedInfect, expectedSabotage) = attackables.head
     val infectProbability = state.probabilityByCityandAction(cityName, Infect(List(cityName)))
-    println(s"Infect: $infectProbability")
     assertEquals("Infect probability is wrong", expectedInfect, infectProbability)
 
     val sabotageProbability = state.probabilityByCityandAction(cityName, Sabotage(List(cityName)))
-    println(s"Sabotage: $sabotageProbability")
     assertEquals("Sabotage probability is wrong", expectedSabotage, sabotageProbability)
 
     val evolveProbability = state.probabilityByCityandAction(cityName, Evolve)
