@@ -14,6 +14,12 @@ assembly / assemblyMergeStrategy := {
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
   case _ => MergeStrategy.first
 }
+assembly / assemblyExcludedJars := {
+  val cp = (assembly / fullClasspath).value
+  cp filter { jar =>
+    jar.data.getName.contains("scoverage")
+  }
+}
 mainClass := Some("Main")
 assembly / mainClass := Some("Main")
 
