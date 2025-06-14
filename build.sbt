@@ -5,7 +5,7 @@ val scala3Version = "3.3.1"
 
 ThisBuild / scalaVersion := scala3Version
 
-coverageEnabled := true
+coverageEnabled := false
 
 //jar config
 assembly / assemblyJarName := "RiseOfTheMachine.jar"
@@ -13,6 +13,12 @@ assembly / assemblyMergeStrategy := {
   case "reference.conf" => MergeStrategy.concat
   case PathList("META-INF", xs @ _*) => MergeStrategy.discard
   case _ => MergeStrategy.first
+}
+assembly / assemblyExcludedJars := {
+  val cp = (assembly / fullClasspath).value
+  cp filter { jar =>
+    jar.data.getName.contains("scoverage")
+  }
 }
 mainClass := Some("Main")
 assembly / mainClass := Some("Main")
