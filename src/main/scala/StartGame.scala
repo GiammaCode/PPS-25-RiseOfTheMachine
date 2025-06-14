@@ -20,6 +20,7 @@ object StartGame:
   def startGame(): Unit =
 
     given GameSettings = CLIView.renderGameModeMenu()
+    import model.map.WorldMapModule.given
 
     import controller.GameController
 
@@ -32,10 +33,10 @@ object StartGame:
      * @return The final state when the game is over
      */
     @tailrec
-    def gameLoop(state: GameState): GameState =
-      if state.isGameOver then state
-      else
-        val (newState, _) = GameController.gameTurn.run(state)
+    def gameLoop(state: GameState): GameState = state match
+      case s if s.isGameOver => s
+      case s =>
+        val (newState, _) = GameController.gameTurn.run(s)
         gameLoop(newState)
 
     gameLoop(initialState)
