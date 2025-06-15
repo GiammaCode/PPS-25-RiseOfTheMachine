@@ -23,7 +23,7 @@ sealed trait AiAction extends TurnAction :
  */
 object AiAction :
   /**
-   * A complete list of all possible AI actions.
+   * @return A complete list of all possible AI actions.
    */
   val allActions: List[AiAction] = List(Infect(), Sabotage(), Evolve)
 

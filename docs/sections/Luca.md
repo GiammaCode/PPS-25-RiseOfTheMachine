@@ -32,7 +32,7 @@ permettendo un'interfaccia pulita e intuitiva.
 
 ---
 
-### Caratteristiche funzionali
+### Caratteristiche di design avanzate
 
 * **ADT (Algebraic Data Types)**: utilizzo di `enum` per rappresentare il tipo di proprietario (`Owner`), migliorando la sicurezza del tipo.
 * **Tipi opachi (`opaque type`)**: incapsulamento dell’implementazione interna di `City`, nascondendola all’esterno.
@@ -122,7 +122,7 @@ offrendo metodi di accesso, aggiornamento e analisi dello stato della mappa.
 
 ---
 
-### Caratteristiche funzionali o avanzate
+### Caratteristiche di design avanzate
 
 * **Tipo opaco (`opaque type`)**: l’intera mappa (`WorldMap`) è incapsulata come un set opaco di coppie (Città, Coordinate), migliorando la sicurezza del tipo e l’incapsulamento.
 * **Trait astratto**: `CreateModuleType` definisce un'interfaccia per strategie di costruzione della mappa.
@@ -221,7 +221,7 @@ Utilizza la monade `State` per mantenere e aggiornare in modo funzionale lo stat
 
 ---
 
-### Caratteristiche funzionali o avanzate
+### Caratteristiche di design avanzate
 
 * **`GameState`**: opaque type che incapsula lo stato del mondo (`WorldState`), servendo da contesto per l'intero flusso di gioco.
 * **Monade `State`**: tutte le azioni (IA, giocatore, rendering) sono modellate come trasformazioni pure dello stato, promuovendo testabilità e immutabilità.

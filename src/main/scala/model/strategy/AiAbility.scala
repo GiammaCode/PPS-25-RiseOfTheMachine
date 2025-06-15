@@ -28,4 +28,4 @@ object AiAbility:
     override def sabotageBonusPerc: Int = StealthSabotageBonusPerc
 
   /** Set of all available AI abilities. */
-  val allAbilities : Set[AiAbility] = Set(ImprovedInfection, StealthSabotage) //Could be changed to a getAll
+  val allAbilities : Set[AiAbility] = Set(ImprovedInfection, StealthSabotage)

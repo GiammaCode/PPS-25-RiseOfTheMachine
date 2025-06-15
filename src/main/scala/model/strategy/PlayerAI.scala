@@ -77,6 +77,7 @@ object PlayerAI:
    * @param stats Implicit AIStats (e.g. based on game difficulty).
    * @return A new PlayerAI instance.
    */
+  @deprecated("this method will be removed, user fromSetting instead, RotM 3.0")
   def fromStats(using stats: AIStats): PlayerAI =
     PlayerAIImpl(infectionPower = stats.infectionPower, sabotagePower = stats.sabotagePower)
 

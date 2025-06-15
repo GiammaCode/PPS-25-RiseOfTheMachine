@@ -295,8 +295,8 @@ object ViewModule:
         "  3. Evolve to unlock new abilities",
         "",
         "🏁 WIN CONDITIONS:",
-        "- The AI wins if it infects 50% of cities or conquers 3 capitals",
-        "- The human wins if the KillSwitch reaches 90% progress",
+        "- The AI wins if it infects 70% of cities and conquers 3 capitals",
+        "- The human wins if the KillSwitch reaches 100% progress",
         "",
         "📝 TIP:",
         "Check success rates, defend key cities, and adapt your strategy!"
