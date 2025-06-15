@@ -47,7 +47,7 @@ Il gioco "Rise of the Machine" si compone di un insieme di entità e regole ben 
 - L’AI può ottenere abilità speciali tramite l’azione Evolve.
 
 - Il gioco termina quando:
-  * L’AI conquista almeno il 90% delle città o tutte e 3 le capitali
+  * L’AI conquista almeno il 70% delle città e almeno 3 capitali
   * L’umanità completa il KillSwitch al 100%
 
 - A ogni turno il sistema deve visualizzare:
