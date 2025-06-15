@@ -16,9 +16,9 @@ import model.util.GameSettings.{Difficulty, GameSettings}
  */
 object WorldState:
 
-  private val VictoryThresholdPercent = 50
-  private val MaxCapitalsConquered = 3
-  private val KillSwitchVictoryThreshold = 90
+  private val VictoryThresholdPercent = 70
+  private val MinCapitalsConquered = 3
+  private val KillSwitchVictoryThreshold = 100
 
   private val MinSuccessPercent = 5
   private val MaxSuccessPercent = 95
@@ -111,7 +111,7 @@ object WorldState:
         val killSwitchProgress = human.killSwitch
         val capitalConquered = map.capitalConqueredCounter
 
-        if conqueredPercentage >= VictoryThresholdPercent || capitalConquered == MaxCapitalsConquered then (true, Some(ai))
+        if conqueredPercentage >= VictoryThresholdPercent && capitalConquered >= MinCapitalsConquered then (true, Some(ai))
         else if killSwitchProgress >= KillSwitchVictoryThreshold then (true, Some(human))
         else (false, None)
 
