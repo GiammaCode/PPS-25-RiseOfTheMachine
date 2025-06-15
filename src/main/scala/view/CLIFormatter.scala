@@ -10,11 +10,11 @@ trait Formatter:
 
 
 /**
- * CLIFormatter is a utility object that provides reusable functions
+ * CLIFormatter is a utility trait that provides reusable functions
  * for rendering stylized CLI elements such as boxes, menus, and ASCII titles.
  * It helps enforce visual consistency and reduces duplication in CLI views.
  */
-object CLIFormatter extends Formatter:
+trait CLIFormatter extends Formatter:
 
   /**
    * Prints a boxed section to the console with a title and multiline body.
