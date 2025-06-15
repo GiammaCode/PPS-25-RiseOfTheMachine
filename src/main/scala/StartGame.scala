@@ -4,6 +4,7 @@
  * This object handles the initial setup and manages the main game loop.
  */
 import controller.GameController.GameState
+import model.map.WorldMapModule.DeterministicMapModule
 import model.util.GameSettings.*
 import view.ViewModule.CLIView
 

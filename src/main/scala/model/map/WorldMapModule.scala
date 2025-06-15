@@ -123,7 +123,8 @@ object WorldMapModule:
       maps.find(m =>
           m.numberOfCity() >= minNumberOfCity &&
             m.count(c => c._1.isCapital) == nCapital &&
-            m.forall(c => !c._1.isCapital || c._2.size >= minCapitalSize))
+            m.forall(c => !c._1.isCapital || c._2.size >= minCapitalSize) &&
+            m.flatMap(_._2).size == size * size)
         .orElse(
           maps.find(m => m.flatMap(_._2).size == size * size)).get
 
