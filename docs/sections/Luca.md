@@ -90,6 +90,7 @@ classDiagram
 
   %% Data class
   class CityImplData {
+      <<private case class>>
     -name: String
     -size: Int
     -owner: Owner
@@ -98,10 +99,10 @@ classDiagram
   }
 
   %% Relationships
-  CityImpl --> CityInterface
+  CityImpl --> CityInterface: contains
   CityImplData ..|> CityInterface : implements
-  CityImplData --> Owner
-
+  CityImplData --> Owner: uses
+  CityImpl --> CityImplData: contains 
 ```
 
 ## `WorldMapModule`
@@ -294,7 +295,7 @@ GameStateImpl --> WorldState: GameStateImpl
 GameController --> WorldState : uses
 GameController --> CLIView : renders
 GameController --> InputHandler : processes input
-GameController --> State : functional model
+GameController --> State :  uses
 WorldState --> PlayerAI: uses
 WorldState --> PlayerHuman: uses
 WorldState --> WorldMap: uses
