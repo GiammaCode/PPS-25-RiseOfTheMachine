@@ -55,16 +55,7 @@ object ViewModule:
    * CLIView is the command-line implementation of GameView.
    * It renders all game content to the terminal and handles user input via StdIn.
    */
-  object CLIView extends GameView with Formatter:
-    override def printBoxedContent(title: String, body: List[String]): Unit =
-      CLIFormatter.printBoxedContent(title, body)
-    override def printBoxedMenu(title: String, options: List[String]): Unit =
-      CLIFormatter.printBoxedMenu(title, options)
-    override def printAsciiTitle(text: String): Unit =
-      CLIFormatter.printAsciiTitle(text)
-    override def printMap(map: WorldMap, conquered: Set[String]): Unit =
-      CLIFormatter.printMap(map, conquered)
-
+  object CLIView extends GameView with CLIFormatter:
     /**
      * Prompts the player to choose the game mode, then (if Singleplayer)
      * also requests the difficulty level.
