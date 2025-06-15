@@ -149,21 +149,13 @@ object GameController:
    * Extension methods for the opaque [[GameState]] type.
    */
   extension (gs: GameState)
-
-    /**
-     * Retrieves the current world state.
-     *
-     * @return the internal [[WorldState]]
-     */
-    def worldState: WorldState = gs.worldState
-
     /**
      * Checks if the game is over and renders the endgame screen if so.
      *
      * @return true if the game is over, false otherwise
      */
     def isGameOver: Boolean =
-      val (gameOver, winner) = worldState.isGameOver
+      val (gameOver, winner) = gs.worldState.isGameOver
       import view.ViewModule.CLIView
       if gameOver then CLIView.renderEndGame(winner.get)
       gameOver
